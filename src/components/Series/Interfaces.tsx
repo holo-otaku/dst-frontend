@@ -11,6 +11,10 @@ export interface SeriesData {
   name: string;
 }
 
+export interface SeriesDetail extends SeriesData {
+  fields: SeriesField[];
+}
+
 export interface SeriesField {
   name: string;
   dataType: SeriesFieldDataType;

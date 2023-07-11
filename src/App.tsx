@@ -5,6 +5,7 @@ import Login from "./components/Login/Login";
 import Series, {
   Management,
   Create as SeriesCreate,
+  Edit as SeriesEdit,
 } from "./components/Series";
 import { AuthContext } from "./context";
 import axios from "axios";
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="series" element={<Series />}>
           <Route index element={<Management />} />
           <Route path="create" element={<SeriesCreate />} />
+          <Route path=":id/edit" element={<SeriesEdit />} />
         </Route>
         <Route path="dashboard" element={<Dashboard />} />
 

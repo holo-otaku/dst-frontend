@@ -11,18 +11,29 @@ export const Management = () => {
     url: "/series",
     method: "GET",
   });
+  const [{ data: deleteResponse, loading: deleteLoading }, deleteSeries] = useAxios<void>({
+    method: "DELETE",
+  });
 
   useEffect(() => {
     void refetch();
-  }, [refetch]);
+  }, [refetch, deleteResponse]);
+
+  const handleDelete = (id: number) => {
+    void deleteSeries({
+      url: `/series/${id}`,
+    });
+  };
+
+  const pageLoading = loading || deleteLoading;
 
   return (
     <>
-      <Backdrop show={loading}>
+      <Backdrop show={pageLoading}>
         <RingLoader color="#36d7b7" />
       </Backdrop>
       <Controls />
-      {data && <SeriesTable data={data.data} />}
+      {data && <SeriesTable data={data.data} handleDelete={handleDelete} />}
     </>
   );
 };

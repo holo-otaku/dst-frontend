@@ -16,3 +16,4 @@ const Series = () => {
 export default Series;
 export { Management };
 export { Create } from "./Create";
+export { Edit } from "./Edit";
