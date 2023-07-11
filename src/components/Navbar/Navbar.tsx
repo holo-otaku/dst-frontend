@@ -1,11 +1,20 @@
-import { Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
+import {
+  Container,
+  Nav,
+  Navbar,
+  NavDropdown,
+  OverlayTrigger,
+  Tooltip,
+} from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { FaMoon, FaSun } from "react-icons/fa";
 import { useContext } from "react";
-import { ColorModeContext } from "../../context";
+import { AuthContext, ColorModeContext } from "../../context";
+import { MdLogout } from "react-icons/md";
 
 const MyNavbar: React.FC = () => {
   const { colorMode, toggleColorMode } = useContext(ColorModeContext);
+  const { logout } = useContext(AuthContext);
 
   return (
     <Navbar collapseOnSelect expand="lg" bg="body-tertiary">
@@ -32,9 +41,19 @@ const MyNavbar: React.FC = () => {
             </NavDropdown>
           </Nav>
           <Nav>
-            <Nav.Link onClick={toggleColorMode}>
+            <Nav.Link onClick={toggleColorMode} className="mx-2">
               {colorMode === "light" ? <FaMoon /> : <FaSun />}
             </Nav.Link>
+          </Nav>
+          <Nav>
+            <OverlayTrigger
+              placement="bottom"
+              overlay={<Tooltip>登出</Tooltip>}
+            >
+              <Nav.Link onClick={() => logout()}>
+                <MdLogout />
+              </Nav.Link>
+            </OverlayTrigger>
           </Nav>
         </Navbar.Collapse>
       </Container>

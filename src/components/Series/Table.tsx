@@ -2,7 +2,6 @@ import { Table, Button } from "react-bootstrap";
 import { SeriesData } from "./Interfaces";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
-import useAxios from "axios-hooks";
 
 interface SeriesTableProps {
   data: SeriesData[];

@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
 import Login from "./components/Login/Login";
 import Series, {
@@ -12,15 +12,16 @@ import axios from "axios";
 
 const App = () => {
   const { accessToken, isAuthenticated } = useContext(AuthContext);
-
-  // 在這裡設定 axios 的預設值
-  axios.defaults.baseURL = "http://localhost:5000";
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated()) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      axios.defaults.headers.common["Authorization"] = null;
+      navigate("/login");
     }
-  }, [accessToken, isAuthenticated]);
+  }, [accessToken, isAuthenticated, navigate]);
 
   return (
     <Routes>

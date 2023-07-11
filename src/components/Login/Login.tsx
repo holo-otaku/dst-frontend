@@ -1,7 +1,7 @@
-import { Container, Form, Button } from "react-bootstrap";
+import { Container, Form, Button, Collapse } from "react-bootstrap";
 import useAxios from "axios-hooks";
-import { useContext, useRef, useEffect } from "react";
-import { AuthContext } from "../../context";
+import { useContext, useRef, useEffect, useState } from "react";
+import { AuthContext, ServerContext } from "../../context";
 import { get } from "lodash";
 import Backdrop from "../Backdrop/Backdrop";
 import { DotLoader } from "react-spinners";
@@ -39,9 +39,11 @@ const Login: React.FC = () => {
     { manual: true }
   );
   const { login, isAuthenticated } = useContext(AuthContext);
+  const { setHost, isHealth } = useContext(ServerContext);
 
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const [server, setServer] = useState("");
 
   const handleLogin = () => {
     if (usernameRef.current && passwordRef.current) {
@@ -50,12 +52,9 @@ const Login: React.FC = () => {
         password: get(passwordRef, "current.value", ""),
       };
 
-      doLogin({
+      void doLogin({
         data: requestData,
-      }).then(
-        () => undefined,
-        () => undefined
-      );
+      });
     }
   };
 
@@ -72,6 +71,8 @@ const Login: React.FC = () => {
     }
   }, [isAuthenticated]);
 
+  const pageLoading = loading;
+
   return (
     <Container
       className="d-flex flex-column align-items-center justify-content-center"
@@ -79,35 +80,49 @@ const Login: React.FC = () => {
     >
       <h1>DST System</h1>
 
-      {loading && (
-        <Backdrop show={true}>
-          <DotLoader color="#36d7b7" />
-        </Backdrop>
-      )}
+      <Backdrop show={pageLoading}>
+        <DotLoader color="#36d7b7" />
+      </Backdrop>
 
-      <Form>
-        <Form.Group className="mb-3" controlId="formUsername">
-          <Form.Label>Username</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Enter username"
-            ref={usernameRef}
-          />
-        </Form.Group>
+      <Collapse in={!isHealth}>
+        <Form>
+          <Form.Group>
+            <Form.Label>伺服器網域/IP</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="localhost:5000"
+              value={server}
+              onChange={(e) => setServer(e.target.value)}
+            />
+          </Form.Group>
+          <Button
+            variant="primary"
+            className="mt-1"
+            disabled={server === ""}
+            onClick={() => setHost(server)}
+          >
+            Link Start
+          </Button>
+        </Form>
+      </Collapse>
 
-        <Form.Group className="mb-3" controlId="formPassword">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Enter password"
-            ref={passwordRef}
-          />
-        </Form.Group>
+      <Collapse in={isHealth}>
+        <Form>
+          <Form.Group className="mb-3" controlId="formUsername">
+            <Form.Label>使用者名稱</Form.Label>
+            <Form.Control type="text" ref={usernameRef} />
+          </Form.Group>
 
-        <Button variant="primary" onClick={handleLogin}>
-          Log in
-        </Button>
-      </Form>
+          <Form.Group className="mb-3" controlId="formPassword">
+            <Form.Label>密碼</Form.Label>
+            <Form.Control type="password" ref={passwordRef} />
+          </Form.Group>
+
+          <Button variant="primary" onClick={handleLogin}>
+            登入
+          </Button>
+        </Form>
+      </Collapse>
     </Container>
   );
 };
