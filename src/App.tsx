@@ -1,35 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useContext, useEffect } from "react";
+import { Routes, Route, Outlet } from "react-router-dom";
+import Navbar from "./components/Navbar/Navbar";
+import Login from "./components/Login/Login";
+import Series, {
+  Management,
+  Create as SeriesCreate,
+} from "./components/Series";
+import { AuthContext } from "./context";
+import axios from "axios";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const { accessToken, isAuthenticated } = useContext(AuthContext);
+
+  // 在這裡設定 axios 的預設值
+  axios.defaults.baseURL = "http://localhost:5000";
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+    }
+  }, [accessToken, isAuthenticated]);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="series" element={<Series />}>
+          <Route index element={<Management />} />
+          <Route path="create" element={<SeriesCreate />} />
+        </Route>
+        <Route path="dashboard" element={<Dashboard />} />
 
-export default App
+        {/* Using path="*"" means "match anything", so this route
+                acts like a catch-all for URLs that we don't have explicit
+                routes for. */}
+        <Route path="*" element={<NoMatch />} />
+      </Route>
+      <Route path="login" element={<Login />} />
+    </Routes>
+  );
+};
+
+const Layout = () => (
+  <>
+    <Navbar />
+    <Outlet />
+  </>
+);
+
+const Home = () => <h1>Home</h1>;
+
+const Dashboard = () => <h1>Dashboard</h1>;
+
+const NoMatch = () => <h1>404 Not Found</h1>;
+
+export default App;
