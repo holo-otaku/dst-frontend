@@ -3,11 +3,6 @@ import useAxios from "axios-hooks";
 import { get } from "lodash";
 import axios from "axios";
 
-interface HealthResponse {
-  code: number;
-  msg: string;
-}
-
 interface ServerContextProps {
   host: string;
   isHealth: boolean;
@@ -26,7 +21,7 @@ interface ServerProviderProps {
 
 export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
   const [host, setHost] = useState("");
-  const [{ data }, healthCheck] = useAxios<HealthResponse, void>(
+  const [{ data }, healthCheck] = useAxios<APIResponse, void>(
     {
       url: "/health",
       method: "GET",
@@ -37,7 +32,6 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
   );
 
   useEffect(() => {
-    console.log("host", host);
     if (host === "") return;
 
     axios.defaults.baseURL = host;
@@ -49,6 +43,7 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
     const server = localStorage.getItem("server");
     if (server) {
       setHost(server);
+      console.log("set host");
     }
   }, []);
 

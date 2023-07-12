@@ -1,28 +1,28 @@
-import { useEffect } from "react";
 import { SeriesTable } from "./Table";
 import { Controls } from "./Controls";
 import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
-import { SeriesMutliResponse } from "./Interfaces";
+import { SeriesResponse } from "./Interfaces";
 
 export const Management = () => {
-  const [{ data, loading }, refetch] = useAxios<SeriesMutliResponse>({
+  const [{ data, loading }, refetch] = useAxios<SeriesResponse>({
     url: "/series",
     method: "GET",
   });
-  const [{ data: deleteResponse, loading: deleteLoading }, deleteSeries] = useAxios<void>({
-    method: "DELETE",
-  });
-
-  useEffect(() => {
-    void refetch();
-  }, [refetch, deleteResponse]);
+  const [{ loading: deleteLoading }, deleteSeries] = useAxios<void>(
+    {
+      method: "DELETE",
+    },
+    {
+      manual: true,
+    }
+  );
 
   const handleDelete = (id: number) => {
     void deleteSeries({
       url: `/series/${id}`,
-    });
+    }).then(() => refetch());
   };
 
   const pageLoading = loading || deleteLoading;

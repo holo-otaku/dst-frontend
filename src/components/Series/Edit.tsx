@@ -15,14 +15,7 @@ import Backdrop from "../Backdrop/Backdrop";
 import { ScaleLoader } from "react-spinners";
 import { useNavigate, useParams } from "react-router-dom";
 
-interface EditResponse {
-  code: number;
-  msg: string;
-}
-
-interface DetailResponse {
-  code: number;
-  msg: string;
+interface DetailResponse extends APIResponse {
   data: SeriesDetail;
 }
 
@@ -51,7 +44,7 @@ export const Edit = () => {
   ]);
   const [name, setName] = useState("");
   const [{ data: editResponse, loading: editLoading }, editSeries] = useAxios<
-    EditResponse,
+    APIResponse,
     EditPayload
   >(
     {
@@ -82,7 +75,6 @@ export const Edit = () => {
     if (!detailResponse) return;
 
     const { name, fields } = detailResponse.data;
-    console.log(name, fields);
     setName(name);
     setFields(fields);
   }, [detailResponse]);

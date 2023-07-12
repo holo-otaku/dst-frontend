@@ -15,11 +15,6 @@ import Backdrop from "../Backdrop/Backdrop";
 import { ScaleLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
 
-interface CreateResponse {
-  code: number;
-  msg: string;
-}
-
 interface CreatePayload {
   name: string;
   fields: CreatePayloadField[];
@@ -44,7 +39,7 @@ export const Create = () => {
   ]);
   const [name, setName] = useState("");
   const [{ data: createResponse, loading: createLoading }, createSeries] =
-    useAxios<CreateResponse, CreatePayload>(
+    useAxios<APIResponse, CreatePayload>(
       {
         url: "/series",
         method: "POST",

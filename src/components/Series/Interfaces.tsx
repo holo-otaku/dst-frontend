@@ -1,7 +1,5 @@
-export interface SeriesMutliResponse {
-  code: number;
+export interface SeriesResponse extends APIResponse {
   data: SeriesData[];
-  msg: string;
 }
 
 export interface SeriesData {

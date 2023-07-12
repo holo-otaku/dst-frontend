@@ -1,4 +1,3 @@
-import { Management } from "./Management";
 import { Container, Stack } from "react-bootstrap";
 import { Outlet } from "react-router-dom";
 
@@ -14,6 +13,6 @@ const Series = () => {
 };
 
 export default Series;
-export { Management };
+export { Management } from "./Management";
 export { Create } from "./Create";
 export { Edit } from "./Edit";

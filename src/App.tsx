@@ -7,11 +7,15 @@ import Series, {
   Create as SeriesCreate,
   Edit as SeriesEdit,
 } from "./components/Series";
-import { AuthContext } from "./context";
+import { AuthContext, ServerContext } from "./context";
 import axios from "axios";
+import Product, { Search as ProductSearch } from "./components/Product";
+import Backdrop from "./components/Backdrop/Backdrop";
+import { BeatLoader } from "react-spinners";
 
 const App = () => {
   const { accessToken, isAuthenticated } = useContext(AuthContext);
+  const { isHealth } = useContext(ServerContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,6 +27,14 @@ const App = () => {
     }
   }, [accessToken, isAuthenticated, navigate]);
 
+  if (!isHealth) {
+    return (
+      <Backdrop show={true}>
+        <BeatLoader color="#36d7b7" />
+      </Backdrop>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
@@ -32,7 +44,9 @@ const App = () => {
           <Route path="create" element={<SeriesCreate />} />
           <Route path=":id/edit" element={<SeriesEdit />} />
         </Route>
-        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="products" element={<Product />}>
+          <Route index element={<ProductSearch />} />
+        </Route>
 
         {/* Using path="*"" means "match anything", so this route
                 acts like a catch-all for URLs that we don't have explicit
