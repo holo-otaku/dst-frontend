@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import SeriesForm from "./Form";
-import { SeriesDetail, SeriesField, SeriesFieldDataType } from "./Interfaces";
+import {
+  SeriesDetailResponse,
+  SeriesField,
+  SeriesFieldDataType,
+} from "./Interfaces";
 import {
   Stack,
   Button,
@@ -14,10 +18,6 @@ import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import { ScaleLoader } from "react-spinners";
 import { useNavigate, useParams } from "react-router-dom";
-
-interface DetailResponse extends APIResponse {
-  data: SeriesDetail;
-}
 
 interface EditPayload {
   name: string;
@@ -55,7 +55,7 @@ export const Edit = () => {
     }
   );
   const [{ data: detailResponse, loading: detailLoading }, getDetail] =
-    useAxios<DetailResponse>(
+    useAxios<SeriesDetailResponse>(
       {
         method: "GET",
       },

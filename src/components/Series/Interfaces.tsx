@@ -2,6 +2,10 @@ export interface SeriesResponse extends APIResponse {
   data: SeriesData[];
 }
 
+export interface SeriesDetailResponse extends APIResponse {
+  data: SeriesDetail;
+}
+
 export interface SeriesData {
   createdAt: Date;
   createdBy: string;

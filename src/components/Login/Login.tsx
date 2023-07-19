@@ -39,13 +39,15 @@ const Login: React.FC = () => {
     { manual: true }
   );
   const { login, isAuthenticated } = useContext(AuthContext);
-  const { setHost, isHealth } = useContext(ServerContext);
+  const { setHost, isHealth, healthChecking } = useContext(ServerContext);
 
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const [server, setServer] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
     if (usernameRef.current && passwordRef.current) {
       const requestData: LoginRequest = {
         username: get(usernameRef, "current.value", ""),
@@ -71,7 +73,11 @@ const Login: React.FC = () => {
     }
   }, [isAuthenticated]);
 
-  const pageLoading = loading;
+  useEffect(() => {
+    usernameRef.current?.focus();
+  }, [isHealth]);
+
+  const pageLoading = loading || healthChecking;
 
   return (
     <Container
@@ -99,7 +105,11 @@ const Login: React.FC = () => {
             variant="primary"
             className="mt-1"
             disabled={server === ""}
-            onClick={() => setHost(server)}
+            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+              setHost(server);
+            }}
           >
             Link Start
           </Button>
@@ -118,7 +128,7 @@ const Login: React.FC = () => {
             <Form.Control type="password" ref={passwordRef} />
           </Form.Group>
 
-          <Button variant="primary" onClick={handleLogin}>
+          <Button variant="primary" type="submit" onClick={handleLogin}>
             登入
           </Button>
         </Form>
