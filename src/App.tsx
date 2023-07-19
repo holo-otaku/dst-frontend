@@ -15,7 +15,7 @@ import { BeatLoader } from "react-spinners";
 
 const App = () => {
   const { accessToken, isAuthenticated } = useContext(AuthContext);
-  const { isHealth } = useContext(ServerContext);
+  const { healthChecking } = useContext(ServerContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const App = () => {
     }
   }, [accessToken, isAuthenticated, navigate]);
 
-  if (!isHealth) {
+  if (healthChecking) {
     return (
       <Backdrop show={true}>
         <BeatLoader color="#36d7b7" />
@@ -66,8 +66,6 @@ const Layout = () => (
 );
 
 const Home = () => <h1>Home</h1>;
-
-const Dashboard = () => <h1>Dashboard</h1>;
 
 const NoMatch = () => <h1>404 Not Found</h1>;
 
