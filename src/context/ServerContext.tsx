@@ -6,12 +6,14 @@ import axios from "axios";
 interface ServerContextProps {
   host: string;
   isHealth: boolean;
+  healthChecking: boolean;
   setHost: (host: string) => void;
 }
 
 export const ServerContext = createContext<ServerContextProps>({
   host: "",
   isHealth: false,
+  healthChecking: false,
   setHost: () => {},
 });
 
@@ -20,8 +22,12 @@ interface ServerProviderProps {
 }
 
 export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
-  const [host, setHost] = useState("");
-  const [{ data }, healthCheck] = useAxios<APIResponse, void>(
+  const server = localStorage.getItem("server");
+  const [host, setHost] = useState(server || "");
+  const [{ data, loading: healthChecking }, healthCheck] = useAxios<
+    APIResponse,
+    void
+  >(
     {
       url: "/health",
       method: "GET",
@@ -37,15 +43,9 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
     axios.defaults.baseURL = host;
     localStorage.setItem("server", host);
     void healthCheck();
-  }, [host, healthCheck]);
 
-  useEffect(() => {
-    const server = localStorage.getItem("server");
-    if (server) {
-      setHost(server);
-      console.log("set host");
-    }
-  }, []);
+    return () => {};
+  }, [host, healthCheck]);
 
   useEffect(() => {
     if (!data) return;
@@ -54,6 +54,8 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
       localStorage.removeItem("server");
       setHost("");
     }
+
+    return () => {};
   }, [data]);
 
   const handleSetHost = (server: string) => {
@@ -68,6 +70,7 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
       value={{
         host,
         isHealth,
+        healthChecking,
         setHost: handleSetHost,
       }}
     >
