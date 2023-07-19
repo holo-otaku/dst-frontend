@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { SeriesTable } from "./Table";
 import { Controls } from "./Controls";
 import useAxios from "axios-hooks";
@@ -6,10 +7,13 @@ import RingLoader from "react-spinners/RingLoader";
 import { SeriesResponse } from "./Interfaces";
 
 export const Management = () => {
-  const [{ data, loading }, refetch] = useAxios<SeriesResponse>({
-    url: "/series",
-    method: "GET",
-  });
+  const [{ data, loading }, refetch] = useAxios<SeriesResponse>(
+    {
+      url: "/series",
+      method: "GET",
+    },
+    { manual: true }
+  );
   const [{ loading: deleteLoading }, deleteSeries] = useAxios<void>(
     {
       method: "DELETE",
@@ -18,6 +22,11 @@ export const Management = () => {
       manual: true,
     }
   );
+
+  useEffect(() => {
+    void refetch();
+    return () => {};
+  }, [refetch]);
 
   const handleDelete = (id: number) => {
     void deleteSeries({
