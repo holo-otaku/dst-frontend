@@ -42,7 +42,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
       <thead>
         <tr>
           <th>#</th>
-          <th>名稱</th>
+          <th>欄位名稱</th>
           <th>資料類型</th>
           <th>篩選條件</th>
           <th>必填</th>
