@@ -73,7 +73,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
               >
                 <option value="string">字串</option>
                 <option value="number">數字</option>
-                <option value="date">日期</option>
+                <option value="datetime">日期</option>
                 <option value="boolean">布林值</option>
               </Form.Select>
             </td>

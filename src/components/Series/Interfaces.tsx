@@ -27,7 +27,7 @@ export interface SeriesField {
 export enum SeriesFieldDataType {
   string = "string",
   number = "number",
-  date = "date",
+  date = "datetime",
   boolean = "boolean",
 }
 
