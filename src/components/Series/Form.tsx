@@ -42,7 +42,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
       <thead>
         <tr>
           <th>#</th>
-          <th>名稱</th>
+          <th>欄位名稱</th>
           <th>資料類型</th>
           <th>篩選條件</th>
           <th>必填</th>
@@ -73,7 +73,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
               >
                 <option value="string">字串</option>
                 <option value="number">數字</option>
-                <option value="date">日期</option>
+                <option value="datetime">日期</option>
                 <option value="boolean">布林值</option>
               </Form.Select>
             </td>
