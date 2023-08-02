@@ -23,7 +23,7 @@ export interface SeriesField {
   dataType: SeriesFieldDataType;
   isFiltered: boolean;
   isRequired: boolean;
-  id: number
+  id?: number
 }
 
 export enum SeriesFieldDataType {

@@ -12,5 +12,7 @@ const Product = () => {
   );
 };
 
+export { Create } from "./Create";
+export { Edit } from "./Edit";
 export { Search } from "./Search";
 export default Product;
