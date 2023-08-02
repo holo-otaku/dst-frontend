@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.getItem("accessToken") || ""
   );
 
-  const [{ }, refresh] = useAxios<refreshResponse>(
+  const [, refresh] = useAxios<refreshResponse>(
     {
       url: "/jwt/refresh",
       method: "POST",
@@ -93,8 +93,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Call refreshToken immediately on component mount
-    refreshToken();
-  }, []);
+    void refreshToken();
+  });
 
   useEffect(() => {
     if (accessToken === "") {
