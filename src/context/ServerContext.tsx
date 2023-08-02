@@ -34,7 +34,7 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
     },
     {
       manual: true,
-    }
+    },
   );
 
   useEffect(() => {

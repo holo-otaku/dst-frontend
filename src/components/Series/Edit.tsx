@@ -52,7 +52,7 @@ export const Edit = () => {
     },
     {
       manual: true,
-    }
+    },
   );
   const [{ data: detailResponse, loading: detailLoading }, getDetail] =
     useAxios<SeriesDetailResponse>(
@@ -61,7 +61,7 @@ export const Edit = () => {
       },
       {
         manual: true,
-      }
+      },
     );
 
   useEffect(() => {

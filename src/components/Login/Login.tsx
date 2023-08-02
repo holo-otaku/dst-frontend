@@ -36,7 +36,7 @@ const Login: React.FC = () => {
         Accept: "application/json",
       },
     },
-    { manual: true }
+    { manual: true },
   );
   const { login, isAuthenticated } = useContext(AuthContext);
   const { setHost, isHealth, healthChecking } = useContext(ServerContext);
