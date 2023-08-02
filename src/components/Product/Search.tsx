@@ -39,7 +39,7 @@ interface BarProps {
 
 const Bar = ({ series }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(
-    get(series, "[0].id", 1)
+    get(series, "[0].id", 1),
   );
   const targetSeries = series.find((series) => series.id === selectedSeries);
   const fields = get(targetSeries, "fields", []);
@@ -88,11 +88,11 @@ const SearchBar = ({ fields }: SearchBarProps) => {
         switch (field.dataType) {
           case SeriesFieldDataType.number:
             return wrap(
-              <NumberFilter title={field.name} handleChange={() => {}} />
+              <NumberFilter title={field.name} handleChange={() => {}} />,
             );
           case SeriesFieldDataType.string:
             return wrap(
-              <StringFilter title={field.name} handleChange={() => {}} />
+              <StringFilter title={field.name} handleChange={() => {}} />,
             );
         }
       })}
@@ -123,7 +123,7 @@ const NumberFilter = ({ title, handleChange }: FilterProps) => {
   const [value, setValue] = useState<string>("");
 
   const handleOperatorChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     setOperator(event.currentTarget.value);
     handleChange(event.currentTarget.value, operator);

@@ -32,7 +32,7 @@ export const Create = () => {
       url: "/product",
       method: "POST",
     },
-    { manual: true }
+    { manual: true },
   );
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
   const [name, setName] = useState<string>("");
@@ -40,7 +40,7 @@ export const Create = () => {
 
   const handleInputChange = (fieldId: number, value: string) => {
     const index = attributes.findIndex(
-      (attribute) => attribute.fieldId === fieldId
+      (attribute) => attribute.fieldId === fieldId,
     );
     const fieldDetail = fields?.find((field) => field.id === fieldId);
     let parsedValue: string | number = value;

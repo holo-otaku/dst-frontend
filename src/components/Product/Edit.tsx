@@ -31,11 +31,11 @@ export const Edit = () => {
       url: "/product/edit",
       method: "PATCH",
     },
-    { manual: true }
+    { manual: true },
   );
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
   const [name, setName] = useState<string>(
-    get(productResponse, "data.name", "")
+    get(productResponse, "data.name", ""),
   );
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
 
@@ -50,7 +50,7 @@ export const Edit = () => {
 
   const handleInputChange = (fieldId: number, value: string) => {
     const index = attributes.findIndex(
-      (attribute) => attribute.fieldId === fieldId
+      (attribute) => attribute.fieldId === fieldId,
     );
     const fieldDetail = fields?.find((field) => field.id === fieldId);
     let parsedValue: string | number = value;
