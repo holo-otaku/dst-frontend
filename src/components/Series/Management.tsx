@@ -12,7 +12,7 @@ export const Management = () => {
       url: "/series",
       method: "GET",
     },
-    { manual: true }
+    { manual: true },
   );
   const [{ loading: deleteLoading }, deleteSeries] = useAxios<void>(
     {
@@ -20,7 +20,7 @@ export const Management = () => {
     },
     {
       manual: true,
-    }
+    },
   );
 
   useEffect(() => {

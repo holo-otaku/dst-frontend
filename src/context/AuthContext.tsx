@@ -1,7 +1,7 @@
 import { createContext, useState, ReactNode, useEffect } from "react";
 import useAxios from "axios-hooks";
 import { get } from "lodash";
-import moment from 'moment';
+import moment from "moment";
 
 export interface AuthContextProps {
   accessToken: string;
@@ -31,7 +31,7 @@ interface refreshResponse {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [accessToken, setAccessToken] = useState<string>(
-    localStorage.getItem("accessToken") || ""
+    localStorage.getItem("accessToken") || "",
   );
 
   const [, refresh] = useAxios<refreshResponse>(
@@ -42,18 +42,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         Accept: "application/json",
       },
     },
-    { manual: true }
+    { manual: true },
   );
 
   const refreshInterval = 5000; // set interval to wait for the next check, in milliseconds
   let timeoutId: number | null = null;
 
   const refreshToken = async () => {
-    if (accessToken === "")
-      return
+    if (accessToken === "") return;
     try {
       // Get the expiration time of the current token from the access token
-      const expirationTime = moment(parseInt(localStorage.getItem("accessTokenExpiration") || '') * 1000);
+      const expirationTime = moment(
+        parseInt(localStorage.getItem("accessTokenExpiration") || "") * 1000,
+      );
 
       // Calculate the time difference between now and the token's expiration time
       const timeDifference = expirationTime.diff(moment(), "minutes");
@@ -68,8 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else if (response.status === 401) {
           console.log("Token expired");
           logout();
-        }
-        else {
+        } else {
           console.log("Failed to refresh token");
         }
       }
@@ -88,8 +88,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [, encryPayload] = accessToken.split(".");
     const payload = JSON.parse(atob(encryPayload)) as Payload;
 
-    return payload
-  }
+    return payload;
+  };
 
   useEffect(() => {
     // Call refreshToken immediately on component mount
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
 
-    const payload = jwtDecode(accessToken)
+    const payload = jwtDecode(accessToken);
 
     if (payload.exp < Date.now() / 1000) {
       logout();
@@ -111,7 +111,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = (jwt: string) => {
     setAccessToken(jwt);
     localStorage.setItem("accessToken", jwt);
-    localStorage.setItem("accessTokenExpiration", jwtDecode(jwt).exp.toString());
+    localStorage.setItem(
+      "accessTokenExpiration",
+      jwtDecode(jwt).exp.toString(),
+    );
   };
 
   const logout = () => {

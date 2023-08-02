@@ -18,7 +18,7 @@ export const ColorModeProvider: React.FC<ColorModeProviderProps> = ({
   children,
 }) => {
   const [colorMode, setColorMode] = useState<string>(
-    localStorage.getItem("colorMode") || "light"
+    localStorage.getItem("colorMode") || "light",
   );
 
   const setHtmlThemeAttribute = (theme: string) => {

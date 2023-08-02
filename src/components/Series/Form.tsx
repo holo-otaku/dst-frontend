@@ -11,7 +11,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
   const handleEdit = (
     index: number,
     key: SeriesFieldKey,
-    value: string | boolean
+    value: string | boolean,
   ) => {
     const newFields = [...fields];
     switch (key) {

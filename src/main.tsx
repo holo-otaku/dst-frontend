@@ -17,5 +17,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </AuthProvider>
       </ColorModeProvider>
     </ServerProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

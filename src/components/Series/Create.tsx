@@ -46,7 +46,7 @@ export const Create = () => {
       },
       {
         manual: true,
-      }
+      },
     );
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export const Create = () => {
       data: payload,
     }).then(
       () => undefined,
-      () => undefined
+      () => undefined,
     );
   };
 
