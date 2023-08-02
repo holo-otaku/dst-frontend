@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Stack, InputGroup, Form, Row, Col } from "react-bootstrap";
+import { Stack, InputGroup, Form, Row, Col, Button } from "react-bootstrap";
 import useAxios from "axios-hooks";
 import {
   SeriesField,
@@ -34,15 +34,15 @@ export const Search = () => {
 };
 
 interface BarProps {
-  series: SeriesResponse["data"] | [];
+  series: SeriesResponse["data"];
 }
 
 const Bar = ({ series }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(
     get(series, "[0].id", 1)
   );
-  const fields =
-    series.find((series) => series.id === selectedSeries)?.fields || [];
+  const targetSeries = series.find((series) => series.id === selectedSeries);
+  const fields = get(targetSeries, "fields", []);
 
   const handleSelect = (event: React.FormEvent<HTMLOptionElement>) => {
     setSelectedSeries(parseInt(event.currentTarget.value));
@@ -61,7 +61,10 @@ const Bar = ({ series }: BarProps) => {
           </option>
         ))}
       </Form.Select>
-      <SearchBar fields={fields} />
+      <Form>
+        <SearchBar fields={fields} />
+        <ControlBar />
+      </Form>
     </Stack>
   );
 };
@@ -76,8 +79,9 @@ const SearchBar = ({ fields }: SearchBarProps) => {
   return (
     <Row className="g-2">
       {filterFields.map((field) => {
+        const id = get(field, "id", 0);
         const wrap = (children: React.ReactNode) => (
-          <Col key={field.id} xs={12} md={6} lg={3}>
+          <Col key={id} xs={12} md={6} lg={3}>
             {children}
           </Col>
         );
@@ -92,6 +96,19 @@ const SearchBar = ({ fields }: SearchBarProps) => {
             );
         }
       })}
+    </Row>
+  );
+};
+
+const ControlBar = () => {
+  return (
+    <Row className="g-2 my-2 justify-content-end">
+      <Col xs="auto">
+        <Button type="submit">搜尋</Button>
+      </Col>
+      <Col xs="auto">
+        <Button type="reset">清空</Button>
+      </Col>
     </Row>
   );
 };
