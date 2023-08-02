@@ -50,8 +50,8 @@ const getFormTypeByDataType = (dataType: SeriesFieldDataType) => {
       return "text";
     case "number":
       return "number";
-    case "date":
-      return "date";
+    case "datetime":
+      return "datetime";
     case "boolean":
       return "switch";
     default:
@@ -65,7 +65,7 @@ const getDataType = (dataType: SeriesFieldDataType) => {
       return "字串";
     case "number":
       return "數字";
-    case "date":
+    case "datetime":
       return "日期";
     case "boolean":
       return "布林值";
