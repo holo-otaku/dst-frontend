@@ -9,7 +9,11 @@ import Series, {
 } from "./components/Series";
 import { AuthContext, ServerContext } from "./context";
 import axios from "axios";
-import Product, { Search as ProductSearch } from "./components/Product";
+import Product, {
+  Search as ProductSearch,
+  Create as ProductCreate,
+  Edit as ProductEdit,
+} from "./components/Product";
 import Backdrop from "./components/Backdrop/Backdrop";
 import { BeatLoader } from "react-spinners";
 
@@ -46,6 +50,8 @@ const App = () => {
         </Route>
         <Route path="products" element={<Product />}>
           <Route index element={<ProductSearch />} />
+          <Route path="create" element={<ProductCreate />} />
+          <Route path=":id/edit" element={<ProductEdit />} />
         </Route>
 
         {/* Using path="*"" means "match anything", so this route

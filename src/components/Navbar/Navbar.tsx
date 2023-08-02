@@ -33,9 +33,14 @@ const MyNavbar: React.FC = () => {
                 新增
               </NavDropdown.Item>
             </NavDropdown>
-            <Nav.Link as={Link} to="/products">
-              產品
-            </Nav.Link>
+            <NavDropdown title="產品" id="collasible-nav-dropdown">
+              <NavDropdown.Item as={Link} to="/products">
+                查詢
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/products/create">
+                新增
+              </NavDropdown.Item>
+            </NavDropdown>
             <NavDropdown title="匯出" id="collasible-nav-dropdown">
               <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
             </NavDropdown>
