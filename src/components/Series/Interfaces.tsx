@@ -7,10 +7,11 @@ export interface SeriesDetailResponse extends APIResponse {
 }
 
 export interface SeriesData {
-  createdAt: Date;
-  createdBy: string;
   id: number;
   name: string;
+  fields?: SeriesField[];
+  createdAt: Date;
+  createdBy: string;
 }
 
 export interface SeriesDetail extends SeriesData {
@@ -22,6 +23,7 @@ export interface SeriesField {
   dataType: SeriesFieldDataType;
   isFiltered: boolean;
   isRequired: boolean;
+  id: number
 }
 
 export enum SeriesFieldDataType {
