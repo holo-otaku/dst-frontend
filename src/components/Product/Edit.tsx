@@ -141,7 +141,9 @@ export const Edit = () => {
           </Button>
         </Col>
         <Col xs="auto">
-          <Button variant="secondary" disabled={pageLoading}>
+          <Button variant="secondary"
+            onClick={() => { navigate("/products"); }}
+            disabled={pageLoading}>
             取消
           </Button>
         </Col>
