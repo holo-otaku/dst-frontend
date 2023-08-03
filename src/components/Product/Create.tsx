@@ -56,8 +56,7 @@ export const Create = () => {
         parsedValue = parseInt(value);
         break;
       case SeriesFieldDataType.boolean:
-        value != value;
-        parsedValue = value;
+        parsedValue = !!value;
         break;
       default:
         break;
