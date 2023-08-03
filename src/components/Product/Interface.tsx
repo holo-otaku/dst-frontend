@@ -1,6 +1,6 @@
 export interface ProductAttributePayload {
   fieldId: number;
-  value: string | number;
+  value: string | number | Boolean;
 }
 
 export interface ProductPayload {
