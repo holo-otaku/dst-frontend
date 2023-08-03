@@ -38,7 +38,7 @@ export const Create = () => {
 
   useEffect(() => {
     void refetch();
-    return () => { };
+    return () => {};
   }, [refetch]);
 
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
@@ -151,11 +151,13 @@ export const Create = () => {
           </Button>
         </Col>
         <Col xs="auto">
-          <Button variant="secondary"
+          <Button
+            variant="secondary"
             onClick={() => {
               navigate("/products");
             }}
-            disabled={pageLoading}>
+            disabled={pageLoading}
+          >
             取消
           </Button>
         </Col>
