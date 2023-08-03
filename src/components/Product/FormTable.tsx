@@ -1,13 +1,7 @@
 import { SeriesField, SeriesFieldDataType } from "../Series/Interfaces";
 import { Form, Table } from "react-bootstrap";
 import { ProductAttributePayload } from "./Interface";
-
-interface Field {
-  id: number;
-  name: string;
-  dataType: SeriesFieldDataType;
-  isRequired: boolean;
-}
+import moment from 'moment';
 
 interface FormTableProps {
   fields: SeriesField[];
@@ -42,7 +36,7 @@ const FormTable = ({
   );
 };
 
-const renderFormControl = (field: Field, {
+const renderFormControl = (field: SeriesField, {
   handleInputChange,
   attributes,
 }: FormTableProps) => {
@@ -63,7 +57,7 @@ const renderFormControl = (field: Field, {
     return (
       <Form.Control
         onChange={(e) => handleInputChange(field.id, e.target.value)}
-        value={fieldValue || ''}
+        value={fieldValue !== '' ? fieldValue : getTodayDate()} // Set the value to fieldValue or today's date
         type="date" // Use "date" to show only the date picker without time
         isInvalid={field.isRequired && fieldValue === ''}
       />
@@ -79,6 +73,10 @@ const renderFormControl = (field: Field, {
       isInvalid={field.isRequired && fieldValue === ''}
     />
   );
+};
+
+const getTodayDate = () => {
+  return moment().format('YYYY-MM-DD');
 };
 
 const getFormTypeByDataType = (dataType: SeriesFieldDataType) => {
