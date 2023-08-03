@@ -13,13 +13,13 @@ import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { get } from "lodash";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductAttributePayload, ProductPayload } from "./Interface";
 import { useNavigate } from "react-router-dom";
 
 export const Create = () => {
   const navigate = useNavigate();
-  const [{ data: seriesResponse, loading: seriesLoading }] =
+  const [{ data: seriesResponse, loading: seriesLoading }, refetch] =
     useAxios<SeriesResponse>({
       url: "/series",
       method: "GET",
@@ -27,6 +27,7 @@ export const Create = () => {
         showField: 1,
       },
     });
+
   const [{ loading: createProductLoading }, createProduct] = useAxios(
     {
       url: "/product",
@@ -34,19 +35,28 @@ export const Create = () => {
     },
     { manual: true },
   );
+
+  useEffect(() => {
+    void refetch();
+    return () => {};
+  }, [refetch]);
+
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
   const [name, setName] = useState<string>("");
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
 
-  const handleInputChange = (fieldId: number, value: string) => {
+  const handleInputChange = (fieldId: number, value: string | boolean) => {
     const index = attributes.findIndex(
       (attribute) => attribute.fieldId === fieldId,
     );
     const fieldDetail = fields?.find((field) => field.id === fieldId);
-    let parsedValue: string | number = value;
+    let parsedValue: string | number | boolean = value;
     switch (fieldDetail?.dataType) {
       case SeriesFieldDataType.number:
         parsedValue = parseInt(value);
+        break;
+      case SeriesFieldDataType.boolean:
+        parsedValue = !!value;
         break;
       default:
         break;
@@ -141,7 +151,13 @@ export const Create = () => {
           </Button>
         </Col>
         <Col xs="auto">
-          <Button variant="secondary" disabled={pageLoading}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              navigate("/products");
+            }}
+            disabled={pageLoading}
+          >
             取消
           </Button>
         </Col>
