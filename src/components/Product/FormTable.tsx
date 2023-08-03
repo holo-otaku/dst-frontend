@@ -12,7 +12,7 @@ interface Field {
 interface FormTableProps {
   fields: SeriesField[];
   attributes: ProductAttributePayload[];
-  handleInputChange: (fieldId: number, value: string | Boolean) => void;
+  handleInputChange: (fieldId: number, value: string | boolean) => void;
 }
 
 const FormTable = ({
@@ -20,42 +20,6 @@ const FormTable = ({
   handleInputChange,
   attributes,
 }: FormTableProps) => {
-  const renderFormControl = (field: Field) => {
-    const dataType = getFormTypeByDataType(field.dataType);
-    const fieldValue = attributes.find((attr) => attr.fieldId === field.id)?.value || '';
-    if (dataType === 'switch') {
-      return (
-        <Form.Check
-          type="switch"
-          id={`switch-${field.id}`}
-          label={field.name}
-          onChange={(e) => handleInputChange(field.id, e.target.checked)}
-          checked={fieldValue === true}
-          isInvalid={field.isRequired && fieldValue === ''}
-        />
-      );
-    } else if (dataType === 'datetime') {
-      return (
-        <Form.Control
-          onChange={(e) => handleInputChange(field.id, e.target.value)}
-          value={fieldValue || ''}
-          type="date" // Use "date" to show only the date picker without time
-          isInvalid={field.isRequired && fieldValue === ''}
-        />
-      );
-    }
-
-    // Default to a text input for other data types
-    return (
-      <Form.Control
-        onChange={(e) => handleInputChange(field.id, e.target.value)}
-        value={fieldValue || ''}
-        type={dataType}
-        isInvalid={field.isRequired && fieldValue === ''}
-      />
-    );
-  };
-
   return (
     <Table striped bordered hover>
       <thead>
@@ -70,11 +34,50 @@ const FormTable = ({
           <tr key={field.id}>
             <td>{field.name}</td>
             <td>{getDataType(field.dataType)}</td>
-            <td>{renderFormControl(field)}</td>
+            <td>{renderFormControl(field, { handleInputChange, attributes })}</td>
           </tr>
         ))}
       </tbody>
     </Table>
+  );
+};
+
+const renderFormControl = (field: Field, {
+  handleInputChange,
+  attributes,
+}: FormTableProps) => {
+  const dataType = getFormTypeByDataType(field.dataType);
+  const fieldValue = attributes.find((attr) => attr.fieldId === field.id)?.value || '';
+  if (dataType === 'switch') {
+    return (
+      <Form.Check
+        type="switch"
+        id={`switch-${field.id}`}
+        label={field.name}
+        onChange={(e) => handleInputChange(field.id, e.target.checked)}
+        checked={fieldValue === true}
+        isInvalid={field.isRequired && fieldValue === ''}
+      />
+    );
+  } else if (dataType === 'datetime') {
+    return (
+      <Form.Control
+        onChange={(e) => handleInputChange(field.id, e.target.value)}
+        value={fieldValue || ''}
+        type="date" // Use "date" to show only the date picker without time
+        isInvalid={field.isRequired && fieldValue === ''}
+      />
+    );
+  }
+
+  // Default to a text input for other data types
+  return (
+    <Form.Control
+      onChange={(e) => handleInputChange(field.id, e.target.value)}
+      value={fieldValue || ''}
+      type={dataType}
+      isInvalid={field.isRequired && fieldValue === ''}
+    />
   );
 };
 

@@ -50,7 +50,7 @@ export const Create = () => {
       (attribute) => attribute.fieldId === fieldId,
     );
     const fieldDetail = fields?.find((field) => field.id === fieldId);
-    let parsedValue: string | number | Boolean = value;
+    let parsedValue: string | number | boolean = value;
     switch (fieldDetail?.dataType) {
       case SeriesFieldDataType.number:
         parsedValue = parseInt(value);
