@@ -16,7 +16,7 @@ export interface ProductData {
   attributes: ProductAttributePayload[];
 }
 
-export interface ProductDetailResponse extends APIResponse {
+export interface ProductDetailResponse {
   data: ProductData;
 }
 
