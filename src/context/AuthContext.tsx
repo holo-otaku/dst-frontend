@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     { manual: true },
   );
 
-  const refreshInterval = 5000; // set interval to wait for the next check, in milliseconds
+  const refreshInterval = 60000; // set interval to wait for the next check, in milliseconds
   let timeoutId: number | null = null;
 
   const refreshToken = async () => {
@@ -58,6 +58,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Calculate the time difference between now and the token's expiration time
       const timeDifference = expirationTime.diff(moment(), "minutes");
+
+      // Token expire logout
+      if (timeDifference <= 0) {
+        logout();
+      }
 
       // If the token will expire within 5 minutes, refresh the token
       if (timeDifference <= 5) {
