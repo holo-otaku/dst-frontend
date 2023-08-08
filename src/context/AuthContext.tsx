@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 
   const refreshInterval = 60000; // set interval to wait for the next check, in milliseconds
-  let timeoutId: number | null = null;
+  let timeoutId: NodeJS.Timeout | null = null;
 
   const refreshToken = async () => {
     if (accessToken === "") return;
@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      timeoutId = setTimeout(refreshToken, refreshInterval);
+      timeoutId = setTimeout(() => void refreshToken, refreshInterval);
     }
   };
 
