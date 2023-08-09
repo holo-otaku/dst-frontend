@@ -34,13 +34,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.getItem("accessToken") || "",
   );
 
-  const [, refresh] = useAxios<refreshResponse>(
+  const [{ loading: refreshLoading }, refresh] = useAxios<refreshResponse>(
     {
       url: "/jwt/refresh",
       method: "POST",
-      headers: {
-        Accept: "application/json",
-      },
     },
     { manual: true },
   );
@@ -50,6 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshToken = async () => {
     if (accessToken === "") return;
+    if (refreshLoading) return;
     try {
       // Get the expiration time of the current token from the access token
       const expirationTime = moment(
@@ -76,16 +74,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           logout();
         } else {
           console.log("Failed to refresh token");
+          logout();
         }
       }
     } catch (error) {
       console.error("An error occurred while refreshing the token", error);
+      logout();
     } finally {
       // Only schedule the next refresh if the previous one was successful
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      timeoutId = setTimeout(() => void refreshToken, refreshInterval);
+      timeoutId = setTimeout(() => void refreshToken(), refreshInterval);
     }
   };
 
