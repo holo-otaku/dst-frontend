@@ -1,27 +1,27 @@
 export interface RoleResponse extends APIResponse {
-    data: RoleData[];
+  data: RoleData[];
 }
 
 export interface RoleData {
-    id: number;
-    name: string;
-    permissions: PermissionData[];
+  id: number;
+  name: string;
+  permissions: PermissionData[];
 }
 
 export interface PermissionData {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
 }
 
 export interface PermissionResponse {
-    data: PermissionData[];
+  data: PermissionData[];
 }
 
 export interface CreateRolePayload {
-    roleName: string;
-    permissionIds: number[];
+  roleName: string;
+  permissionIds: number[];
 }
 
 export interface RoleDetailResponse extends APIResponse {
-    data: RoleData;
+  data: RoleData;
 }
