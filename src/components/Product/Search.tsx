@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Stack, InputGroup, Form, Row, Col, Button } from "react-bootstrap";
 import useAxios, { RefetchFunction } from "axios-hooks";
 import {
@@ -14,6 +14,7 @@ import {
   ProductSearchPayloadOperation,
   ProductSearchResponse,
 } from "./Interface";
+import ProductTable from "./ProductTable";
 
 export const Search = () => {
   const [{ data: seriesResponse, loading: seriesLoading }] =
@@ -27,7 +28,7 @@ export const Search = () => {
   const [
     { data: productSearchResponse, loading: productSearchLoading },
     searchProduct,
-  ] = useAxios<ProductSearchResponse, ProductSearchPayloadField[]>(
+  ] = useAxios<ProductSearchResponse, ProductSearchPayloadField>(
     {
       url: "/product/search",
       method: "POST",
@@ -37,9 +38,19 @@ export const Search = () => {
     },
   );
 
-  const pageLoading = seriesLoading || productSearchLoading;
+  useEffect(() => {
+    if (!seriesResponse) return;
+    const seriesId = seriesResponse.data[0].id;
+    const payload: ProductSearchPayloadField = {
+      seriesId: seriesId,
+      filters: [],
+    };
+    void searchProduct({
+      data: payload,
+    });
+  }, [seriesResponse, searchProduct]);
 
-  console.log(productSearchResponse);
+  const pageLoading = seriesLoading || productSearchLoading;
 
   return (
     <Stack>
@@ -51,6 +62,7 @@ export const Search = () => {
         searchProduct={searchProduct}
       />
       <hr />
+      <ProductTable products={get(productSearchResponse, "data", [])} />
     </Stack>
   );
 };
@@ -58,7 +70,7 @@ export const Search = () => {
 interface BarProps {
   series: SeriesResponse["data"];
   searchProduct: RefetchFunction<
-    ProductSearchPayloadField[],
+    ProductSearchPayloadField,
     ProductSearchResponse
   >;
 }
@@ -67,9 +79,20 @@ const Bar = ({ series, searchProduct }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(
     get(series, "[0].id", 1),
   );
+
   const [searchFields, setSearchFields] = useState<ProductSearchPayloadField[]>(
     [],
   );
+
+  useEffect(() => {
+    void searchProduct({
+      data: {
+        seriesId: selectedSeries,
+        filters: [],
+      },
+    });
+  }, [selectedSeries, searchProduct]);
+
   const handleInput = (data: ProductSearchPayloadField) => {
     const { fieldId, value, operation } = data;
     let isNewField = true;
@@ -95,8 +118,8 @@ const Bar = ({ series, searchProduct }: BarProps) => {
   const targetSeries = series.find((series) => series.id === selectedSeries);
   const fields = get(targetSeries, "fields", []);
 
-  const handleSelect = (event: React.FormEvent<HTMLOptionElement>) => {
-    setSelectedSeries(parseInt(event.currentTarget.value));
+  const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedSeries(parseInt(event.target.value));
   };
 
   const handleClear = () => {
@@ -105,13 +128,9 @@ const Bar = ({ series, searchProduct }: BarProps) => {
 
   return (
     <Stack gap={2}>
-      <Form.Select>
+      <Form.Select onChange={(e) => handleSelect(e)}>
         {series.map((series) => (
-          <option
-            key={series.id}
-            value={selectedSeries}
-            onChange={(e) => handleSelect(e)}
-          >
+          <option key={series.id} value={series.id}>
             {series.name}
           </option>
         ))}
