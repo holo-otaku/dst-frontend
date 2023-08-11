@@ -25,6 +25,14 @@ const MyNavbar: React.FC = () => {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
+            <NavDropdown title="人員" id="collasible-nav-dropdown">
+              <NavDropdown.Item as={Link} to="/accounts">
+                查詢
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/accounts/create">
+                新增
+              </NavDropdown.Item>
+            </NavDropdown>
             <NavDropdown title="系列" id="collasible-nav-dropdown">
               <NavDropdown.Item as={Link} to="/series">
                 查詢

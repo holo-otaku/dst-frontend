@@ -14,6 +14,11 @@ import Product, {
   Create as ProductCreate,
   Edit as ProductEdit,
 } from "./components/Product";
+import Account, {
+  Search as AccountSearch,
+  Create as AccountCreate,
+  Edit as AccountEdit,
+} from "./components/Account";
 import Backdrop from "./components/Backdrop/Backdrop";
 import { BeatLoader } from "react-spinners";
 
@@ -52,6 +57,11 @@ const App = () => {
           <Route index element={<ProductSearch />} />
           <Route path="create" element={<ProductCreate />} />
           <Route path=":id/edit" element={<ProductEdit />} />
+        </Route>
+        <Route path="accounts" element={<Account />}>
+          <Route index element={<AccountSearch />} />
+          <Route path="create" element={<AccountCreate />} />
+          <Route path=":id/edit" element={<AccountEdit />} />
         </Route>
 
         {/* Using path="*"" means "match anything", so this route
