@@ -30,7 +30,7 @@ export const Search = () => {
   // Fetch user data when the component mounts
   useEffect(() => {
     void refetchAccounts();
-  }, []);
+  }, [refetchAccounts]);
 
   const handleDeleteAccount = (accountId: number) => {
     // Implement your logic to handle delete here

@@ -30,7 +30,7 @@ export const Search = () => {
   // Fetch user data when the component mounts
   useEffect(() => {
     void refetchRoles();
-  }, []);
+  }, [refetchRoles]);
 
   const handleDeleteRole = (roleId: number) => {
     // Implement your logic to handle delete here

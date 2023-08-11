@@ -71,7 +71,7 @@ export const Edit = () => {
 
   useEffect(() => {
     void refetchPermission();
-  }, []);
+  }, [refetchPermission]);
 
   // Populate the permissions state when the permissionResponse is available
   useEffect(() => {
