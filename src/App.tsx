@@ -19,6 +19,11 @@ import Account, {
   Create as AccountCreate,
   Edit as AccountEdit,
 } from "./components/Account";
+import Role, {
+  Search as RoleSearch,
+  Create as RoleCreate,
+  Edit as RoleEdit,
+} from "./components/Role";
 import Backdrop from "./components/Backdrop/Backdrop";
 import { BeatLoader } from "react-spinners";
 
@@ -63,7 +68,11 @@ const App = () => {
           <Route path="create" element={<AccountCreate />} />
           <Route path=":id/edit" element={<AccountEdit />} />
         </Route>
-
+        <Route path="roles" element={<Role />}>
+          <Route index element={<RoleSearch />} />
+          <Route path="create" element={<RoleCreate />} />
+          <Route path=":id/edit" element={<RoleEdit />} />
+        </Route>
         {/* Using path="*"" means "match anything", so this route
                 acts like a catch-all for URLs that we don't have explicit
                 routes for. */}

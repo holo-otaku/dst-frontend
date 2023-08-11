@@ -33,6 +33,14 @@ const MyNavbar: React.FC = () => {
                 新增
               </NavDropdown.Item>
             </NavDropdown>
+            <NavDropdown title="角色" id="collasible-nav-dropdown">
+              <NavDropdown.Item as={Link} to="/roles">
+                查詢
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/roles/create">
+                新增
+              </NavDropdown.Item>
+            </NavDropdown>
             <NavDropdown title="系列" id="collasible-nav-dropdown">
               <NavDropdown.Item as={Link} to="/series">
                 查詢
