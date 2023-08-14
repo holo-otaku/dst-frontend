@@ -1,4 +1,3 @@
-import React from "react";
 import { Table, Button } from "react-bootstrap";
 import { UserData } from "./Interfaces";
 import { useNavigate } from "react-router-dom";
@@ -8,15 +7,12 @@ interface AccountTableProps {
   onDeleteAccount: (accountId: number) => void;
 }
 
-const AccountTable: React.FC<AccountTableProps> = ({
-  accounts,
-  onDeleteAccount,
-}) => {
+const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
   const navigate = useNavigate();
 
   return (
     <div>
-      <h2>Account List</h2>
+      <h2>帳號列表</h2>
       <Table striped bordered hover>
         <thead>
           <tr>

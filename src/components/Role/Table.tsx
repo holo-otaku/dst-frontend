@@ -1,4 +1,3 @@
-import React from "react";
 import { Table, Button } from "react-bootstrap";
 import { RoleData } from "./Interfaces";
 import { useNavigate } from "react-router-dom";
@@ -8,12 +7,12 @@ interface RoleTableProps {
   onDeleteRole: (roleId: number) => void;
 }
 
-const RoleTable: React.FC<RoleTableProps> = ({ roles, onDeleteRole }) => {
+const RoleTable = ({ roles, onDeleteRole }: RoleTableProps) => {
   const navigate = useNavigate();
 
   return (
     <div>
-      <h2>Role List</h2>
+      <h2>角色列表</h2>
       <Table striped bordered hover>
         <thead>
           <tr>

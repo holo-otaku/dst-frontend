@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Stack, Button, Form, InputGroup } from "react-bootstrap";
 import useAxios from "axios-hooks";
 import { ScaleLoader } from "react-spinners";
@@ -43,9 +43,8 @@ export const Create = () => {
 
   // Populate the roles state when the roleResponse is available
   useEffect(() => {
-    if (roleResponse && roleResponse.data) {
-      setRoles(roleResponse.data);
-    }
+    if (!roleResponse) return;
+    setRoles(roleResponse.data);
   }, [roleResponse]);
 
   useEffect(() => {
@@ -57,25 +56,25 @@ export const Create = () => {
     navigate("/accounts");
   }, [createResponse, navigate]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const payload: CreateUserPayload = {
       username,
       password,
       roleId,
     };
-    createUser({
+    await createUser({
       data: payload,
-    }).then(
-      () => navigate("/accounts"), // Redirect to the users list page on success
-      () => undefined, // Handle error, you can add an error notification here
-    );
+    });
+
+    return navigate("/accounts");
   };
 
   const isValidPayload = username !== "" && password !== "" && roleId !== "";
+  const pageLoading = createLoading || roleLoading;
 
   return (
     <Stack gap={2}>
-      <Backdrop show={createLoading || roleLoading}>
+      <Backdrop show={pageLoading}>
         <ScaleLoader color="#36d7b7" />
       </Backdrop>
       <Stack direction="horizontal" gap={3}>
@@ -99,19 +98,18 @@ export const Create = () => {
       </Stack>
       <Stack direction="horizontal" gap={3}>
         <InputGroup>
-          <InputGroup.Text>Role</InputGroup.Text>
-          <Form.Control
-            as="select"
+          <InputGroup.Text>角色</InputGroup.Text>
+          <Form.Select
             value={roleId}
             onChange={(e) => setRoleId(e.target.value)}
           >
-            <option value="">Select Role</option>
+            <option value="">選擇角色</option>
             {roles.map((role) => (
               <option key={role.id} value={role.id.toString()}>
                 {role.name}
               </option>
             ))}
-          </Form.Control>
+          </Form.Select>
         </InputGroup>
       </Stack>
       <Stack direction="horizontal" gap={3} className="mt-3">
@@ -119,7 +117,7 @@ export const Create = () => {
         <Button
           variant="primary"
           disabled={!isValidPayload}
-          onClick={handleSubmit}
+          onClick={() => void handleSubmit()}
         >
           新增
         </Button>

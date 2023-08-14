@@ -8,13 +8,10 @@ import AccountTable from "./Table"; // Import the AccountTable component
 
 export const Search = () => {
   const [{ data: accountResponse, loading: accountLoading }, refetchAccounts] =
-    useAxios<AccountResponse>(
-      {
-        url: "/user",
-        method: "GET",
-      },
-      { manual: true },
-    );
+    useAxios<AccountResponse>({
+      url: "/user",
+      method: "GET",
+    });
 
   const [{ loading: deleteLoading }, deleteUser] = useAxios<void>(
     {
@@ -25,16 +22,14 @@ export const Search = () => {
     },
   );
 
-  const pageLoading = accountLoading;
-
-  // Fetch user data when the component mounts
   useEffect(() => {
     void refetchAccounts();
+    return () => {};
   }, [refetchAccounts]);
 
+  const pageLoading = accountLoading;
+
   const handleDeleteAccount = (accountId: number) => {
-    // Implement your logic to handle delete here
-    console.log("Delete account with ID:", accountId);
     void deleteUser({
       url: `/user/${accountId}`,
     }).then(() => refetchAccounts());
