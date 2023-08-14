@@ -27,6 +27,9 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
       case SeriesFieldKey.isRequired:
         newFields[index].isRequired = value as boolean;
         break;
+      case SeriesFieldKey.isErp:
+        newFields[index].isErp = value as boolean;
+        break;
     }
     setFields(newFields);
   };
@@ -46,6 +49,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
           <th>資料類型</th>
           <th>篩選條件</th>
           <th>必填</th>
+          <th>Erp欄位</th>
           <th>操作</th>
         </tr>
       </thead>
@@ -75,6 +79,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 <option value="number">數字</option>
                 <option value="datetime">日期</option>
                 <option value="boolean">布林值</option>
+                <option value="picture">圖片</option>
               </Form.Select>
             </td>
             <td className="align-middle text-center">
@@ -94,6 +99,16 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 checked={field.isRequired}
                 onChange={(e) =>
                   handleEdit(index, SeriesFieldKey.isRequired, e.target.checked)
+                }
+              />
+            </td>
+            <td className="align-middle text-center">
+              <Form.Check
+                type="switch"
+                className="fs-5"
+                checked={field.isErp}
+                onChange={(e) =>
+                  handleEdit(index, SeriesFieldKey.isErp, e.target.checked)
                 }
               />
             </td>

@@ -40,6 +40,7 @@ export const Edit = () => {
       dataType: SeriesFieldDataType.string,
       isFiltered: false,
       isRequired: false,
+      isErp: false,
     },
   ]);
   const [name, setName] = useState("");
@@ -91,6 +92,7 @@ export const Edit = () => {
       dataType: SeriesFieldDataType.string,
       isFiltered: false,
       isRequired: false,
+      isErp: false,
     });
     setFields(newFields);
   };
@@ -103,6 +105,7 @@ export const Edit = () => {
         dataType: field.dataType,
         isFiltered: field.isFiltered ? 1 : 0,
         isRequired: field.isRequired ? 1 : 0,
+        isErp: field.isErp ? 1 : 0,
       })),
     };
     void editSeries({

@@ -23,6 +23,7 @@ export interface SeriesField {
   dataType: SeriesFieldDataType;
   isFiltered: boolean;
   isRequired: boolean;
+  isErp: boolean;
   id?: number;
 }
 
@@ -31,6 +32,7 @@ export enum SeriesFieldDataType {
   number = "number",
   date = "datetime",
   boolean = "boolean",
+  picture = "picture",
 }
 
 export enum SeriesFieldKey {
@@ -38,4 +40,5 @@ export enum SeriesFieldKey {
   dataType = "dataType",
   isFiltered = "isFiltered",
   isRequired = "isRequired",
+  isErp = "isErp",
 }
