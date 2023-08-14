@@ -1,5 +1,7 @@
 export interface ProductAttributePayload {
   fieldId: number;
+  fieldName: string;
+  dataType: string;
   value: string | number | boolean;
 }
 
@@ -12,10 +14,16 @@ export interface ProductPayload {
 export interface ProductData {
   itemId: number;
   seriesId: number;
+  seriesName: string;
   name: string;
   attributes: ProductAttributePayload[];
+  erp: ErpData[];
 }
 
+export interface ErpData {
+  key: string;
+  value: string;
+}
 export interface ProductDetailResponse extends APIResponse {
   data: ProductData;
 }
@@ -23,10 +31,15 @@ export interface ProductDetailResponse extends APIResponse {
 export interface ProductEditPayload {
   itemId: number;
   name: string;
-  attributes: ProductAttributePayload[];
+  attributes: Omit<ProductAttributePayload, "fieldName" | "dataType">[];
 }
 
 export interface ProductSearchPayloadField {
+  seriesId: number;
+  filters: ProductSearchFilters[];
+}
+
+export interface ProductSearchFilters {
   fieldId: number;
   value: string | number | boolean;
   operation?: ProductSearchPayloadOperation;
