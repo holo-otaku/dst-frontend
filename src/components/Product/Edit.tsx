@@ -53,10 +53,13 @@ export const Edit = () => {
       (attribute) => attribute.fieldId === fieldId,
     );
     const fieldDetail = fields?.find((field) => field.id === fieldId);
-    let parsedValue: string | number = value;
+    let parsedValue: string | number | boolean = value;
     switch (fieldDetail?.dataType) {
       case SeriesFieldDataType.number:
         parsedValue = parseInt(value);
+        break;
+      case SeriesFieldDataType.boolean:
+        parsedValue = value === "true";
         break;
       default:
         break;
