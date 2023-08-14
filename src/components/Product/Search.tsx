@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Stack, InputGroup, Form, Row, Col, Button } from "react-bootstrap";
 import useAxios, { RefetchFunction } from "axios-hooks";
 import {
@@ -10,6 +10,7 @@ import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { get } from "lodash";
 import {
+  ProductSearchFilters,
   ProductSearchPayloadField,
   ProductSearchPayloadOperation,
   ProductSearchResponse,
@@ -17,7 +18,7 @@ import {
 import ProductTable from "./ProductTable";
 
 export const Search = () => {
-  const [{ data: seriesResponse, loading: seriesLoading }] =
+  const [{ data: seriesResponse, loading: seriesLoading }, fetchSeries] =
     useAxios<SeriesResponse>({
       url: "/series",
       method: "GET",
@@ -39,16 +40,9 @@ export const Search = () => {
   );
 
   useEffect(() => {
-    if (!seriesResponse) return;
-    const seriesId = seriesResponse.data[0].id;
-    const payload: ProductSearchPayloadField = {
-      seriesId: seriesId,
-      filters: [],
-    };
-    void searchProduct({
-      data: payload,
-    });
-  }, [seriesResponse, searchProduct]);
+    void fetchSeries();
+    return () => {};
+  }, [fetchSeries]);
 
   const pageLoading = seriesLoading || productSearchLoading;
 
@@ -80,20 +74,29 @@ const Bar = ({ series, searchProduct }: BarProps) => {
     get(series, "[0].id", 1),
   );
 
-  const [searchFields, setSearchFields] = useState<ProductSearchPayloadField[]>(
-    [],
-  );
+  const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
+  const targetSeries = series.find((series) => series.id === selectedSeries);
+  const fields = get(targetSeries, "fields", []);
 
   useEffect(() => {
+    // 每次系列改變時，清空搜尋欄位，並且直接協助無條件搜尋
+    // 不過要確保系列資料已經載入完成
+    if (!series.length) return;
+    if (!targetSeries) return;
+    if (!fields.length) return;
+
+    setSearchFields([]);
     void searchProduct({
       data: {
         seriesId: selectedSeries,
         filters: [],
       },
     });
-  }, [selectedSeries, searchProduct]);
 
-  const handleInput = (data: ProductSearchPayloadField) => {
+    return () => {};
+  }, [selectedSeries]);
+
+  const handleInput = (data: ProductSearchFilters) => {
     const { fieldId, value, operation } = data;
     let isNewField = true;
 
@@ -115,8 +118,13 @@ const Bar = ({ series, searchProduct }: BarProps) => {
     setSearchFields(newSearchFields);
   };
 
-  const targetSeries = series.find((series) => series.id === selectedSeries);
-  const fields = get(targetSeries, "fields", []);
+  const handleSearch = () =>
+    searchProduct({
+      data: {
+        seriesId: selectedSeries,
+        filters: searchFields,
+      },
+    });
 
   const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSeries(parseInt(event.target.value));
@@ -141,10 +149,7 @@ const Bar = ({ series, searchProduct }: BarProps) => {
           searchFields={searchFields}
           handleInput={handleInput}
         />
-        <ControlBar
-          handleSearch={() => void searchProduct({ data: searchFields })}
-          handleClear={handleClear}
-        />
+        <ControlBar handleSearch={handleSearch} handleClear={handleClear} />
       </Form>
     </Stack>
   );
@@ -152,8 +157,8 @@ const Bar = ({ series, searchProduct }: BarProps) => {
 
 interface SearchBarProps {
   fields: SeriesField[];
-  searchFields: ProductSearchPayloadField[];
-  handleInput: (data: ProductSearchPayloadField) => void;
+  searchFields: ProductSearchFilters[];
+  handleInput: (data: ProductSearchFilters) => void;
 }
 
 const SearchBar = ({ fields, handleInput, searchFields }: SearchBarProps) => {
@@ -235,7 +240,7 @@ interface FilterProps {
     value: string | number,
     operation?: ProductSearchPayloadOperation,
   ) => void;
-  searchData?: ProductSearchPayloadField;
+  searchData?: ProductSearchFilters;
 }
 
 const NumberFilter = ({ title, handleChange, searchData }: FilterProps) => {

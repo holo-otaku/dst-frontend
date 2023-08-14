@@ -14,6 +14,7 @@ export interface ProductPayload {
 export interface ProductData {
   itemId: number;
   seriesId: number;
+  seriesName: string;
   name: string;
   attributes: ProductAttributePayload[];
   erp: ErpData[];
@@ -30,7 +31,7 @@ export interface ProductDetailResponse extends APIResponse {
 export interface ProductEditPayload {
   itemId: number;
   name: string;
-  attributes: Omit<ProductAttributePayload, ["fieldName", "dataType"]>[];
+  attributes: Omit<ProductAttributePayload, "fieldName" | "dataType">[];
 }
 
 export interface ProductSearchPayloadField {

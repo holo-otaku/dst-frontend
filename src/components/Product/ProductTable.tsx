@@ -1,35 +1,44 @@
-import React from "react";
-import { Table, Image } from "react-bootstrap";
+import { Table, Image, Alert } from "react-bootstrap";
 import { ProductData } from "./Interface";
+import { get } from "lodash";
 
 interface ProductTableProps {
   products: ProductData[];
 }
 
-const ProductTable: React.FC<ProductTableProps> = ({ products }) => {
+const ProductTable = ({ products }: ProductTableProps) => {
+  const attributes = get(
+    products,
+    "[0].attributes",
+    [] as ProductData["attributes"],
+  );
+  const erpAttributes = get(products, "[0].erp", [] as ProductData["erp"]);
+
+  if (products.length === 0) {
+    return <Alert variant="info">查不到任何符合條件的產品!</Alert>;
+  }
+
   return (
     <div style={{ overflowX: "auto" }}>
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Item ID</th>
-            <th>Series ID</th>
-            <th>Name</th>
-            {products.length > 0 &&
-              products[0].attributes.map((attribute, attributeIndex) => (
-                <th key={attributeIndex}>{attribute.fieldName}</th>
-              ))}
-            {products.length > 0 &&
-              products[0].erp.map((erpData, erpIndex) => (
-                <th key={erpIndex}>{erpData.key}</th>
-              ))}
+            <th>#</th>
+            <th>系列</th>
+            <th>名稱</th>
+            {attributes.map((attribute, attributeIndex) => (
+              <th key={attributeIndex}>{attribute.fieldName}</th>
+            ))}
+            {erpAttributes.map((erpData, erpIndex) => (
+              <th key={erpIndex}>{erpData.key}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {products.map((product, index) => (
             <tr key={index}>
               <td>{product.itemId}</td>
-              <td>{product.seriesId}</td>
+              <td>{product.seriesName}</td>
               <td>{product.name}</td>
               {product.attributes.map((attribute, attributeIndex) => (
                 <td key={attributeIndex}>
