@@ -25,6 +25,7 @@ interface CreatePayloadField {
   dataType: SeriesFieldDataType;
   isFiltered: 0 | 1;
   isRequired: 0 | 1;
+  isErp: 0 | 1;
 }
 
 export const Create = () => {
@@ -35,6 +36,7 @@ export const Create = () => {
       dataType: SeriesFieldDataType.string,
       isFiltered: false,
       isRequired: false,
+      isErp: false,
     },
   ]);
   const [name, setName] = useState("");
@@ -61,6 +63,7 @@ export const Create = () => {
       dataType: SeriesFieldDataType.string,
       isFiltered: false,
       isRequired: false,
+      isErp: false,
     });
     setFields(newFields);
   };
@@ -73,6 +76,7 @@ export const Create = () => {
         dataType: field.dataType,
         isFiltered: field.isFiltered ? 1 : 0,
         isRequired: field.isRequired ? 1 : 0,
+        isErp: field.isErp ? 1 : 0,
       })),
     };
     createSeries({

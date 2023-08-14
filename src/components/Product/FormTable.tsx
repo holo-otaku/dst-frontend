@@ -1,7 +1,8 @@
 import { SeriesField, SeriesFieldDataType } from "../Series/Interfaces";
-import { Form, Table } from "react-bootstrap";
+import { Form, Table, Image } from "react-bootstrap";
 import { ProductAttributePayload } from "./Interface";
 import moment from "moment";
+import { useState } from "react";
 
 interface FormTableProps {
   fields: SeriesField[];
@@ -20,7 +21,7 @@ const FormTable = ({
         <tr>
           <th>欄位名稱</th>
           <th>資料類型</th>
-          <th>數值</th>
+          <th>資料</th>
         </tr>
       </thead>
       <tbody>
@@ -40,41 +41,100 @@ const FormTable = ({
 
 const renderFormControl = (
   field: SeriesField,
-  { handleInputChange, attributes }: FormTableProps,
+  { handleInputChange, attributes }: Omit<FormTableProps, "fields">,
 ) => {
   const dataType = getFormTypeByDataType(field.dataType);
   const fieldValue =
     attributes.find((attr) => attr.fieldId === field.id)?.value || "";
-  if (dataType === "switch") {
-    return (
-      <Form.Check
-        type="switch"
-        id={`switch-${field.id}`}
-        label={field.name}
-        onChange={(e) => handleInputChange(field.id, e.target.checked)}
-        checked={fieldValue === true}
-        isInvalid={field.isRequired && fieldValue === ""}
-      />
-    );
-  } else if (dataType === "datetime") {
-    return (
-      <Form.Control
-        onChange={(e) => handleInputChange(field.id, e.target.value)}
-        value={fieldValue !== "" ? fieldValue : getTodayDate()} // Set the value to fieldValue or today's date
-        type="date" // Use "date" to show only the date picker without time
-        isInvalid={field.isRequired && fieldValue === ""}
-      />
-    );
+
+  switch (dataType) {
+    case "switch":
+      return (
+        <Form.Check
+          type="switch"
+          id={`switch-${field.id}`}
+          label={field.name}
+          onChange={(e) =>
+            handleInputChange(field.id as number, e.target.checked)
+          }
+          checked={fieldValue === true}
+          isInvalid={field.isRequired && fieldValue === ""}
+        />
+      );
+    case "datetime":
+      return (
+        <Form.Control
+          onChange={(e) =>
+            handleInputChange(field.id as number, e.target.value)
+          }
+          value={fieldValue !== "" ? (fieldValue as string) : getTodayDate()} // Set the value to fieldValue or today's date
+          type="date" // Use "date" to show only the date picker without time
+          isInvalid={field.isRequired && fieldValue === ""}
+        />
+      );
+    case "picture":
+      return (
+        <PictureFormControl
+          handleInputChange={handleInputChange}
+          field={field}
+        />
+      );
   }
 
-  // Default to a text input for other data types
   return (
     <Form.Control
-      onChange={(e) => handleInputChange(field.id, e.target.value)}
-      value={fieldValue || ""}
+      onChange={(e) => handleInputChange(field.id as number, e.target.value)}
+      value={fieldValue as string}
       type={dataType}
       isInvalid={field.isRequired && fieldValue === ""}
     />
+  );
+};
+
+interface PictureFormControlProps {
+  handleInputChange: (fieldId: number, value: string | boolean) => void;
+  field: SeriesField;
+}
+
+const PictureFormControl = ({
+  handleInputChange,
+  field,
+}: PictureFormControlProps) => {
+  const [picture, setPicture] = useState<string | null>();
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setPicture(null);
+      handleInputChange(field.id as number, "");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64Content = e.target?.result as string;
+      setPicture(base64Content);
+      handleInputChange(field.id as number, base64Content);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div>
+      <Form.Control
+        onChange={handleFileInputChange}
+        type="file" // Use "file" for uploading files
+        accept="image/*" // Specify the allowed file types (e.g., images)
+        isInvalid={field.isRequired && !picture}
+      />
+      {picture && (
+        <div className="mt-2">
+          <Form.Label>Uploaded Image:</Form.Label>
+          <div className="d-flex align-items-center">
+            <Image src={picture} alt="Uploaded" style={{ maxWidth: "100%" }} />
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -92,6 +152,8 @@ const getFormTypeByDataType = (dataType: SeriesFieldDataType) => {
       return "datetime";
     case "boolean":
       return "switch";
+    case "picture":
+      return "picture";
     default:
       return "text";
   }
@@ -107,6 +169,8 @@ const getDataType = (dataType: SeriesFieldDataType) => {
       return "日期";
     case "boolean":
       return "布林值";
+    case "picture":
+      return "圖片";
     default:
       return "未知";
   }
