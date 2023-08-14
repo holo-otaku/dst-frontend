@@ -7,7 +7,7 @@ import { useState } from "react";
 interface FormTableProps {
   fields: SeriesField[];
   attributes: ProductAttributePayload[];
-  handleInputChange: (fieldId: number, value: string | boolean) => void;
+  handleInputChange: (fieldId: number, value: string) => void;
 }
 
 const FormTable = ({
@@ -55,7 +55,10 @@ const renderFormControl = (
           id={`switch-${field.id}`}
           label={field.name}
           onChange={(e) =>
-            handleInputChange(field.id as number, e.target.checked)
+            handleInputChange(
+              field.id as number,
+              e.target.checked ? "true" : "false",
+            )
           }
           checked={fieldValue === true}
           isInvalid={field.isRequired && fieldValue === ""}
@@ -92,7 +95,7 @@ const renderFormControl = (
 };
 
 interface PictureFormControlProps {
-  handleInputChange: (fieldId: number, value: string | boolean) => void;
+  handleInputChange: (fieldId: number, value: string) => void;
   field: SeriesField;
 }
 

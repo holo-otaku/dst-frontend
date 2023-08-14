@@ -1,8 +1,11 @@
 export interface ProductAttributePayload {
   fieldId: number;
+  value: string | number | boolean;
+}
+
+export interface ProductDataAttribute extends ProductAttributePayload {
   fieldName: string;
   dataType: string;
-  value: string | number | boolean;
 }
 
 export interface ProductPayload {
@@ -16,7 +19,7 @@ export interface ProductData {
   seriesId: number;
   seriesName: string;
   name: string;
-  attributes: ProductAttributePayload[];
+  attributes: ProductDataAttribute[];
   erp: ErpData[];
 }
 
