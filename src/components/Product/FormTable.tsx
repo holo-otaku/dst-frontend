@@ -122,13 +122,13 @@ const PictureFormControl = ({
     <div>
       <Form.Control
         onChange={handleFileInputChange}
-        type="file" // Use "file" for uploading files
-        accept="image/*" // Specify the allowed file types (e.g., images)
+        type="file"
+        accept="image/*"
         isInvalid={field.isRequired && !picture}
       />
       {picture && (
         <div className="mt-2">
-          <Form.Label>Uploaded Image:</Form.Label>
+          <Form.Label>預覽</Form.Label>
           <div className="d-flex align-items-center">
             <Image src={picture} alt="Uploaded" style={{ maxWidth: "100%" }} />
           </div>
