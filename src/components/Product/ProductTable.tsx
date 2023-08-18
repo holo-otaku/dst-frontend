@@ -1,12 +1,14 @@
 import { Table, Image, Alert } from "react-bootstrap";
 import { ProductData } from "./Interface";
 import { get } from "lodash";
+import { useNavigate } from "react-router-dom";
 
 interface ProductTableProps {
   products: ProductData[];
 }
 
 const ProductTable = ({ products }: ProductTableProps) => {
+  const navigate = useNavigate();
   const attributes = get(
     products,
     "[0].attributes",
@@ -20,7 +22,7 @@ const ProductTable = ({ products }: ProductTableProps) => {
 
   return (
     <div style={{ overflowX: "auto" }}>
-      <Table striped bordered hover>
+      <Table striped bordered hover responsive>
         <thead>
           <tr>
             <th>#</th>
@@ -36,7 +38,10 @@ const ProductTable = ({ products }: ProductTableProps) => {
         </thead>
         <tbody>
           {products.map((product, index) => (
-            <tr key={index}>
+            <tr
+              key={index}
+              onDoubleClick={() => navigate(`/products/${product.itemId}/edit`)}
+            >
               <td>{product.itemId}</td>
               <td>{product.seriesName}</td>
               <td>{product.name}</td>
