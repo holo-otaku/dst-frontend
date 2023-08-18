@@ -13,6 +13,7 @@ import Product, {
   Search as ProductSearch,
   Create as ProductCreate,
   Edit as ProductEdit,
+  Delete as ProductDelete,
 } from "./components/Product";
 import Account, {
   Search as AccountSearch,
@@ -63,6 +64,7 @@ const App = () => {
           <Route index element={<ProductSearch />} />
           <Route path="create" element={<ProductCreate />} />
           <Route path=":id/edit" element={<ProductEdit />} />
+          <Route path=":id/delete" element={<ProductDelete />} />
         </Route>
         <Route path="accounts" element={<Account />}>
           <Route index element={<AccountSearch />} />
