@@ -177,7 +177,7 @@ const SearchBar = ({ fields, handleInput, searchFields }: SearchBarProps) => {
           </Col>
         );
         const handleChange = (
-          value: string | number,
+          value: string | number | boolean,
           operation?: ProductSearchPayloadOperation,
         ) => {
           return handleInput({ fieldId: field.id!, value, operation });
@@ -195,6 +195,22 @@ const SearchBar = ({ fields, handleInput, searchFields }: SearchBarProps) => {
           case SeriesFieldDataType.string:
             return wrap(
               <StringFilter
+                title={field.name}
+                handleChange={handleChange}
+                searchData={searchData}
+              />,
+            );
+          case SeriesFieldDataType.date:
+            return wrap(
+              <DatetimeFilter
+                title={field.name}
+                handleChange={handleChange}
+                searchData={searchData}
+              />,
+            );
+          case SeriesFieldDataType.boolean:
+            return wrap(
+              <BooleanFilter
                 title={field.name}
                 handleChange={handleChange}
                 searchData={searchData}
@@ -237,7 +253,7 @@ const ControlBar = ({ handleSearch, handleClear }: ControlBarProps) => {
 interface FilterProps {
   title: string;
   handleChange: (
-    value: string | number,
+    value: string | number | boolean,
     operation?: ProductSearchPayloadOperation,
   ) => void;
   searchData?: ProductSearchFilters;
@@ -288,6 +304,66 @@ const StringFilter = ({ title, handleChange, searchData }: FilterProps) => {
     <InputGroup>
       <InputGroup.Text>{title}</InputGroup.Text>
       <Form.Control type="text" value={value} onChange={handleValueChange} />
+    </InputGroup>
+  );
+};
+
+const DatetimeFilter = ({ title, handleChange, searchData }: FilterProps) => {
+  const operator = get(
+    searchData,
+    "operation",
+    ProductSearchPayloadOperation.EQUAL,
+  );
+  const value = get(searchData, "value", "") as string;
+
+  const handleOperatorChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    handleChange(
+      value,
+      event.currentTarget.value as ProductSearchPayloadOperation,
+    );
+  };
+
+  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(event.currentTarget.value, operator);
+  };
+
+  return (
+    <InputGroup>
+      <InputGroup.Text>{title}</InputGroup.Text>
+      <Form.Select value={operator} onChange={handleOperatorChange}>
+        <option value={ProductSearchPayloadOperation.EQUAL}>=</option>
+        <option value={ProductSearchPayloadOperation.GREATER}>{">"}</option>
+        <option value={ProductSearchPayloadOperation.LESS}>{"<"}</option>
+      </Form.Select>
+      <Form.Control
+        className="w-50"
+        type="datetime-local"
+        value={value}
+        onChange={handleValueChange}
+      />
+    </InputGroup>
+  );
+};
+
+const BooleanFilter = ({ title, handleChange, searchData }: FilterProps) => {
+  const value = get(searchData, "value", false) as boolean;
+
+  const handleValueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    handleChange(event.currentTarget.value === "true");
+  };
+
+  return (
+    <InputGroup>
+      <InputGroup.Text>{title}</InputGroup.Text>
+      <Form.Select
+        value={value ? "true" : "false"}
+        onChange={handleValueChange}
+      >
+        <option value="true">是</option>
+        <option value="false">否</option>
+      </Form.Select>
     </InputGroup>
   );
 };
