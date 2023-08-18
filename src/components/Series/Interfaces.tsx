@@ -42,3 +42,15 @@ export enum SeriesFieldKey {
   isRequired = "isRequired",
   isErp = "isErp",
 }
+
+export enum SeriesSwitchKey {
+  isFiltered = "isFiltered",
+  isRequired = "isRequired",
+  isErp = "isErp",
+}
+
+export interface SeriesEditFieldPayload {
+  isFiltered?: boolean;
+  isRequired?: boolean;
+  isErp?: boolean;
+}

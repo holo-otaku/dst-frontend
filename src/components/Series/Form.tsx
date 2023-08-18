@@ -1,13 +1,21 @@
 import { Table, Form, InputGroup, Button } from "react-bootstrap";
-import { SeriesField, SeriesFieldDataType, SeriesFieldKey } from "./Interfaces";
+import {
+  SeriesEditFieldPayload,
+  SeriesField,
+  SeriesFieldDataType,
+  SeriesFieldKey,
+  SeriesSwitchKey,
+} from "./Interfaces";
 import { BiMinus } from "react-icons/bi";
+import { RefetchFunction } from "axios-hooks";
 
 export interface SeriesFormProps {
   fields: SeriesField[];
   setFields: React.Dispatch<React.SetStateAction<SeriesField[]>>;
+  editField?: RefetchFunction<SeriesEditFieldPayload, APIResponse>;
 }
 
-const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
+const SeriesForm = ({ fields, setFields, editField }: SeriesFormProps) => {
   const handleEdit = (
     index: number,
     key: SeriesFieldKey,
@@ -38,6 +46,27 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
     const newFields = [...fields];
     newFields.splice(index, 1);
     setFields(newFields);
+  };
+
+  const handleSwitch = (
+    fieldId: number,
+    type: SeriesSwitchKey,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (!editField) return;
+
+    if (fieldId) {
+      const payload: SeriesEditFieldPayload = {};
+      payload[type] = e.target.checked;
+      void editField({
+        url: `/field/${fieldId}`,
+        data: payload,
+      });
+    }
+
+    const idx = fields.findIndex((field) => field.id === fieldId);
+    if (idx === -1) return;
+    handleEdit(idx, type as unknown as SeriesFieldKey, e.target.checked);
   };
 
   return (
@@ -88,7 +117,13 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 className="fs-5"
                 checked={field.isFiltered}
                 onChange={(e) =>
-                  handleEdit(index, SeriesFieldKey.isFiltered, e.target.checked)
+                  editField
+                    ? handleSwitch(field.id!, SeriesSwitchKey.isFiltered, e)
+                    : handleEdit(
+                        index,
+                        SeriesFieldKey.isFiltered,
+                        e.target.checked,
+                      )
                 }
               />
             </td>
@@ -98,7 +133,13 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 className="fs-5"
                 checked={field.isRequired}
                 onChange={(e) =>
-                  handleEdit(index, SeriesFieldKey.isRequired, e.target.checked)
+                  editField
+                    ? handleSwitch(field.id!, SeriesSwitchKey.isRequired, e)
+                    : handleEdit(
+                        index,
+                        SeriesFieldKey.isRequired,
+                        e.target.checked,
+                      )
                 }
               />
             </td>
@@ -108,7 +149,9 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 className="fs-5"
                 checked={field.isErp}
                 onChange={(e) =>
-                  handleEdit(index, SeriesFieldKey.isErp, e.target.checked)
+                  editField
+                    ? handleSwitch(field.id!, SeriesSwitchKey.isErp, e)
+                    : handleEdit(index, SeriesFieldKey.isErp, e.target.checked)
                 }
               />
             </td>
