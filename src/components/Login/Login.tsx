@@ -19,15 +19,11 @@ interface LoginRequest {
   password: string;
 }
 
-interface LoginError {
-  msg: string;
-}
-
-const Login: React.FC = () => {
-  const [{ data, loading }, doLogin] = useAxios<
+const Login = () => {
+  const [{ data, loading, error }, doLogin] = useAxios<
     LoginResponse,
     LoginRequest,
-    LoginError
+    APIResponse
   >(
     {
       url: "/login",
@@ -76,6 +72,12 @@ const Login: React.FC = () => {
   useEffect(() => {
     usernameRef.current?.focus();
   }, [isHealth]);
+
+  useEffect(() => {
+    if (error) {
+      alert(`登入失敗: ${error.response?.data.msg}`);
+    }
+  }, [error]);
 
   const pageLoading = loading || healthChecking;
 
