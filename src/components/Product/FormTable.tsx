@@ -53,7 +53,6 @@ const renderFormControl = (
         <Form.Check
           type="switch"
           id={`switch-${field.id}`}
-          label={field.name}
           onChange={(e) =>
             handleInputChange(
               field.id as number,

@@ -108,7 +108,19 @@ export const Edit = () => {
       <Backdrop show={pageLoading}>
         <RingLoader color="#36d7b7" />
       </Backdrop>
-      <p className="fs-2">修改產品資訊</p>
+      <Row className="g-1 align-item-center">
+        <Col>
+          <p className="fs-2">修改產品資訊</p>
+        </Col>
+        <Col xs="auto">
+          <Button
+            variant="danger"
+            onClick={() => navigate(`/products/${id}/delete`)}
+          >
+            刪除
+          </Button>
+        </Col>
+      </Row>
       <Row className="g-1">
         <Col xs={12} md={3} lg={2}>
           <Form.Select disabled={true}>

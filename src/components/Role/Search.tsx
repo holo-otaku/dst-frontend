@@ -34,7 +34,6 @@ export const Search = () => {
 
   const handleDeleteRole = (roleId: number) => {
     // Implement your logic to handle delete here
-    console.log("Delete role with ID:", roleId);
     void deleteRole({
       url: `/role/${roleId}`,
     }).then(() => refetchRoles());

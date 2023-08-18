@@ -15,4 +15,5 @@ const Product = () => {
 export { Create } from "./Create";
 export { Edit } from "./Edit";
 export { Search } from "./Search";
+export { Delete } from "./Delete";
 export default Product;

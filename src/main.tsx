@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ColorModeProvider, AuthProvider, ServerProvider } from "./context";
 import "./global.scss";
+import "./global.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
