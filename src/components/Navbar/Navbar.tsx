@@ -12,9 +12,100 @@ import { useContext } from "react";
 import { AuthContext, ColorModeContext } from "../../context";
 import { MdLogout } from "react-icons/md";
 
+interface NavTreeItem {
+  title: string;
+  permission: string;
+  children: {
+    title: string;
+    path: string;
+    permission: string;
+  }[];
+}
+
+const NavTree: NavTreeItem[] = [
+  {
+    title: "人員",
+    permission: "user.read",
+    children: [
+      {
+        title: "查詢",
+        path: "/accounts",
+        permission: "user.read",
+      },
+      {
+        title: "新增",
+        path: "/accounts/create",
+        permission: "user.create",
+      },
+    ],
+  },
+  {
+    title: "角色",
+    permission: "role.read",
+    children: [
+      {
+        title: "查詢",
+        path: "/roles",
+        permission: "role.read",
+      },
+      {
+        title: "新增",
+        path: "/roles/create",
+        permission: "role.create",
+      },
+    ],
+  },
+  {
+    title: "系列",
+    permission: "series.read",
+    children: [
+      {
+        title: "查詢",
+        path: "/series",
+        permission: "series.read",
+      },
+      {
+        title: "新增",
+        path: "/series/create",
+        permission: "series.create",
+      },
+    ],
+  },
+  {
+    title: "產品",
+    permission: "product.read",
+    children: [
+      {
+        title: "查詢",
+        path: "/products",
+        permission: "product.read",
+      },
+      {
+        title: "新增",
+        path: "/products/create",
+        permission: "product.create",
+      },
+    ],
+  },
+  {
+    title: "匯出",
+    permission: "export.read",
+    children: [
+      {
+        title: "Action",
+        path: "#action/3.1",
+        permission: "export.read",
+      },
+    ],
+  },
+];
+
+// 注意：「匯出」並沒有相應的權限許可在你所提供的列表中，所以我暫時沒有給它分配特定的權限。
+
 const MyNavbar: React.FC = () => {
   const { colorMode, toggleColorMode } = useContext(ColorModeContext);
-  const { logout } = useContext(AuthContext);
+  const { logout, getPayload } = useContext(AuthContext);
+  const { permissions = [] } = getPayload();
 
   return (
     <Navbar collapseOnSelect expand="lg" bg="body-tertiary">
@@ -25,41 +116,24 @@ const MyNavbar: React.FC = () => {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
-            <NavDropdown title="人員" id="collasible-nav-dropdown">
-              <NavDropdown.Item as={Link} to="/accounts">
-                查詢
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/accounts/create">
-                新增
-              </NavDropdown.Item>
-            </NavDropdown>
-            <NavDropdown title="角色" id="collasible-nav-dropdown">
-              <NavDropdown.Item as={Link} to="/roles">
-                查詢
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/roles/create">
-                新增
-              </NavDropdown.Item>
-            </NavDropdown>
-            <NavDropdown title="系列" id="collasible-nav-dropdown">
-              <NavDropdown.Item as={Link} to="/series">
-                查詢
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/series/create">
-                新增
-              </NavDropdown.Item>
-            </NavDropdown>
-            <NavDropdown title="產品" id="collasible-nav-dropdown">
-              <NavDropdown.Item as={Link} to="/products">
-                查詢
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/products/create">
-                新增
-              </NavDropdown.Item>
-            </NavDropdown>
-            <NavDropdown title="匯出" id="collasible-nav-dropdown">
-              <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
-            </NavDropdown>
+            {NavTree.map(
+              (navItem) =>
+                permissions.includes(navItem.permission) && (
+                  <NavDropdown
+                    title={navItem.title}
+                    id="collasible-nav-dropdown"
+                  >
+                    {navItem.children.map(
+                      (child) =>
+                        permissions.includes(child.permission) && (
+                          <NavDropdown.Item as={Link} to={child.path}>
+                            {child.title}
+                          </NavDropdown.Item>
+                        ),
+                    )}
+                  </NavDropdown>
+                ),
+            )}
           </Nav>
           <Nav>
             <Nav.Link onClick={toggleColorMode} className="mx-2">

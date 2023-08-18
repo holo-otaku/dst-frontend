@@ -8,6 +8,7 @@ export interface AuthContextProps {
   login: (jwt: string) => void;
   logout: () => void;
   isAuthenticated: () => boolean;
+  getPayload: () => Payload;
 }
 
 export const AuthContext = createContext<AuthContextProps>({
@@ -15,6 +16,7 @@ export const AuthContext = createContext<AuthContextProps>({
   login: () => undefined,
   logout: () => undefined,
   isAuthenticated: () => false,
+  getPayload: () => ({}) as Payload,
 });
 
 interface AuthProviderProps {
@@ -22,7 +24,14 @@ interface AuthProviderProps {
 }
 
 interface Payload {
+  fresh: boolean;
+  iat: number;
+  jti: string;
+  type: string;
+  sub: number;
+  nbf: number;
   exp: number;
+  permissions: string[];
 }
 
 interface refreshResponse {
@@ -132,9 +141,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return !!accessToken;
   };
 
+  const getPayload = () => {
+    return accessToken ? jwtDecode(accessToken) : ({} as Payload);
+  };
+
   return (
     <AuthContext.Provider
-      value={{ accessToken, login, logout, isAuthenticated }}
+      value={{ accessToken, login, logout, isAuthenticated, getPayload }}
     >
       {children}
     </AuthContext.Provider>
