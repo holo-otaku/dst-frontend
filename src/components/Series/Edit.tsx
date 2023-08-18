@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import SeriesForm from "./Form";
 import {
+  SeriesDetail,
   SeriesDetailResponse,
+  SeriesEditFieldPayload,
   SeriesField,
   SeriesFieldDataType,
 } from "./Interfaces";
@@ -18,18 +20,31 @@ import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import { ScaleLoader } from "react-spinners";
 import { useNavigate, useParams } from "react-router-dom";
+import { cloneDeep, isEqual } from "lodash";
 
 interface EditPayload {
   name: string;
-  fields: EditPayloadField[];
+  fields: SeriesField[];
 }
 
-interface EditPayloadField {
-  name: string;
-  dataType: SeriesFieldDataType;
-  isFiltered: 0 | 1;
-  isRequired: 0 | 1;
-}
+const hasDiff = (original: SeriesDetail, current: EditPayload) => {
+  if (original.name !== current.name) return true;
+  if (original.fields.length !== current.fields.length) return true;
+
+  const transformToCompareFormat = (data: SeriesDetail | EditPayload) =>
+    // 只比較 name 跟 dataType
+    data.fields.map((field) => ({
+      name: field.name,
+      dataType: field.dataType,
+    }));
+
+  return (
+    isEqual(
+      transformToCompareFormat(original),
+      transformToCompareFormat(current),
+    ) === false
+  );
+};
 
 export const Edit = () => {
   const navigate = useNavigate();
@@ -44,10 +59,10 @@ export const Edit = () => {
     },
   ]);
   const [name, setName] = useState("");
-  const [{ data: editResponse, loading: editLoading }, editSeries] = useAxios<
-    APIResponse,
-    EditPayload
-  >(
+  const [
+    { data: editResponse, loading: editLoading, error: editError },
+    editSeries,
+  ] = useAxios<APIResponse, EditPayload, APIResponse>(
     {
       method: "PATCH",
     },
@@ -64,6 +79,21 @@ export const Edit = () => {
         manual: true,
       },
     );
+  const readonlyDetailData = useMemo<SeriesDetail | undefined>(
+    () => (detailResponse ? cloneDeep(detailResponse.data) : undefined),
+    [detailResponse],
+  );
+  const [{ loading: editFieldLoading }, editField] = useAxios<
+    APIResponse,
+    SeriesEditFieldPayload
+  >(
+    {
+      method: "PATCH",
+    },
+    {
+      manual: true,
+    },
+  );
 
   useEffect(() => {
     if (!id) return;
@@ -85,6 +115,13 @@ export const Edit = () => {
     navigate("/series");
   }, [editResponse, navigate]);
 
+  useEffect(() => {
+    if (!editError) return;
+    alert(
+      `編輯失敗\n錯誤訊息: ${editError.response?.data.msg}\n錯誤代碼: ${editError.response?.data.code}`,
+    );
+  }, [editError]);
+
   const handleAdd = () => {
     const newFields = [...fields];
     newFields.push({
@@ -100,19 +137,20 @@ export const Edit = () => {
   const handleSubmit = () => {
     const payload: EditPayload = {
       name,
-      fields: fields.map((field) => ({
-        name: field.name,
-        dataType: field.dataType,
-        isFiltered: field.isFiltered ? 1 : 0,
-        isRequired: field.isRequired ? 1 : 0,
-        isErp: field.isErp ? 1 : 0,
-      })),
+      fields,
     };
     void editSeries({
       url: `/series/${id!}`,
       data: payload,
     });
   };
+
+  const hasModify =
+    readonlyDetailData &&
+    hasDiff(readonlyDetailData, {
+      name,
+      fields,
+    });
 
   const isValidPayload = (() => {
     if (!name) return false;
@@ -123,7 +161,7 @@ export const Edit = () => {
     return true;
   })();
 
-  const pageLoading = editLoading || detailLoading;
+  const pageLoading = editLoading || detailLoading || editFieldLoading;
 
   return (
     <Stack gap={2}>
@@ -140,7 +178,7 @@ export const Edit = () => {
           />
         </InputGroup>
       </Stack>
-      <SeriesForm {...{ fields, setFields }} />
+      <SeriesForm {...{ fields, setFields, editField }} />
       <Stack direction="horizontal" gap={3} className="justify-content-center">
         <OverlayTrigger overlay={<Tooltip>新增欄位</Tooltip>}>
           <Button
@@ -156,7 +194,7 @@ export const Edit = () => {
         <div className="flex-grow-1" />
         <Button
           variant="primary"
-          disabled={!isValidPayload}
+          disabled={!isValidPayload || !hasModify}
           onClick={handleSubmit}
         >
           完成
@@ -167,7 +205,7 @@ export const Edit = () => {
             navigate("/series");
           }}
         >
-          取消
+          返回
         </Button>
       </Stack>
     </Stack>

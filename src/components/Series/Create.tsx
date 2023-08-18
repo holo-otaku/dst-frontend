@@ -137,7 +137,7 @@ export const Create = () => {
             navigate("/series");
           }}
         >
-          取消
+          返回
         </Button>
       </Stack>
     </Stack>

@@ -26,6 +26,7 @@ import Role, {
 } from "./components/Role";
 import Backdrop from "./components/Backdrop/Backdrop";
 import { BeatLoader } from "react-spinners";
+import { Container } from "react-bootstrap";
 
 const App = () => {
   const { accessToken, isAuthenticated } = useContext(AuthContext);
@@ -90,7 +91,11 @@ const Layout = () => (
   </>
 );
 
-const Home = () => <h1>Home</h1>;
+const Home = () => (
+  <Container>
+    <h1>Home</h1>
+  </Container>
+);
 
 const NoMatch = () => <h1>404 Not Found</h1>;
 
