@@ -2,15 +2,29 @@ import { app, shell, BrowserWindow } from "electron";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
+import favicon from "../../resources/favicon.ico?asset";
 
 function createWindow(): void {
+  const iconPath = () => {
+    const platform = process.platform;
+    const allowPlatform = ["linux", "win32", "darwin"];
+    if (!allowPlatform.includes(platform)) {
+      return;
+    }
+
+    if (platform === "win32") {
+      return favicon;
+    }
+
+    return icon;
+  };
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1024,
     height: 768,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === "linux" ? { icon } : {}),
+    icon: iconPath(),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
