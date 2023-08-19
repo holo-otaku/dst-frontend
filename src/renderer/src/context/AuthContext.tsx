@@ -16,7 +16,7 @@ export const AuthContext = createContext<AuthContextProps>({
   login: () => undefined,
   logout: () => undefined,
   isAuthenticated: () => false,
-  getPayload: () => ({} as Payload),
+  getPayload: () => ({}) as Payload,
 });
 
 interface AuthProviderProps {
