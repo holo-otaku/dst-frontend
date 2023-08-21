@@ -94,7 +94,7 @@ const Bar = ({ series, searchProduct }: BarProps) => {
     });
 
     return () => {};
-  }, [selectedSeries]);
+  }, [series, selectedSeries]);
 
   const handleInput = (data: ProductSearchFilters) => {
     const { fieldId, value, operation } = data;

@@ -103,7 +103,7 @@ export default [
             element: <ProductEdit />,
           },
           {
-            path: "/products/delete/:id",
+            path: "/products/:id/delete",
             element: <ProductDelete />,
           },
         ],
