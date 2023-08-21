@@ -81,7 +81,7 @@ export default [
             element: <SeriesCreate />,
           },
           {
-            path: "/series/edit/:id",
+            path: "/series/:id/edit",
             element: <SeriesEdit />,
           },
         ],
@@ -99,7 +99,7 @@ export default [
             element: <ProductCreate />,
           },
           {
-            path: "/products/edit/:id",
+            path: "/products/:id/edit",
             element: <ProductEdit />,
           },
           {
@@ -121,7 +121,7 @@ export default [
             element: <AccountCreate />,
           },
           {
-            path: "/accounts/edit/:id",
+            path: "/accounts/:id/edit",
             element: <AccountEdit />,
           },
         ],
@@ -139,7 +139,7 @@ export default [
             element: <RoleCreate />,
           },
           {
-            path: "/roles/edit/:id",
+            path: "/roles/:id/edit",
             element: <RoleEdit />,
           },
         ],
