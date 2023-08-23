@@ -41,7 +41,7 @@ export const Search = () => {
     }
   );
   const [page, setPage] = useState<number>(1);
-  const limit = 2;
+  const limit = 10;
   const totalPage = Math.ceil(
     get(productSearchResponse, "totalCount", 0) / limit
   );
