@@ -8,6 +8,7 @@ import {
 } from "../Series/Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
+import Pagination from "react-bootstrap/Pagination";
 import { get } from "lodash";
 import {
   ProductSearchFilters,
@@ -39,6 +40,11 @@ export const Search = () => {
       manual: true,
     }
   );
+  const [page, setPage] = useState<number>(1);
+  const limit = 2;
+  const totalPage = Math.ceil(
+    get(productSearchResponse, "totalCount", 0) / limit
+  );
 
   useEffect(() => {
     void fetchSeries();
@@ -48,16 +54,33 @@ export const Search = () => {
   const pageLoading = seriesLoading || productSearchLoading;
 
   return (
-    <Stack>
+    <Stack gap={2}>
       <Backdrop show={pageLoading}>
         <RingLoader color="#36d7b7" />
       </Backdrop>
       <Bar
         series={get(seriesResponse, "data", [])}
         searchProduct={searchProduct}
+        page={page}
+        limit={limit}
       />
       <hr />
       <ProductTable products={get(productSearchResponse, "data", [])} />
+      <Stack direction="horizontal" className="justify-content-center">
+        <Pagination>
+          <Pagination.First onClick={() => setPage(1)} />
+          {Array.from({ length: totalPage }).map((_, index) => (
+            <Pagination.Item
+              key={index}
+              active={index + 1 === page}
+              onClick={() => setPage(index + 1)}
+            >
+              {index + 1}
+            </Pagination.Item>
+          ))}
+          <Pagination.Last onClick={() => setPage(totalPage)} />
+        </Pagination>
+      </Stack>
     </Stack>
   );
 };
@@ -68,9 +91,11 @@ interface BarProps {
     ProductSearchPayloadField,
     ProductSearchResponse
   >;
+  page: number;
+  limit: number;
 }
 
-const Bar = ({ series, searchProduct }: BarProps) => {
+const Bar = ({ series, searchProduct, page, limit }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(
     get(series, "[0].id", 1)
   );
@@ -92,10 +117,13 @@ const Bar = ({ series, searchProduct }: BarProps) => {
         seriesId: selectedSeries,
         filters: [],
       },
+      params: {
+        page,
+        limit,
+      },
     });
-
     return () => {};
-  }, [series, selectedSeries]);
+  }, [series, selectedSeries, page]);
 
   const handleInput = (data: ProductSearchFilters) => {
     const { fieldId, value, operation } = data;
@@ -124,6 +152,10 @@ const Bar = ({ series, searchProduct }: BarProps) => {
       data: {
         seriesId: selectedSeries,
         filters: searchFields.filter((field) => field.value), // 去除空值
+      },
+      params: {
+        page,
+        limit,
       },
     });
 

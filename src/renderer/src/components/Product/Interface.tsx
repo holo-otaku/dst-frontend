@@ -56,6 +56,7 @@ export enum ProductSearchPayloadOperation {
 
 export interface ProductSearchResponse extends APIResponse {
   data: ProductData[];
+  totalCount: number;
 }
 
 export interface ProductDeletePayload {
