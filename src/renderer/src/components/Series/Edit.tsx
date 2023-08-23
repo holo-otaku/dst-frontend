@@ -3,7 +3,7 @@ import SeriesForm from "./Form";
 import {
   SeriesDetail,
   SeriesDetailResponse,
-  SeriesEditFieldPayload,
+  SeriesEditPayload,
   SeriesField,
   SeriesFieldDataType,
 } from "./Interfaces";
@@ -36,6 +36,9 @@ const hasDiff = (original: SeriesDetail, current: EditPayload) => {
     data.fields.map((field) => ({
       name: field.name,
       dataType: field.dataType,
+      isFiltered: field.isFiltered,
+      isRequired: field.isRequired,
+      isErp: field.isErp,
     }));
 
   return (
@@ -62,7 +65,7 @@ export const Edit = () => {
   const [
     { data: editResponse, loading: editLoading, error: editError },
     editSeries,
-  ] = useAxios<APIResponse, EditPayload, APIResponse>(
+  ] = useAxios<APIResponse, SeriesEditPayload, APIResponse>(
     {
       method: "PATCH",
     },
@@ -82,17 +85,6 @@ export const Edit = () => {
   const readonlyDetailData = useMemo<SeriesDetail | undefined>(
     () => (detailResponse ? cloneDeep(detailResponse.data) : undefined),
     [detailResponse]
-  );
-  const [{ loading: editFieldLoading }, editField] = useAxios<
-    APIResponse,
-    SeriesEditFieldPayload
-  >(
-    {
-      method: "PATCH",
-    },
-    {
-      manual: true,
-    }
   );
 
   useEffect(() => {
@@ -135,10 +127,7 @@ export const Edit = () => {
   };
 
   const handleSubmit = () => {
-    const payload: EditPayload = {
-      name,
-      fields,
-    };
+    const payload = transformToEditPayload(name, fields, readonlyDetailData!);
     void editSeries({
       url: `/series/${id!}`,
       data: payload,
@@ -161,7 +150,7 @@ export const Edit = () => {
     return true;
   })();
 
-  const pageLoading = editLoading || detailLoading || editFieldLoading;
+  const pageLoading = editLoading || detailLoading;
 
   return (
     <Stack gap={2}>
@@ -178,7 +167,7 @@ export const Edit = () => {
           />
         </InputGroup>
       </Stack>
-      <SeriesForm {...{ fields, setFields, editField }} />
+      <SeriesForm {...{ fields, setFields }} />
       <Stack direction="horizontal" gap={3} className="justify-content-center">
         <OverlayTrigger overlay={<Tooltip>新增欄位</Tooltip>}>
           <Button
@@ -210,4 +199,28 @@ export const Edit = () => {
       </Stack>
     </Stack>
   );
+};
+
+const transformToEditPayload = (
+  name: string,
+  fields: SeriesField[],
+  original: SeriesDetail
+) => {
+  const newFields = fields.filter((field) => !field.id);
+  const editFields = fields.filter((field) => field.id);
+  const deleteFieldIds = original.fields
+    .filter((field) => !fields.find((f) => f.id === field.id))
+    .map((field) => field.id!);
+
+  const payload: SeriesEditPayload = {
+    name,
+    create: newFields,
+    fields: editFields.map((field) => ({
+      ...field,
+      id: field.id!,
+    })),
+    delete: deleteFieldIds,
+  };
+
+  return payload;
 };

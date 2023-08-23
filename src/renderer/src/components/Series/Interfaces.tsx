@@ -54,3 +54,20 @@ export interface SeriesEditFieldPayload {
   isRequired?: boolean;
   isErp?: boolean;
 }
+
+export interface SeriesEditPayload {
+  name?: string;
+  fields?: SeriesEditFields[];
+  create?: SeriesEditNewField[];
+  delete?: number[];
+}
+
+export interface SeriesEditFields {
+  id: number;
+  name: string;
+  dataType: SeriesFieldDataType;
+  isFiltered: boolean;
+  isRequired: boolean;
+}
+
+export type SeriesEditNewField = Omit<SeriesEditFields, "id">;
