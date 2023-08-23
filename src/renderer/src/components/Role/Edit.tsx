@@ -55,6 +55,9 @@ export const Edit = () => {
     {
       url: "/permission",
       method: "GET",
+      params: {
+        limit: 100,
+      },
     },
     { manual: true }
   );
