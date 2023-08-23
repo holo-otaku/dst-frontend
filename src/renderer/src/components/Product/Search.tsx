@@ -122,7 +122,7 @@ const Bar = ({ series, searchProduct }: BarProps) => {
     searchProduct({
       data: {
         seriesId: selectedSeries,
-        filters: searchFields,
+        filters: searchFields.filter((field) => field.value), // 去除空值
       },
     });
 
@@ -279,16 +279,17 @@ const NumberFilter = ({ title, handleChange, searchData }: FilterProps) => {
   };
 
   const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    handleChange(parseInt(event.currentTarget.value), operator);
+    const num = parseInt(event.currentTarget.value);
+    handleChange(num, operator);
   };
 
   return (
     <InputGroup>
       <InputGroup.Text>{title}</InputGroup.Text>
-      <Form.Select onChange={handleOperatorChange}>
+      <Form.Select onChange={handleOperatorChange} value={operator}>
         <option value={ProductSearchPayloadOperation.EQUAL}>=</option>
-        <option value={ProductSearchPayloadOperation.GREATER}>{">"}</option>
-        <option value={ProductSearchPayloadOperation.LESS}>{"<"}</option>
+        <option value={ProductSearchPayloadOperation.GREATER}>{">="}</option>
+        <option value={ProductSearchPayloadOperation.LESS}>{"<="}</option>
       </Form.Select>
       <Form.Control value={value} onChange={handleValueChange} type="number" />
     </InputGroup>
@@ -336,8 +337,8 @@ const DatetimeFilter = ({ title, handleChange, searchData }: FilterProps) => {
       <InputGroup.Text>{title}</InputGroup.Text>
       <Form.Select value={operator} onChange={handleOperatorChange}>
         <option value={ProductSearchPayloadOperation.EQUAL}>=</option>
-        <option value={ProductSearchPayloadOperation.GREATER}>{">"}</option>
-        <option value={ProductSearchPayloadOperation.LESS}>{"<"}</option>
+        <option value={ProductSearchPayloadOperation.GREATER}>{">="}</option>
+        <option value={ProductSearchPayloadOperation.LESS}>{"<="}</option>
       </Form.Select>
       <Form.Control
         className="w-50"
