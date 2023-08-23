@@ -24,6 +24,7 @@ export const Search = () => {
       method: "GET",
       params: {
         showField: 1,
+        limit: 100,
       },
     });
   const [
