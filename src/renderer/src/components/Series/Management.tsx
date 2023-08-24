@@ -25,12 +25,18 @@ export const Management = () => {
   );
   const [page, setPage] = useState<number>(1);
   const limit = 10;
-  const totalPage = Math.ceil(data?.totalCount || 1 / limit);
+  const totalCount = data?.totalCount || 0;
+  const totalPage = Math.ceil(totalCount / limit);
 
   useEffect(() => {
-    void refetch();
+    void refetch({
+      params: {
+        page,
+        limit,
+      },
+    });
     return () => {};
-  }, [refetch]);
+  }, [refetch, page]);
 
   const handleDelete = (id: number) => {
     void deleteSeries({

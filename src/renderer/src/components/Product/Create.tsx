@@ -54,7 +54,7 @@ export const Create = () => {
     let parsedValue: string | number | boolean = value;
     switch (fieldDetail?.dataType) {
       case SeriesFieldDataType.number:
-        parsedValue = parseInt(value as string);
+        parsedValue = parseFloat(value as string);
         break;
       case SeriesFieldDataType.boolean:
         parsedValue = !!value;

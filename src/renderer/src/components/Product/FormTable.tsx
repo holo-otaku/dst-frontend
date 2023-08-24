@@ -88,6 +88,7 @@ const renderFormControl = (
       onChange={(e) => handleInputChange(field.id as number, e.target.value)}
       value={fieldValue as string}
       type={dataType}
+      {...(dataType === "number" && { step: "any" })}
       isInvalid={field.isRequired && fieldValue === ""}
     />
   );

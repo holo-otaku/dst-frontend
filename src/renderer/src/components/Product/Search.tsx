@@ -312,7 +312,7 @@ const NumberFilter = ({ title, handleChange, searchData }: FilterProps) => {
   };
 
   const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const num = parseInt(event.currentTarget.value);
+    const num = parseFloat(event.currentTarget.value);
     handleChange(num, operator);
   };
 
@@ -324,7 +324,12 @@ const NumberFilter = ({ title, handleChange, searchData }: FilterProps) => {
         <option value={ProductSearchPayloadOperation.GREATER}>{">="}</option>
         <option value={ProductSearchPayloadOperation.LESS}>{"<="}</option>
       </Form.Select>
-      <Form.Control value={value} onChange={handleValueChange} type="number" />
+      <Form.Control
+        value={value}
+        onChange={handleValueChange}
+        type="number"
+        step="any"
+      />
     </InputGroup>
   );
 };
