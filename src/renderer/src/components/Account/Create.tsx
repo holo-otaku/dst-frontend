@@ -35,6 +35,9 @@ export const Create = () => {
       {
         url: "/role",
         method: "GET",
+        params: {
+          limit: 100,
+        },
       },
       {
         manual: true,

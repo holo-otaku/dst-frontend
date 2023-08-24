@@ -22,6 +22,7 @@ export const Edit = () => {
       method: "GET",
       params: {
         showField: 1,
+        limit: 100,
       },
     });
   const [{ data: productResponse, loading: productLoading }] =

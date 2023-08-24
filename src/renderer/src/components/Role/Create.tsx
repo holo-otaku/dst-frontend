@@ -43,6 +43,9 @@ export const Create = () => {
     {
       url: "/permission",
       method: "GET",
+      params: {
+        limit: 100,
+      },
     },
     { manual: true }
   );

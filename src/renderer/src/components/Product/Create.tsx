@@ -25,6 +25,7 @@ export const Create = () => {
       method: "GET",
       params: {
         showField: 1,
+        limit: 100,
       },
     });
 
