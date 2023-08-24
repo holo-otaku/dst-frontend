@@ -22,6 +22,7 @@ export const Edit = () => {
       method: "GET",
       params: {
         showField: 1,
+        limit: 100,
       },
     });
   const [{ data: productResponse, loading: productLoading }] =
@@ -56,7 +57,7 @@ export const Edit = () => {
     let parsedValue: string | number | boolean = value;
     switch (fieldDetail?.dataType) {
       case SeriesFieldDataType.number:
-        parsedValue = parseInt(value);
+        parsedValue = parseFloat(value);
         break;
       case SeriesFieldDataType.boolean:
         parsedValue = value === "true";

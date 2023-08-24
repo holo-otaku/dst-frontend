@@ -1,5 +1,6 @@
 export interface SeriesResponse extends APIResponse {
   data: SeriesData[];
+  totalCount: number;
 }
 
 export interface SeriesDetailResponse extends APIResponse {

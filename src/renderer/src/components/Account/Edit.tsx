@@ -43,6 +43,9 @@ export const Edit = () => {
     {
       url: "/role",
       method: "GET",
+      params: {
+        limit: 100,
+      },
     }
   );
 
