@@ -41,7 +41,7 @@ export const Search = () => {
     }
   );
   const [page, setPage] = useState<number>(1);
-  const limit = 10;
+  const limit = 5;
   const totalPage = Math.ceil(
     get(productSearchResponse, "totalCount", 0) / limit
   );
@@ -101,6 +101,7 @@ const Bar = ({ series, searchProduct, page, limit }: BarProps) => {
   );
 
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
+  const [forceRefresh, setForceRefresh] = useState<number>(1);
   const targetSeries = series.find((series) => series.id === selectedSeries);
   const fields = get(targetSeries, "fields", []);
 
@@ -110,6 +111,12 @@ const Bar = ({ series, searchProduct, page, limit }: BarProps) => {
     if (!series.length) return;
     if (!targetSeries) return;
     if (!fields.length) return;
+
+    // 換頁時，不要清空搜尋欄位
+    if (fields.length !== 0) {
+      handleSearch();
+      return;
+    }
 
     setSearchFields([]);
     void searchProduct({
@@ -123,7 +130,7 @@ const Bar = ({ series, searchProduct, page, limit }: BarProps) => {
       },
     });
     return () => {};
-  }, [series, selectedSeries, page]);
+  }, [series, selectedSeries, page, forceRefresh]);
 
   const handleInput = (data: ProductSearchFilters) => {
     const { fieldId, value, operation } = data;
@@ -165,6 +172,7 @@ const Bar = ({ series, searchProduct, page, limit }: BarProps) => {
 
   const handleClear = () => {
     setSearchFields([]);
+    setForceRefresh((prev) => prev + 1);
   };
 
   return (
