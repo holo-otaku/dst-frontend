@@ -60,9 +60,7 @@ export const Search = () => {
       </Backdrop>
       <Bar
         series={get(seriesResponse, "data", [])}
-        searchProduct={searchProduct}
-        page={page}
-        limit={limit}
+        {...{ searchProduct, page, limit, setPage }}
       />
       <hr />
       <ProductTable products={get(productSearchResponse, "data", [])} />
@@ -91,11 +89,12 @@ interface BarProps {
     ProductSearchPayloadField,
     ProductSearchResponse
   >;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
   page: number;
   limit: number;
 }
 
-const Bar = ({ series, searchProduct, page, limit }: BarProps) => {
+const Bar = ({ series, searchProduct, page, limit, setPage }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(
     get(series, "[0].id", 1)
   );
@@ -190,7 +189,14 @@ const Bar = ({ series, searchProduct, page, limit }: BarProps) => {
           searchFields={searchFields}
           handleInput={handleInput}
         />
-        <ControlBar handleSearch={handleSearch} handleClear={handleClear} />
+        <ControlBar
+          handleSearch={() => {
+            // 搜尋按鈕觸發時，直接跳到第一頁
+            setPage(1);
+            handleSearch();
+          }}
+          handleClear={handleClear}
+        />
       </Form>
     </Stack>
   );
