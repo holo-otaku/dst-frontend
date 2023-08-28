@@ -65,21 +65,25 @@ const getDisplayValue = (
   dataType: string,
   value: string | number | boolean
 ) => {
+  const serverBaseUrl = localStorage.getItem("server") || ""; // Get server base URL from localStorage
+
   switch (dataType) {
     case "boolean":
       return value ? "True" : "False";
     case "picture":
-      // Assuming you have a way to display pictures using value
-      return (
-        <Image
-          src={value as string}
-          alt="Product"
-          style={{ maxWidth: "100px" }}
-        />
-      );
+      if (value) {
+        return (
+          <Image
+            src={`${serverBaseUrl}${value}`}
+            alt="Product"
+            style={{ maxWidth: "100px" }}
+          />
+        );
+      } else {
+        return <span></span>;
+      }
     default:
       return value;
   }
 };
-
 export default ProductTable;
