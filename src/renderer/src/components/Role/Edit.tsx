@@ -1,14 +1,5 @@
-import { useState, useEffect } from "react";
-import {
-  Stack,
-  Button,
-  Form,
-  InputGroup,
-  Row,
-  Col,
-  FormGroup,
-  FormCheck,
-} from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Stack, Button, Form, InputGroup, Table } from "react-bootstrap";
 import useAxios from "axios-hooks";
 import { ScaleLoader } from "react-spinners";
 import { useNavigate, useParams } from "react-router-dom";
@@ -20,6 +11,20 @@ import {
   PermissionData,
   RoleDetailResponse,
 } from "./Interfaces";
+
+const groupPermissionsByCategory = (permissions: PermissionData[]) => {
+  const groupedPermissions: Record<string, PermissionData[]> = {};
+
+  permissions.forEach((permission) => {
+    const [category] = permission.name.split(".");
+    if (!groupedPermissions[category]) {
+      groupedPermissions[category] = [];
+    }
+    groupedPermissions[category].push(permission);
+  });
+
+  return groupedPermissions;
+};
 
 export const Edit = () => {
   const navigate = useNavigate();
@@ -104,6 +109,35 @@ export const Edit = () => {
     );
   };
 
+  const groupedPermissions = groupPermissionsByCategory(permissions);
+  const handleSelectCategory = (category: string) => {
+    const selectedCategoryPermissions = groupedPermissions[category];
+    if (!selectedCategoryPermissions) return;
+
+    const selectedCategoryPermissionIds = selectedCategoryPermissions.map(
+      (permission) => permission.id
+    );
+
+    if (
+      selectedCategoryPermissionIds.every((id) =>
+        rolePermissionIds.includes(id)
+      )
+    ) {
+      // Unselect all permissions if all were selected
+      setRolePermissionIds(
+        rolePermissionIds.filter(
+          (id) => !selectedCategoryPermissionIds.includes(id)
+        )
+      );
+    } else {
+      // Select all permissions if any were not selected
+      setRolePermissionIds([
+        ...rolePermissionIds,
+        ...selectedCategoryPermissionIds,
+      ]);
+    }
+  };
+
   return (
     <Stack gap={2}>
       <Backdrop show={detailLoading || permissionLoading || editLoading}>
@@ -120,33 +154,68 @@ export const Edit = () => {
         </InputGroup>
       </Stack>
       <Stack direction="horizontal" gap={3}>
-        <Form.Label>選擇權限</Form.Label>
-        <Row>
-          {permissions.length > 0 &&
-            permissions.map((permission) => (
-              <Col key={permission.id} xs={6} sm={4} md={3}>
-                <FormGroup>
-                  <FormCheck
+        <Table striped bordered>
+          <thead>
+            <tr>
+              <th style={{ width: "30%" }}>大功能</th>
+              <th>權限</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.keys(groupedPermissions).map((category) => (
+              <tr key={category}>
+                <td>
+                  <Form.Check
                     type="checkbox"
-                    label={permission.name}
-                    checked={rolePermissionIds.includes(permission.id)}
-                    onChange={() => {
-                      if (rolePermissionIds.includes(permission.id)) {
-                        setRolePermissionIds(
-                          rolePermissionIds.filter((id) => id !== permission.id)
-                        );
-                      } else {
-                        setRolePermissionIds([
-                          ...rolePermissionIds,
-                          permission.id,
-                        ]);
-                      }
-                    }}
+                    label={category}
+                    checked={groupedPermissions[category].every((permission) =>
+                      rolePermissionIds.includes(permission.id)
+                    )}
+                    onChange={() => handleSelectCategory(category)}
                   />
-                </FormGroup>
-              </Col>
+                </td>
+                <td>
+                  <div style={{ display: "flex", flexWrap: "wrap" }}>
+                    {groupedPermissions[category].map(
+                      (permission, subIndex) => (
+                        <React.Fragment key={permission.id}>
+                          {subIndex > 0 && (
+                            <div
+                              style={{
+                                borderRight: "1px solid #ccc",
+                                margin: "0 5px",
+                                height: "100%",
+                              }}
+                            />
+                          )}
+                          <Form.Check
+                            type="checkbox"
+                            label={permission.name.split(".")[1]}
+                            checked={rolePermissionIds.includes(permission.id)}
+                            onChange={() => {
+                              if (rolePermissionIds.includes(permission.id)) {
+                                setRolePermissionIds(
+                                  rolePermissionIds.filter(
+                                    (id) => id !== permission.id
+                                  )
+                                );
+                              } else {
+                                setRolePermissionIds([
+                                  ...rolePermissionIds,
+                                  permission.id,
+                                ]);
+                              }
+                            }}
+                          />
+                        </React.Fragment>
+                      )
+                    )}
+                  </div>
+                </td>
+              </tr>
             ))}
-        </Row>
+          </tbody>
+        </Table>
       </Stack>
       <Stack direction="horizontal" gap={3} className="mt-3">
         <div className="flex-grow-1" />
