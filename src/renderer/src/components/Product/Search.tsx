@@ -53,6 +53,35 @@ export const Search = () => {
 
   const pageLoading = seriesLoading || productSearchLoading;
 
+  const handleNextPage = () => {
+    if (page < totalPage) {
+      setPage(page + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (page > 1) {
+      setPage(page - 1);
+    }
+  };
+
+  const calculateAvailablePages = () => {
+    const pages: number[] = [];
+
+    if (page - 2 > 0) pages.push(page - 2);
+    if (page - 1 > 0) pages.push(page - 1);
+
+    pages.push(page);
+
+    if (page + 1 <= totalPage) pages.push(page + 1);
+    if (page + 2 <= totalPage) pages.push(page + 2);
+
+    if (!pages.includes(1)) pages.unshift(1);
+    if (!pages.includes(totalPage)) pages.push(totalPage);
+
+    return Array.from(new Set(pages)).sort((a, b) => a - b);
+  };
+
   return (
     <Stack gap={2}>
       <Backdrop show={pageLoading}>
@@ -67,15 +96,20 @@ export const Search = () => {
       <Stack direction="horizontal" className="justify-content-center">
         <Pagination>
           <Pagination.First onClick={() => setPage(1)} />
-          {Array.from({ length: totalPage }).map((_, index) => (
+          <Pagination.Prev onClick={handlePreviousPage} disabled={page === 1} />
+          {calculateAvailablePages().map((pageNumber) => (
             <Pagination.Item
-              key={index}
-              active={index + 1 === page}
-              onClick={() => setPage(index + 1)}
+              key={pageNumber}
+              active={pageNumber === page}
+              onClick={() => setPage(pageNumber)}
             >
-              {index + 1}
+              {pageNumber}
             </Pagination.Item>
           ))}
+          <Pagination.Next
+            onClick={handleNextPage}
+            disabled={page === totalPage}
+          />
           <Pagination.Last onClick={() => setPage(totalPage)} />
         </Pagination>
       </Stack>
