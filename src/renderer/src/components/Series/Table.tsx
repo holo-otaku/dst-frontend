@@ -24,7 +24,10 @@ export const SeriesTable = ({ data, handleDelete }: SeriesTableProps) => {
       <tbody>
         {data &&
           data.map((series) => (
-            <tr key={series.id}>
+            <tr
+              key={series.id}
+              onDoubleClick={() => navigate(`${series.id}/edit`)}
+            >
               <td>{series.name}</td>
               <td>{series.createdBy}</td>
               <td>{moment(series.createdAt).format("YYYY-MM-DD")}</td>
