@@ -11,6 +11,9 @@ export const Search = () => {
     useAxios<AccountResponse>({
       url: "/user",
       method: "GET",
+      params: {
+        limit: 100,
+      },
     });
 
   const [{ loading: deleteLoading }, deleteUser] = useAxios<void>(
