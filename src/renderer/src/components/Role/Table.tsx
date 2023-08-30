@@ -23,7 +23,7 @@ const RoleTable = ({ roles, onDeleteRole }: RoleTableProps) => {
         </thead>
         <tbody>
           {roles.map((role) => (
-            <tr key={role.id}>
+            <tr key={role.id} onDoubleClick={() => navigate(`${role.id}/edit`)}>
               <td>{role.id}</td>
               <td>{role.name}</td>
               <td>

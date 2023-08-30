@@ -24,7 +24,10 @@ const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
         </thead>
         <tbody>
           {accounts.map((account) => (
-            <tr key={account.id}>
+            <tr
+              key={account.id}
+              onDoubleClick={() => navigate(`${account.id}/edit`)}
+            >
               <td>{account.id}</td>
               <td>{account.role}</td>
               <td>{account.userName}</td>
