@@ -27,7 +27,7 @@ export const usePaginate = ({
   limit = 10,
 }: PaginateProps): PaginateReturn => {
   const maxPages = Math.ceil(total / limit);
-  const [currentPage, setCurrentPage] = useState(total > 0 ? 1 : 0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const next = useCallback(() => {
     setCurrentPage((prev) => (prev < maxPages ? prev + 1 : prev));

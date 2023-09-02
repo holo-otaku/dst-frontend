@@ -56,8 +56,6 @@ export const Search = () => {
 
   const pageLoading = seriesLoading || productSearchLoading;
 
-  console.log(availablePages);
-
   return (
     <Stack gap={2}>
       <Backdrop show={pageLoading}>
@@ -108,10 +106,7 @@ interface BarProps {
 }
 
 const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
-  const [selectedSeries, setSelectedSeries] = useState<number>(
-    get(series, "[0].id", 1)
-  );
-
+  const [selectedSeries, setSelectedSeries] = useState<number>(1);
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
   const [forceRefresh, setForceRefresh] = useState<number>(1);
   const targetSeries = series.find((series) => series.id === selectedSeries);
@@ -121,7 +116,12 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
     // 每次系列改變時，清空搜尋欄位，並且直接協助無條件搜尋
     // 不過要確保系列資料已經載入完成
     if (!series.length) return;
-    if (!targetSeries) return;
+    if (!targetSeries) {
+      // 初次載入時，targetSeries 會是 undefined
+      // 協助更新 selectedSeries
+      setSelectedSeries(get(series, "[0].id", 1));
+      return;
+    }
     if (!fields.length) return;
 
     // 換頁時，不要清空搜尋欄位
@@ -180,6 +180,7 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
 
   const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSeries(parseInt(event.target.value));
+    setSearchFields([]);
   };
 
   const handleClear = () => {
