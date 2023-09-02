@@ -9,7 +9,6 @@ import { usePaginate } from "@renderer/hooks";
 import { Pagination } from "../Pagination";
 import { get } from "lodash";
 
-
 export const Search = () => {
   const [{ data: roleResponse, loading: roleLoading }, refetchRoles] =
     useAxios<RoleResponse>(
