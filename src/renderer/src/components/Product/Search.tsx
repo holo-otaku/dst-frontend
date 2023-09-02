@@ -17,6 +17,7 @@ import {
   ProductSearchResponse,
 } from "./Interface";
 import ProductTable from "./ProductTable";
+import { usePaginate } from "@renderer/hooks";
 
 export const Search = () => {
   const [{ data: seriesResponse, loading: seriesLoading }, fetchSeries] =
@@ -40,11 +41,13 @@ export const Search = () => {
       manual: true,
     }
   );
-  const [page, setPage] = useState<number>(1);
-  const limit = 5;
-  const totalPage = Math.ceil(
-    get(productSearchResponse, "totalCount", 0) / limit
-  );
+  const [
+    { currentPage, availablePages, limit },
+    { next, previous, first, last, goto },
+  ] = usePaginate({
+    total: get(productSearchResponse, "totalCount", 0),
+    limit: 10,
+  });
 
   useEffect(() => {
     void fetchSeries();
@@ -53,34 +56,7 @@ export const Search = () => {
 
   const pageLoading = seriesLoading || productSearchLoading;
 
-  const handleNextPage = () => {
-    if (page < totalPage) {
-      setPage(page + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (page > 1) {
-      setPage(page - 1);
-    }
-  };
-
-  const calculateAvailablePages = () => {
-    const pages: number[] = [];
-
-    if (page - 2 > 0) pages.push(page - 2);
-    if (page - 1 > 0) pages.push(page - 1);
-
-    pages.push(page);
-
-    if (page + 1 <= totalPage) pages.push(page + 1);
-    if (page + 2 <= totalPage) pages.push(page + 2);
-
-    if (!pages.includes(1)) pages.unshift(1);
-    if (!pages.includes(totalPage)) pages.push(totalPage);
-
-    return Array.from(new Set(pages)).sort((a, b) => a - b);
-  };
+  console.log(availablePages);
 
   return (
     <Stack gap={2}>
@@ -89,28 +65,31 @@ export const Search = () => {
       </Backdrop>
       <Bar
         series={get(seriesResponse, "data", [])}
-        {...{ searchProduct, page, limit, setPage }}
+        {...{ searchProduct, page: currentPage, limit, first }}
       />
       <hr />
       <ProductTable products={get(productSearchResponse, "data", [])} />
       <Stack direction="horizontal" className="justify-content-center">
         <Pagination>
-          <Pagination.First onClick={() => setPage(1)} />
-          <Pagination.Prev onClick={handlePreviousPage} disabled={page === 1} />
-          {calculateAvailablePages().map((pageNumber) => (
-            <Pagination.Item
-              key={pageNumber}
-              active={pageNumber === page}
-              onClick={() => setPage(pageNumber)}
-            >
-              {pageNumber}
-            </Pagination.Item>
-          ))}
-          <Pagination.Next
-            onClick={handleNextPage}
-            disabled={page === totalPage}
-          />
-          <Pagination.Last onClick={() => setPage(totalPage)} />
+          <Pagination.First onClick={first} />
+          <Pagination.Prev onClick={previous} />
+          {availablePages.map((page, index) => {
+            if (page === "...") {
+              return <Pagination.Ellipsis key={index} />;
+            }
+
+            return (
+              <Pagination.Item
+                key={index}
+                active={page === currentPage}
+                onClick={() => goto(page as number)}
+              >
+                {page}
+              </Pagination.Item>
+            );
+          })}
+          <Pagination.Next onClick={next} />
+          <Pagination.Last onClick={last} />
         </Pagination>
       </Stack>
     </Stack>
@@ -123,12 +102,12 @@ interface BarProps {
     ProductSearchPayloadField,
     ProductSearchResponse
   >;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
+  first: () => void;
   page: number;
   limit: number;
 }
 
-const Bar = ({ series, searchProduct, page, limit, setPage }: BarProps) => {
+const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(
     get(series, "[0].id", 1)
   );
@@ -226,7 +205,7 @@ const Bar = ({ series, searchProduct, page, limit, setPage }: BarProps) => {
         <ControlBar
           handleSearch={() => {
             // 搜尋按鈕觸發時，直接跳到第一頁
-            setPage(1);
+            first();
             handleSearch();
           }}
           handleClear={handleClear}
