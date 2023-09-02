@@ -4,7 +4,10 @@ import useAxios from "axios-hooks";
 import { AccountResponse } from "./Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
-import AccountTable from "./Table"; // Import the AccountTable component
+import AccountTable from "./Table";
+import { usePaginate } from "@renderer/hooks";
+import { Pagination } from "../Pagination";
+import { get } from "lodash";
 
 export const Search = () => {
   const [{ data: accountResponse, loading: accountLoading }, refetchAccounts] =
@@ -22,10 +25,23 @@ export const Search = () => {
     }
   );
 
+  const [PaginateState, PaginateAction] = usePaginate({
+    total: get(accountResponse, "totalCount", 0),
+    limit: 10,
+  });
+
+  const { currentPage, availablePages } = PaginateState;
+
   useEffect(() => {
     void refetchAccounts();
     return () => {};
   }, [refetchAccounts]);
+
+  useEffect(() => {
+    if (accountResponse) {
+      PaginateAction.changeTotal(accountResponse.data.length);
+    }
+  }, [accountResponse]);
 
   const pageLoading = accountLoading;
 
@@ -46,6 +62,15 @@ export const Search = () => {
           onDeleteAccount={handleDeleteAccount}
         />
       )}
+      <Stack direction="horizontal" className="justify-content-center">
+        <Pagination
+          {...{
+            currentPage,
+            availablePages,
+            ...PaginateAction,
+          }}
+        />
+      </Stack>
     </Stack>
   );
 };
