@@ -2,6 +2,8 @@ import { Table, Button } from "react-bootstrap";
 import { SeriesData } from "./Interfaces";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "@renderer/context";
 
 interface SeriesTableProps {
   data: SeriesData[];
@@ -10,6 +12,10 @@ interface SeriesTableProps {
 
 export const SeriesTable = ({ data, handleDelete }: SeriesTableProps) => {
   const navigate = useNavigate();
+  const { getPayload } = useContext(AuthContext);
+  const { permissions = [] } = getPayload();
+  const editable = permissions.includes("series.edit");
+  const deletable = permissions.includes("series.delete");
 
   return (
     <Table striped bordered>
@@ -33,7 +39,10 @@ export const SeriesTable = ({ data, handleDelete }: SeriesTableProps) => {
               <td>{moment(series.createdAt).format("YYYY-MM-DD")}</td>
               <td>
                 <Button
-                  variant="danger"
+                  {...{
+                    variant: deletable ? "danger" : "secondary",
+                    disabled: !deletable,
+                  }}
                   className="mx-1"
                   size="sm"
                   onClick={() => handleDelete(series.id)}
@@ -41,7 +50,10 @@ export const SeriesTable = ({ data, handleDelete }: SeriesTableProps) => {
                   刪除
                 </Button>
                 <Button
-                  variant="warning"
+                  {...{
+                    variant: editable ? "warning" : "secondary",
+                    disabled: !editable,
+                  }}
                   className="mx-1"
                   size="sm"
                   onClick={() => navigate(`${series.id}/edit`)}
