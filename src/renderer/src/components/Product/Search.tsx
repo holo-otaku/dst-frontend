@@ -41,15 +41,23 @@ export const Search = () => {
       manual: true,
     }
   );
-  const [{ currentPage, availablePages, limit }, PaginateAction] = usePaginate({
+  const [PaginateState, PaginateAction] = usePaginate({
     total: get(productSearchResponse, "totalCount", 0),
     limit: 10,
   });
+
+  const { currentPage, availablePages, limit } = PaginateState;
 
   useEffect(() => {
     void fetchSeries();
     return () => {};
   }, [fetchSeries]);
+
+  useEffect(() => {
+    if (productSearchResponse) {
+      PaginateAction.changeTotal(productSearchResponse.totalCount);
+    }
+  }, [productSearchResponse]);
 
   const pageLoading = seriesLoading || productSearchLoading;
 
@@ -169,6 +177,7 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
   const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSeries(parseInt(event.target.value));
     setSearchFields([]);
+    first();
   };
 
   const handleClear = () => {
