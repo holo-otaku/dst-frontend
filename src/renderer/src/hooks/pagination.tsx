@@ -20,14 +20,16 @@ export interface PaginateActions {
   first: () => void;
   last: () => void;
   goto: (page: number) => void;
+  changeTotal: (total: number) => void;
 }
 
 export const usePaginate = ({
   total = 0,
   limit = 10,
 }: PaginateProps): PaginateReturn => {
-  const maxPages = Math.ceil(total / limit);
+  const [totalCount, setTotalCount] = useState(total);
   const [currentPage, setCurrentPage] = useState(1);
+  const maxPages = Math.ceil(totalCount / limit);
 
   const next = useCallback(() => {
     setCurrentPage((prev) => (prev < maxPages ? prev + 1 : prev));
@@ -53,7 +55,7 @@ export const usePaginate = ({
   );
 
   const calculatePages = (): PageOrDots[] => {
-    if (total === 0) return [];
+    if (totalCount === 0) return [];
 
     const pages: PageOrDots[] = [currentPage];
 
@@ -73,13 +75,14 @@ export const usePaginate = ({
   };
 
   return [
-    { currentPage, availablePages: calculatePages(), limit, total },
+    { currentPage, availablePages: calculatePages(), limit, total: totalCount },
     {
       first,
       last,
       next,
       previous,
       goto,
+      changeTotal: setTotalCount,
     },
   ];
 };

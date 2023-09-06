@@ -1,6 +1,8 @@
 import { Table, Button } from "react-bootstrap";
 import { UserData } from "./Interfaces";
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "@renderer/context";
 
 interface AccountTableProps {
   accounts: UserData[];
@@ -9,6 +11,10 @@ interface AccountTableProps {
 
 const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
   const navigate = useNavigate();
+  const { getPayload } = useContext(AuthContext);
+  const { permissions = [] } = getPayload();
+  const editable = permissions.includes("user.edit");
+  const deletable = permissions.includes("user.delete");
 
   return (
     <div>
@@ -33,7 +39,10 @@ const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
               <td>{account.userName}</td>
               <td>
                 <Button
-                  variant="danger"
+                  {...{
+                    variant: deletable ? "danger" : "secondary",
+                    disabled: !deletable,
+                  }}
                   size="sm"
                   className="mx-1"
                   onClick={() => onDeleteAccount(account.id)}
@@ -41,7 +50,10 @@ const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
                   刪除
                 </Button>
                 <Button
-                  variant="primary"
+                  {...{
+                    variant: editable ? "primary" : "secondary",
+                    disabled: !editable,
+                  }}
                   size="sm"
                   className="mx-1"
                   onClick={() => navigate(`${account.id}/edit`)}

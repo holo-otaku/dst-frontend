@@ -8,7 +8,7 @@ import {
 } from "../Series/Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
-import Pagination from "react-bootstrap/Pagination";
+import { Pagination } from "../Pagination";
 import { get } from "lodash";
 import {
   ProductSearchFilters,
@@ -41,18 +41,23 @@ export const Search = () => {
       manual: true,
     }
   );
-  const [
-    { currentPage, availablePages, limit },
-    { next, previous, first, last, goto },
-  ] = usePaginate({
+  const [PaginateState, PaginateAction] = usePaginate({
     total: get(productSearchResponse, "totalCount", 0),
     limit: 10,
   });
+
+  const { currentPage, availablePages, limit } = PaginateState;
 
   useEffect(() => {
     void fetchSeries();
     return () => {};
   }, [fetchSeries]);
+
+  useEffect(() => {
+    if (productSearchResponse) {
+      PaginateAction.changeTotal(productSearchResponse.totalCount);
+    }
+  }, [productSearchResponse]);
 
   const pageLoading = seriesLoading || productSearchLoading;
 
@@ -63,32 +68,23 @@ export const Search = () => {
       </Backdrop>
       <Bar
         series={get(seriesResponse, "data", [])}
-        {...{ searchProduct, page: currentPage, limit, first }}
+        {...{
+          searchProduct,
+          page: currentPage,
+          limit,
+          first: PaginateAction.first,
+        }}
       />
       <hr />
       <ProductTable products={get(productSearchResponse, "data", [])} />
       <Stack direction="horizontal" className="justify-content-center">
-        <Pagination>
-          <Pagination.First onClick={first} />
-          <Pagination.Prev onClick={previous} />
-          {availablePages.map((page, index) => {
-            if (page === "...") {
-              return <Pagination.Ellipsis key={index} />;
-            }
-
-            return (
-              <Pagination.Item
-                key={index}
-                active={page === currentPage}
-                onClick={() => goto(page as number)}
-              >
-                {page}
-              </Pagination.Item>
-            );
-          })}
-          <Pagination.Next onClick={next} />
-          <Pagination.Last onClick={last} />
-        </Pagination>
+        <Pagination
+          {...{
+            currentPage,
+            availablePages,
+            ...PaginateAction,
+          }}
+        />
       </Stack>
     </Stack>
   );
@@ -181,6 +177,7 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
   const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSeries(parseInt(event.target.value));
     setSearchFields([]);
+    first();
   };
 
   const handleClear = () => {

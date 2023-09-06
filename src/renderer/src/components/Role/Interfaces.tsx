@@ -1,5 +1,6 @@
 export interface RoleResponse extends APIResponse {
   data: RoleData[];
+  totalCount: number;
 }
 
 export interface RoleData {

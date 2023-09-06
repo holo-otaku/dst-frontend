@@ -1,6 +1,8 @@
+import { useContext } from "react";
 import { Table, Button } from "react-bootstrap";
 import { RoleData } from "./Interfaces";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "@renderer/context";
 
 interface RoleTableProps {
   roles: RoleData[];
@@ -9,6 +11,10 @@ interface RoleTableProps {
 
 const RoleTable = ({ roles, onDeleteRole }: RoleTableProps) => {
   const navigate = useNavigate();
+  const { getPayload } = useContext(AuthContext);
+  const { permissions = [] } = getPayload();
+  const editable = permissions.includes("role.edit");
+  const deletable = permissions.includes("role.delete");
 
   return (
     <div>
@@ -28,7 +34,10 @@ const RoleTable = ({ roles, onDeleteRole }: RoleTableProps) => {
               <td>{role.name}</td>
               <td>
                 <Button
-                  variant="danger"
+                  {...{
+                    variant: deletable ? "danger" : "secondary",
+                    disabled: !deletable,
+                  }}
                   size="sm"
                   className="mx-1"
                   onClick={() => onDeleteRole(role.id)}
@@ -36,7 +45,10 @@ const RoleTable = ({ roles, onDeleteRole }: RoleTableProps) => {
                   刪除
                 </Button>
                 <Button
-                  variant="primary"
+                  {...{
+                    variant: editable ? "warning" : "secondary",
+                    disabled: !editable,
+                  }}
                   size="sm"
                   className="mx-1"
                   onClick={() => navigate(`${role.id}/edit`)}

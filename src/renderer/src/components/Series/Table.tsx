@@ -51,7 +51,7 @@ export const SeriesTable = ({ data, handleDelete }: SeriesTableProps) => {
                 </Button>
                 <Button
                   {...{
-                    variant: editable ? "warning" : "secondary",
+                    variant: editable ? "primary" : "secondary",
                     disabled: !editable,
                   }}
                   className="mx-1"
