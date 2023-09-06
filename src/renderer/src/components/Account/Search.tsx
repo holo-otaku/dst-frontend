@@ -39,7 +39,7 @@ export const Search = () => {
 
   useEffect(() => {
     if (accountResponse) {
-      PaginateAction.changeTotal(accountResponse.data.length);
+      PaginateAction.changeTotal(accountResponse.totalCount);
     }
   }, [accountResponse]);
 
