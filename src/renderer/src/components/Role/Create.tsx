@@ -1,14 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Stack,
-  Button,
-  Form,
-  InputGroup,
-  Row,
-  Col,
-  FormGroup,
-  FormCheck,
-} from "react-bootstrap";
+import { Stack, Button, Form, InputGroup } from "react-bootstrap";
 import useAxios from "axios-hooks";
 import { ScaleLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +10,7 @@ import {
   CreateRolePayload,
   PermissionData,
 } from "./Interfaces";
+import PermissionTable from "./PermissionTable";
 
 export const Create = () => {
   const navigate = useNavigate();
@@ -90,33 +82,11 @@ export const Create = () => {
         </InputGroup>
       </Stack>
       <Stack direction="horizontal" gap={3}>
-        <Form.Label>選擇權限</Form.Label>
-        <Row>
-          {permissions.length > 0 &&
-            permissions.map((permission) => (
-              <Col key={permission.id} xs={6} sm={4} md={3}>
-                <FormGroup>
-                  <FormCheck
-                    type="checkbox"
-                    label={permission.name}
-                    checked={rolePermissionIds.includes(permission.id)}
-                    onChange={() => {
-                      if (rolePermissionIds.includes(permission.id)) {
-                        setRolePermissionIds(
-                          rolePermissionIds.filter((id) => id !== permission.id)
-                        );
-                      } else {
-                        setRolePermissionIds([
-                          ...rolePermissionIds,
-                          permission.id,
-                        ]);
-                      }
-                    }}
-                  />
-                </FormGroup>
-              </Col>
-            ))}
-        </Row>
+        <PermissionTable
+          permissions={permissions}
+          rolePermissionIds={rolePermissionIds}
+          setRolePermissionIds={setRolePermissionIds}
+        />
       </Stack>
       <Stack direction="horizontal" gap={3} className="mt-3">
         <div className="flex-grow-1" />
