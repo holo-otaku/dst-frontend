@@ -44,8 +44,8 @@ const renderFormControl = (
   { handleInputChange, attributes }: Omit<FormTableProps, "fields">
 ) => {
   const dataType = getFormTypeByDataType(field.dataType);
-  const fieldValue =
-    attributes.find((attr) => attr.fieldId === field.id)?.value || "";
+  const currentAttribute = attributes.find((attr) => attr.fieldId === field.id);
+  const fieldValue = currentAttribute?.value;
 
   switch (dataType) {
     case "switch":
