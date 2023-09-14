@@ -2,7 +2,7 @@ import { SeriesField, SeriesFieldDataType } from "../Series/Interfaces";
 import { Form, Table, Image } from "react-bootstrap";
 import { ProductAttributePayload } from "./Interface";
 import moment from "moment";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface FormTableProps {
   fields: SeriesField[];
@@ -79,6 +79,7 @@ const renderFormControl = (
         <PictureFormControl
           handleInputChange={handleInputChange}
           field={field}
+          fieldValue={fieldValue}
         />
       );
   }
@@ -97,13 +98,19 @@ const renderFormControl = (
 interface PictureFormControlProps {
   handleInputChange: (fieldId: number, value: string) => void;
   field: SeriesField;
+  fieldValue: string;
 }
 
 const PictureFormControl = ({
   handleInputChange,
   field,
+  fieldValue,
 }: PictureFormControlProps) => {
   const [picture, setPicture] = useState<string | null>();
+  const serverBaseUrl = localStorage.getItem("server") || ""; // Get server base URL from localStorage
+  useEffect(() => {
+    setPicture(`${serverBaseUrl}${fieldValue}`);
+  }, []);
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
