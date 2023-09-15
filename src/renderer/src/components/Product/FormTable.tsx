@@ -75,6 +75,10 @@ const renderFormControl = (
         />
       );
     case "picture":
+      if (typeof fieldValue !== "string") {
+        return null;
+      }
+
       return (
         <PictureFormControl
           handleInputChange={handleInputChange}
@@ -109,7 +113,12 @@ const PictureFormControl = ({
   const [picture, setPicture] = useState<string | null>();
   const serverBaseUrl = localStorage.getItem("server") || ""; // Get server base URL from localStorage
   useEffect(() => {
-    setPicture(`${serverBaseUrl}${fieldValue}`);
+    // 有可能進來的是 base64 的圖片，所以要先判斷
+    if (fieldValue.startsWith("/image")) {
+      setPicture(`${serverBaseUrl}${fieldValue}`);
+    } else {
+      setPicture(fieldValue);
+    }
   }, []);
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

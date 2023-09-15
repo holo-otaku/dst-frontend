@@ -74,7 +74,7 @@ const getDisplayValue = (
       if (value) {
         return (
           <Image
-            src={`${serverBaseUrl}${value}`}
+            src={`${serverBaseUrl}${value}?t=${new Date().getTime()}`}
             alt="Product"
             style={{ maxWidth: "100px" }}
           />
