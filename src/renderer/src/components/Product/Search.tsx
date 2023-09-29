@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Stack, InputGroup, Form, Row, Col, Button } from "react-bootstrap";
+import {
+  Stack,
+  InputGroup,
+  Form,
+  Row,
+  Col,
+  Button,
+  Accordion,
+} from "react-bootstrap";
 import useAxios, { RefetchFunction } from "axios-hooks";
 import {
   SeriesField,
@@ -9,7 +17,7 @@ import {
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { Pagination } from "../Pagination";
-import { get } from "lodash";
+import { get, orderBy } from "lodash";
 import {
   ProductSearchFilters,
   ProductSearchPayloadField,
@@ -17,7 +25,13 @@ import {
   ProductSearchResponse,
 } from "./Interface";
 import ProductTable from "./ProductTable";
-import { usePaginate } from "@renderer/hooks";
+import {
+  FavoriteRecord,
+  useFavoriteFilterField,
+  usePaginate,
+} from "@renderer/hooks";
+
+const MAX_FAVORITE_FIELDS = 3;
 
 export const Search = () => {
   const [{ data: seriesResponse, loading: seriesLoading }, fetchSeries] =
@@ -105,6 +119,8 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(1);
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
   const [forceRefresh, setForceRefresh] = useState<number>(1);
+  const { seriesFavoriteRecord, updateFavoritesWithIds } =
+    useFavoriteFilterField(selectedSeries, get(series, "[0].fields", []));
   const targetSeries = series.find((series) => series.id === selectedSeries);
   const fields = get(targetSeries, "fields", []);
 
@@ -162,17 +178,22 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
     setSearchFields(newSearchFields);
   };
 
-  const handleSearch = () =>
+  const handleSearch = () => {
+    // 去除空值
+    const filters = searchFields.filter((field) => field.value);
+    // 更新最愛欄位
+    updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
     searchProduct({
       data: {
         seriesId: selectedSeries,
-        filters: searchFields.filter((field) => field.value), // 去除空值
+        filters,
       },
       params: {
         page,
         limit,
       },
     });
+  };
 
   const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSeries(parseInt(event.target.value));
@@ -199,6 +220,7 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
           fields={fields}
           searchFields={searchFields}
           handleInput={handleInput}
+          seriesFavoriteRecord={seriesFavoriteRecord}
         />
         <ControlBar
           handleSearch={() => {
@@ -216,69 +238,96 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
 interface SearchBarProps {
   fields: SeriesField[];
   searchFields: ProductSearchFilters[];
+  seriesFavoriteRecord: FavoriteRecord[];
   handleInput: (data: ProductSearchFilters) => void;
 }
 
-const SearchBar = ({ fields, handleInput, searchFields }: SearchBarProps) => {
+const SearchBar = ({
+  fields,
+  handleInput,
+  searchFields,
+  seriesFavoriteRecord,
+}: SearchBarProps) => {
   const filterFields = fields.filter((field) => field.isFiltered);
+  const topLatestLastUsedIds = orderBy(seriesFavoriteRecord, "lastUsed", "desc")
+    .slice(0, MAX_FAVORITE_FIELDS)
+    .map((record) => record.id);
+  const favoriteFields = filterFields.filter((field) =>
+    topLatestLastUsedIds.includes(get(field, "id", 0))
+  );
+  const hideFields = filterFields.filter(
+    (field) => !topLatestLastUsedIds.includes(get(field, "id", 0))
+  );
+
+  const renderField = (field: SeriesField) => {
+    const id = get(field, "id", 0);
+    const searchData = searchFields.find(
+      (searchField) => searchField.fieldId === id
+    );
+    const wrap = (children: React.ReactNode) => (
+      <Col key={id} xs={12} md={6} lg={4}>
+        {children}
+      </Col>
+    );
+    const handleChange = (
+      value: string | number | boolean,
+      operation?: ProductSearchPayloadOperation
+    ) => {
+      return handleInput({ fieldId: field.id!, value, operation });
+    };
+
+    switch (field.dataType) {
+      case SeriesFieldDataType.number:
+        return wrap(
+          <NumberFilter
+            title={field.name}
+            handleChange={handleChange}
+            searchData={searchData}
+          />
+        );
+      case SeriesFieldDataType.string:
+        return wrap(
+          <StringFilter
+            title={field.name}
+            handleChange={handleChange}
+            searchData={searchData}
+          />
+        );
+      case SeriesFieldDataType.date:
+        return wrap(
+          <DatetimeFilter
+            title={field.name}
+            handleChange={handleChange}
+            searchData={searchData}
+          />
+        );
+      case SeriesFieldDataType.boolean:
+        return wrap(
+          <BooleanFilter
+            title={field.name}
+            handleChange={handleChange}
+            searchData={searchData}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
-    <Row className="g-2">
-      {filterFields.map((field) => {
-        const id = get(field, "id", 0);
-        const searchData = searchFields.find(
-          (searchField) => searchField.fieldId === id
-        );
-        const wrap = (children: React.ReactNode) => (
-          <Col key={id} xs={12} md={6} lg={3}>
-            {children}
-          </Col>
-        );
-        const handleChange = (
-          value: string | number | boolean,
-          operation?: ProductSearchPayloadOperation
-        ) => {
-          return handleInput({ fieldId: field.id!, value, operation });
-        };
-
-        switch (field.dataType) {
-          case SeriesFieldDataType.number:
-            return wrap(
-              <NumberFilter
-                title={field.name}
-                handleChange={handleChange}
-                searchData={searchData}
-              />
-            );
-          case SeriesFieldDataType.string:
-            return wrap(
-              <StringFilter
-                title={field.name}
-                handleChange={handleChange}
-                searchData={searchData}
-              />
-            );
-          case SeriesFieldDataType.date:
-            return wrap(
-              <DatetimeFilter
-                title={field.name}
-                handleChange={handleChange}
-                searchData={searchData}
-              />
-            );
-          case SeriesFieldDataType.boolean:
-            return wrap(
-              <BooleanFilter
-                title={field.name}
-                handleChange={handleChange}
-                searchData={searchData}
-              />
-            );
-          default:
-            return null;
-        }
-      })}
-    </Row>
+    <Stack gap={2}>
+      <Row className="g-2">{favoriteFields.map(renderField)}</Row>
+      {hideFields.length !== 0 && (
+        <Accordion>
+          <Accordion.Item eventKey={"0"}>
+            <Accordion.Header>更多選項</Accordion.Header>
+            <Accordion.Body>
+              <Row className="g-2">{hideFields.map(renderField)}</Row>
+            </Accordion.Body>
+          </Accordion.Item>
+        </Accordion>
+      )}
+    </Stack>
   );
 };
 
