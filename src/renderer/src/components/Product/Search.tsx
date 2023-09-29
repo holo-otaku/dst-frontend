@@ -33,6 +33,8 @@ import {
 
 const MAX_FAVORITE_FIELDS = 3;
 
+const pageSizes = [25, 50, 100];
+
 export const Search = () => {
   const [{ data: seriesResponse, loading: seriesLoading }, fetchSeries] =
     useAxios<SeriesResponse>({
@@ -55,9 +57,10 @@ export const Search = () => {
       manual: true,
     }
   );
+  const [pageLimit, setPageLimit] = useState<number>(25);
   const [PaginateState, PaginateAction] = usePaginate({
     total: get(productSearchResponse, "totalCount", 0),
-    limit: 10,
+    limit: pageLimit,
   });
 
   const { currentPage, availablePages, limit } = PaginateState;
@@ -90,6 +93,23 @@ export const Search = () => {
         }}
       />
       <hr />
+      <Stack direction="horizontal" style={{ flexGrow: 1 }}>
+        <div style={{ marginLeft: "auto" }}>
+          <Form.Select
+            size="sm"
+            onChange={(e) =>
+              setPageLimit(parseInt(e.target.value || `${pageSizes[0]}`))
+            }
+          >
+            <option>每頁數量</option>
+            {pageSizes.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </Form.Select>
+        </div>
+      </Stack>
       <ProductTable products={get(productSearchResponse, "data", [])} />
       <Stack direction="horizontal" className="justify-content-center">
         <Pagination
@@ -154,7 +174,7 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
       },
     });
     return () => {};
-  }, [series, selectedSeries, page, forceRefresh]);
+  }, [series, selectedSeries, page, forceRefresh, limit]);
 
   const handleInput = (data: ProductSearchFilters) => {
     const { fieldId, value, operation } = data;
