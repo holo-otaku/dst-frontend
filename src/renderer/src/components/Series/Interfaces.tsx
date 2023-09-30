@@ -16,7 +16,12 @@ export interface SeriesData {
 }
 
 export interface SeriesDetail extends SeriesData {
-  fields: SeriesField[];
+  fields: SeriesDetailField[];
+}
+
+export interface SeriesDetailField extends SeriesField {
+  id: number;
+  values: (string | number)[];
 }
 
 export interface SeriesField {
