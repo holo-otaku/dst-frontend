@@ -51,7 +51,9 @@ const ProductTable = ({ products }: ProductTableProps) => {
                 </td>
               ))}
               {product.erp.map((erpData, erpIndex) => (
-                <td key={erpIndex}>{erpData.value}</td>
+                <td className="table-info" key={erpIndex}>
+                  {erpData.value}
+                </td>
               ))}
             </tr>
           ))}
