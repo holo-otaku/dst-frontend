@@ -1,4 +1,9 @@
-import { SeriesField, SeriesFieldDataType } from "../Series/Interfaces";
+import {
+  SeriesDetailField,
+  SeriesDetailResponse,
+  SeriesField,
+  SeriesFieldDataType,
+} from "../Series/Interfaces";
 import { Form, Table, Image } from "react-bootstrap";
 import { ProductAttributePayload } from "./Interface";
 import moment from "moment";
@@ -8,12 +13,14 @@ interface FormTableProps {
   fields: SeriesField[];
   attributes: ProductAttributePayload[];
   handleInputChange: (fieldId: number, value: string) => void;
+  seriesDetail?: SeriesDetailResponse["data"];
 }
 
 const FormTable = ({
   fields,
   handleInputChange,
   attributes,
+  seriesDetail,
 }: FormTableProps) => {
   return (
     <Table striped bordered hover>
@@ -25,15 +32,25 @@ const FormTable = ({
         </tr>
       </thead>
       <tbody>
-        {fields.map((field) => (
-          <tr key={field.id}>
-            <td>{field.name}</td>
-            <td>{getDataType(field.dataType)}</td>
-            <td>
-              {renderFormControl(field, { handleInputChange, attributes })}
-            </td>
-          </tr>
-        ))}
+        {fields.map((field) => {
+          const targetFieldData = seriesDetail?.fields.find(
+            (fieldData) => fieldData.id === field.id
+          );
+          const autoCompleteValues = targetFieldData?.values;
+          return (
+            <tr key={field.id}>
+              <td>{field.name}</td>
+              <td>{getDataType(field.dataType)}</td>
+              <td>
+                {renderFormControl(
+                  field,
+                  { handleInputChange, attributes },
+                  autoCompleteValues
+                )}
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </Table>
   );
@@ -41,11 +58,16 @@ const FormTable = ({
 
 const renderFormControl = (
   field: SeriesField,
-  { handleInputChange, attributes }: Omit<FormTableProps, "fields">
+  {
+    handleInputChange,
+    attributes,
+  }: Omit<FormTableProps, "fields" | "seriesDetail">,
+  autoCompleteValues?: SeriesDetailField["values"]
 ) => {
   const dataType = getFormTypeByDataType(field.dataType);
   const currentAttribute = attributes.find((attr) => attr.fieldId === field.id);
   const fieldValue = currentAttribute?.value;
+  const dataListId = `datalist-${field.id}`;
 
   switch (dataType) {
     case "switch":
@@ -89,13 +111,23 @@ const renderFormControl = (
   }
 
   return (
-    <Form.Control
-      onChange={(e) => handleInputChange(field.id as number, e.target.value)}
-      value={fieldValue as string}
-      type={dataType}
-      {...(dataType === "number" && { step: "any" })}
-      isInvalid={field.isRequired && fieldValue === ""}
-    />
+    <>
+      <Form.Control
+        onChange={(e) => handleInputChange(field.id as number, e.target.value)}
+        value={fieldValue as string}
+        type={dataType}
+        {...(dataType === "number" && { step: "any" })}
+        isInvalid={field.isRequired && fieldValue === ""}
+        list={dataListId}
+      />
+      {autoCompleteValues && (
+        <datalist id={dataListId}>
+          {autoCompleteValues.map((value) => (
+            <option key={value} value={value} />
+          ))}
+        </datalist>
+      )}
+    </>
   );
 };
 

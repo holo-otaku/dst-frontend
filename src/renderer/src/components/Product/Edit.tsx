@@ -1,6 +1,10 @@
 import { Button, Col, Form, InputGroup, Row, Stack } from "react-bootstrap";
 import FormTable from "./FormTable";
-import { SeriesFieldDataType, SeriesResponse } from "../Series/Interfaces";
+import {
+  SeriesDetailResponse,
+  SeriesFieldDataType,
+  SeriesResponse,
+} from "../Series/Interfaces";
 import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
@@ -39,6 +43,11 @@ export const Edit = () => {
     get(productResponse, "data.name", "")
   );
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
+  const [{ data: seriesDetailResponse, loading: seriesDetailLoading }] =
+    useAxios<SeriesDetailResponse>({
+      method: "GET",
+      url: `/series/${selectedSeries}`,
+    });
 
   useEffect(() => {
     if (!productResponse) return;
@@ -102,7 +111,11 @@ export const Edit = () => {
       });
   };
 
-  const pageLoading = seriesLoading || productLoading || editProductLoading;
+  const pageLoading =
+    seriesLoading ||
+    productLoading ||
+    editProductLoading ||
+    seriesDetailLoading;
 
   return (
     <Stack>
@@ -145,6 +158,7 @@ export const Edit = () => {
         attributes={attributes}
         fields={fields || []}
         handleInputChange={handleInputChange}
+        seriesDetail={seriesDetailResponse?.data}
       />
       <Row className="g-1 justify-content-end">
         <Col xs="auto">

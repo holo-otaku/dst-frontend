@@ -8,7 +8,11 @@ import {
   Stack,
 } from "react-bootstrap";
 import FormTable from "./FormTable";
-import { SeriesFieldDataType, SeriesResponse } from "../Series/Interfaces";
+import {
+  SeriesDetailResponse,
+  SeriesFieldDataType,
+  SeriesResponse,
+} from "../Series/Interfaces";
 import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
@@ -45,6 +49,24 @@ export const Create = () => {
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
   const [name, setName] = useState<string>("");
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
+  const [
+    { data: seriesDetailResponse, loading: seriesDetailLoading },
+    fetchSeriesDetail,
+  ] = useAxios<SeriesDetailResponse>(
+    {
+      method: "GET",
+    },
+    {
+      manual: true,
+    }
+  );
+
+  useEffect(() => {
+    if (!selectedSeries) return;
+    fetchSeriesDetail({
+      url: `/series/${selectedSeries}`,
+    });
+  }, [selectedSeries]);
 
   const handleInputChange = (fieldId: number, value: string | boolean) => {
     const index = attributes.findIndex(
@@ -99,7 +121,8 @@ export const Create = () => {
       .catch((e) => console.error(e));
   };
 
-  const pageLoading = seriesLoading || createProductLoading;
+  const pageLoading =
+    seriesLoading || createProductLoading || seriesDetailLoading;
 
   return (
     <Stack>
@@ -137,6 +160,7 @@ export const Create = () => {
           attributes={attributes}
           fields={fields}
           handleInputChange={handleInputChange}
+          seriesDetail={seriesDetailResponse?.data}
         />
       ) : (
         <Alert variant="info">請選擇要將此產品新增到的系列</Alert>
