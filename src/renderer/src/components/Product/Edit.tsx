@@ -1,4 +1,4 @@
-import { Button, Col, Form, InputGroup, Row, Stack } from "react-bootstrap";
+import { Button, Col, Form, Row, Stack } from "react-bootstrap";
 import FormTable from "./FormTable";
 import {
   SeriesDetailResponse,
@@ -39,9 +39,6 @@ export const Edit = () => {
     { manual: true }
   );
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
-  const [name, setName] = useState<string>(
-    get(productResponse, "data.name", "")
-  );
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
   const [{ data: seriesDetailResponse, loading: seriesDetailLoading }] =
     useAxios<SeriesDetailResponse>({
@@ -54,7 +51,6 @@ export const Edit = () => {
     const product = productResponse.data;
 
     setSelectedSeries(product.seriesId);
-    setName(product.name);
     setAttributes(product.attributes);
   }, [productResponse]);
 
@@ -96,7 +92,6 @@ export const Edit = () => {
   const handleSubmit = () => {
     const payload: ProductEditPayload = {
       itemId: parseInt(id!),
-      name,
       attributes,
     };
 
@@ -135,23 +130,13 @@ export const Edit = () => {
           </Button>
         </Col>
       </Row>
-      <Row className="g-1">
-        <Col xs={12} md={3} lg={2}>
+      <Row className="mb-2">
+        <Col>
           <Form.Select disabled={true}>
             <option>
               {series.find((series) => series.id === selectedSeries)?.name}
             </option>
           </Form.Select>
-        </Col>
-        <Col xs={12} md={9} lg={10}>
-          <InputGroup className="mb-3">
-            <InputGroup.Text id="basic-addon1">產品名稱</InputGroup.Text>
-            <Form.Control
-              placeholder="請輸入產品名稱"
-              value={name}
-              onChange={(e) => setName(e.currentTarget.value)}
-            />
-          </InputGroup>
         </Col>
       </Row>
       <FormTable
