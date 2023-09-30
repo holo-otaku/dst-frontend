@@ -10,6 +10,7 @@ import {
 } from "react-bootstrap";
 import useAxios, { RefetchFunction } from "axios-hooks";
 import {
+  SeriesDetailResponse,
   SeriesField,
   SeriesFieldDataType,
   SeriesResponse,
@@ -57,6 +58,17 @@ export const Search = () => {
       manual: true,
     }
   );
+  const [
+    { data: seriesDetailResponse, loading: seriesDetailLoading },
+    fetchSeriesDetail,
+  ] = useAxios<SeriesDetailResponse>(
+    {
+      method: "GET",
+    },
+    {
+      manual: true,
+    }
+  );
   const [pageLimit, setPageLimit] = useState<number>(25);
   const [PaginateState, PaginateAction] = usePaginate({
     total: get(productSearchResponse, "totalCount", 0),
@@ -76,7 +88,15 @@ export const Search = () => {
     }
   }, [productSearchResponse]);
 
-  const pageLoading = seriesLoading || productSearchLoading;
+  const onSeriesChange = (seriesId: number) => {
+    console.log("onSeriesChange", seriesId);
+    fetchSeriesDetail({
+      url: `/series/${seriesId}`,
+    });
+  };
+
+  const pageLoading =
+    seriesLoading || productSearchLoading || seriesDetailLoading;
 
   return (
     <Stack gap={2}>
@@ -90,6 +110,8 @@ export const Search = () => {
           page: currentPage,
           limit,
           first: PaginateAction.first,
+          onSeriesChange,
+          seriesDetail: get(seriesDetailResponse, "data"),
         }}
       />
       <hr />
@@ -130,12 +152,22 @@ interface BarProps {
     ProductSearchPayloadField,
     ProductSearchResponse
   >;
+  onSeriesChange: (seriesId: number) => void;
+  seriesDetail?: SeriesDetailResponse["data"];
   first: () => void;
   page: number;
   limit: number;
 }
 
-const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
+const Bar = ({
+  series,
+  searchProduct,
+  page,
+  limit,
+  first,
+  onSeriesChange,
+  seriesDetail,
+}: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(1);
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
   const [forceRefresh, setForceRefresh] = useState<number>(1);
@@ -155,6 +187,7 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
       return;
     }
     if (!fields.length) return;
+    onSeriesChange(selectedSeries);
 
     // 換頁時，不要清空搜尋欄位
     if (fields.length !== 0) {
@@ -163,7 +196,7 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
     }
 
     setSearchFields([]);
-    void searchProduct({
+    searchProduct({
       data: {
         seriesId: selectedSeries,
         filters: [],
@@ -241,6 +274,7 @@ const Bar = ({ series, searchProduct, page, limit, first }: BarProps) => {
           searchFields={searchFields}
           handleInput={handleInput}
           seriesFavoriteRecord={seriesFavoriteRecord}
+          seriesDetail={seriesDetail!}
         />
         <ControlBar
           handleSearch={() => {
@@ -259,6 +293,7 @@ interface SearchBarProps {
   fields: SeriesField[];
   searchFields: ProductSearchFilters[];
   seriesFavoriteRecord: FavoriteRecord[];
+  seriesDetail: SeriesDetailResponse["data"];
   handleInput: (data: ProductSearchFilters) => void;
 }
 
@@ -267,6 +302,7 @@ const SearchBar = ({
   handleInput,
   searchFields,
   seriesFavoriteRecord,
+  seriesDetail,
 }: SearchBarProps) => {
   const filterFields = fields.filter((field) => field.isFiltered);
   const topLatestLastUsedIds = orderBy(seriesFavoriteRecord, "lastUsed", "desc")
@@ -281,6 +317,11 @@ const SearchBar = ({
 
   const renderField = (field: SeriesField) => {
     const id = get(field, "id", 0);
+    const currentFieldData = get(seriesDetail, "fields", []).find(
+      (field) => field.id === id
+    );
+    const defaultValue = [] as (string | number)[];
+    const autoCompleteValues = get(currentFieldData, "values", defaultValue);
     const searchData = searchFields.find(
       (searchField) => searchField.fieldId === id
     );
@@ -300,17 +341,23 @@ const SearchBar = ({
       case SeriesFieldDataType.number:
         return wrap(
           <NumberFilter
-            title={field.name}
-            handleChange={handleChange}
-            searchData={searchData}
+            {...{
+              title: field.name,
+              handleChange,
+              searchData,
+              autoCompleteValues,
+            }}
           />
         );
       case SeriesFieldDataType.string:
         return wrap(
           <StringFilter
-            title={field.name}
-            handleChange={handleChange}
-            searchData={searchData}
+            {...{
+              title: field.name,
+              handleChange,
+              searchData,
+              autoCompleteValues,
+            }}
           />
         );
       case SeriesFieldDataType.date:
@@ -386,15 +433,22 @@ interface FilterProps {
     operation?: ProductSearchPayloadOperation
   ) => void;
   searchData?: ProductSearchFilters;
+  autoCompleteValues?: (string | number)[];
 }
 
-const NumberFilter = ({ title, handleChange, searchData }: FilterProps) => {
+const NumberFilter = ({
+  title,
+  handleChange,
+  searchData,
+  autoCompleteValues = [],
+}: FilterProps) => {
   const operator = get(
     searchData,
     "operation",
     ProductSearchPayloadOperation.EQUAL
   );
   const value = get(searchData, "value", "") as string;
+  const fieldId = get(searchData, "fieldId", 0);
 
   const handleOperatorChange = (
     event: React.ChangeEvent<HTMLSelectElement>
@@ -410,6 +464,8 @@ const NumberFilter = ({ title, handleChange, searchData }: FilterProps) => {
     handleChange(num, operator);
   };
 
+  const dataListId = `list-${fieldId}`;
+
   return (
     <InputGroup>
       <InputGroup.Text>{title}</InputGroup.Text>
@@ -423,22 +479,46 @@ const NumberFilter = ({ title, handleChange, searchData }: FilterProps) => {
         onChange={handleValueChange}
         type="number"
         step="any"
+        list={dataListId}
       />
+      <datalist id={dataListId}>
+        {autoCompleteValues.map((value) => (
+          <option key={value} value={value} />
+        ))}
+      </datalist>
     </InputGroup>
   );
 };
 
-const StringFilter = ({ title, handleChange, searchData }: FilterProps) => {
+const StringFilter = ({
+  title,
+  handleChange,
+  searchData,
+  autoCompleteValues = [],
+}: FilterProps) => {
   const value = get(searchData, "value", "") as string;
+  const fieldId = get(searchData, "fieldId", 0);
 
   const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     handleChange(event.currentTarget.value);
   };
 
+  const dataListId = `list-${fieldId}`;
+
   return (
     <InputGroup>
       <InputGroup.Text>{title}</InputGroup.Text>
-      <Form.Control type="text" value={value} onChange={handleValueChange} />
+      <Form.Control
+        list={dataListId}
+        type="text"
+        value={value}
+        onChange={handleValueChange}
+      />
+      <datalist id={dataListId}>
+        {autoCompleteValues.map((value) => (
+          <option key={value} value={value} />
+        ))}
+      </datalist>
     </InputGroup>
   );
 };
