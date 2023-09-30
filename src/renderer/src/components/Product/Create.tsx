@@ -1,12 +1,4 @@
-import {
-  Alert,
-  Button,
-  Col,
-  Form,
-  InputGroup,
-  Row,
-  Stack,
-} from "react-bootstrap";
+import { Alert, Button, Col, Form, Row, Stack } from "react-bootstrap";
 import FormTable from "./FormTable";
 import {
   SeriesDetailResponse,
@@ -47,7 +39,6 @@ export const Create = () => {
   }, [refetch]);
 
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
-  const [name, setName] = useState<string>("");
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
   const [
     { data: seriesDetailResponse, loading: seriesDetailLoading },
@@ -110,7 +101,6 @@ export const Create = () => {
   const handleSubmit = () => {
     const payload: ProductPayload = {
       seriesId: selectedSeries,
-      name,
       attributes,
     };
 
@@ -130,8 +120,8 @@ export const Create = () => {
         <RingLoader color="#36d7b7" />
       </Backdrop>
       <p className="fs-2">新增產品</p>
-      <Row className="g-1">
-        <Col xs={12} md={3} lg={2}>
+      <Row className="mb-2">
+        <Col>
           <Form.Select onChange={(e) => handleSelect(e)}>
             {[
               <option key={0} value={0}>
@@ -144,15 +134,6 @@ export const Create = () => {
               )),
             ]}
           </Form.Select>
-        </Col>
-        <Col xs={12} md={9} lg={10}>
-          <InputGroup className="mb-3">
-            <InputGroup.Text id="basic-addon1">產品名稱</InputGroup.Text>
-            <Form.Control
-              placeholder="請輸入產品名稱"
-              onChange={(e) => setName(e.currentTarget.value)}
-            />
-          </InputGroup>
         </Col>
       </Row>
       {fields ? (

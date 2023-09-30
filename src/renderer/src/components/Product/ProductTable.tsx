@@ -44,7 +44,6 @@ const ProductTable = ({ products }: ProductTableProps) => {
             >
               <td>{product.itemId}</td>
               <td>{product.seriesName}</td>
-              <td>{product.name}</td>
               {product.attributes.map((attribute, attributeIndex) => (
                 <td key={attributeIndex}>
                   {getDisplayValue(attribute.dataType, attribute.value)}
