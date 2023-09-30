@@ -28,6 +28,7 @@ import { AuthContext, ServerContext } from "@renderer/context";
 import axios from "axios";
 import Backdrop from "@renderer/components/Backdrop/Backdrop";
 import { BeatLoader } from "react-spinners";
+import ActivityLog from "@renderer/components/ActivtyLog";
 
 const Layout = () => {
   const { accessToken, isAuthenticated } = useContext(AuthContext);
@@ -143,6 +144,10 @@ export default [
             element: <RoleEdit />,
           },
         ],
+      },
+      {
+        path: "/activity-log",
+        element: <ActivityLog />,
       },
       {
         path: "*",

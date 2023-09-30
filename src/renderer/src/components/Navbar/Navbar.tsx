@@ -102,7 +102,7 @@ const NavTree: NavTreeItem[] = [
   {
     title: "操作記錄",
     permission: "log.read",
-    path: "/logs",
+    path: "/activity-log",
     children: [],
   },
 ];
@@ -123,28 +123,27 @@ const MyNavbar: React.FC = () => {
           <Nav className="me-auto">
             {NavTree.map(
               (navItem, index) =>
-                permissions.includes(navItem.permission) && (
-                  navItem.children.length > 0 ? (
-                    <NavDropdown
-                      title={navItem.title}
-                      id="collasible-nav-dropdown"
-                      key={index}
-                    >
-                      {navItem.children.map(
-                        (child, idx) =>
-                          permissions.includes(child.permission) && (
-                            <NavDropdown.Item as={Link} to={child.path} key={idx}>
-                              {child.title}
-                            </NavDropdown.Item>
-                          )
-                      )}
-                    </NavDropdown>
-                  ) : (
-                    <Nav.Link as={Link} to={navItem.path!} key={index}>
-                      {navItem.title}
-                    </Nav.Link>
-                  )
-                )
+                permissions.includes(navItem.permission) &&
+                (navItem.children.length > 0 ? (
+                  <NavDropdown
+                    title={navItem.title}
+                    id="collasible-nav-dropdown"
+                    key={index}
+                  >
+                    {navItem.children.map(
+                      (child, idx) =>
+                        permissions.includes(child.permission) && (
+                          <NavDropdown.Item as={Link} to={child.path} key={idx}>
+                            {child.title}
+                          </NavDropdown.Item>
+                        )
+                    )}
+                  </NavDropdown>
+                ) : (
+                  <Nav.Link as={Link} to={navItem.path!} key={index}>
+                    {navItem.title}
+                  </Nav.Link>
+                ))
             )}
           </Nav>
           <Nav>
