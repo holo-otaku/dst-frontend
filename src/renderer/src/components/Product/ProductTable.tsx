@@ -27,7 +27,6 @@ const ProductTable = ({ products }: ProductTableProps) => {
           <tr>
             <th>#</th>
             <th>系列</th>
-            <th>名稱</th>
             {attributes.map((attribute, attributeIndex) => (
               <th key={attributeIndex}>{attribute.fieldName}</th>
             ))}
