@@ -113,7 +113,7 @@ const MyNavbar: React.FC = () => {
   const { permissions = [] } = getPayload();
 
   return (
-    <Navbar collapseOnSelect expand="lg" bg="body-tertiary">
+    <Navbar collapseOnSelect expand="lg" bg="body-tertiary" fixed="top">
       <Container>
         <Navbar.Brand as={Link} to="/">
           DST

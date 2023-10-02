@@ -343,6 +343,7 @@ const SearchBar = ({
           <NumberFilter
             {...{
               title: field.name,
+              id: field.id,
               handleChange,
               searchData,
               autoCompleteValues,
@@ -354,6 +355,7 @@ const SearchBar = ({
           <StringFilter
             {...{
               title: field.name,
+              id: field.id,
               handleChange,
               searchData,
               autoCompleteValues,
@@ -428,6 +430,7 @@ const ControlBar = ({ handleSearch, handleClear }: ControlBarProps) => {
 
 interface FilterProps {
   title: string;
+  id?: number;
   handleChange: (
     value: string | number | boolean,
     operation?: ProductSearchPayloadOperation
@@ -438,6 +441,7 @@ interface FilterProps {
 
 const NumberFilter = ({
   title,
+  id = 0,
   handleChange,
   searchData,
   autoCompleteValues = [],
@@ -448,7 +452,6 @@ const NumberFilter = ({
     ProductSearchPayloadOperation.EQUAL
   );
   const value = get(searchData, "value", "") as string;
-  const fieldId = get(searchData, "fieldId", 0);
 
   const handleOperatorChange = (
     event: React.ChangeEvent<HTMLSelectElement>
@@ -464,7 +467,7 @@ const NumberFilter = ({
     handleChange(num, operator);
   };
 
-  const dataListId = `list-${fieldId}`;
+  const dataListId = `list-${id}`;
 
   return (
     <InputGroup>
@@ -492,18 +495,18 @@ const NumberFilter = ({
 
 const StringFilter = ({
   title,
+  id = 0,
   handleChange,
   searchData,
   autoCompleteValues = [],
 }: FilterProps) => {
   const value = get(searchData, "value", "") as string;
-  const fieldId = get(searchData, "fieldId", 0);
 
   const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     handleChange(event.currentTarget.value);
   };
 
-  const dataListId = `list-${fieldId}`;
+  const dataListId = `list-${id}`;
 
   return (
     <InputGroup>
