@@ -88,12 +88,10 @@ export const Search = () => {
     }
   }, [productSearchResponse]);
 
-  const onSeriesChange = (seriesId: number) => {
-    console.log("onSeriesChange", seriesId);
+  const onSeriesChange = (seriesId: number) =>
     fetchSeriesDetail({
       url: `/series/${seriesId}`,
     });
-  };
 
   const pageLoading =
     seriesLoading || productSearchLoading || seriesDetailLoading;
