@@ -48,7 +48,6 @@ const ActivityLog = () => {
             <HashLoader color="#36d7b7" />
           </Backdrop>
         )}
-        <h1>活動紀錄</h1>
         <LogTable data={logs} />
         <Stack direction="horizontal" className="justify-content-center">
           <Pagination

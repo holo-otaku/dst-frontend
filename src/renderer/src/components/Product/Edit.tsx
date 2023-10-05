@@ -131,9 +131,6 @@ export const Edit = () => {
         <RingLoader color="#36d7b7" />
       </Backdrop>
       <Row className="g-1 align-item-center">
-        <Col>
-          <p className="fs-2">修改產品資訊</p>
-        </Col>
         <Col xs="auto">
           <Button
             variant="danger"

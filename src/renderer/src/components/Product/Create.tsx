@@ -119,7 +119,6 @@ export const Create = () => {
       <Backdrop show={pageLoading}>
         <RingLoader color="#36d7b7" />
       </Backdrop>
-      <p className="fs-2">新增產品</p>
       <Row className="mb-2">
         <Col>
           <Form.Select onChange={(e) => handleSelect(e)}>
