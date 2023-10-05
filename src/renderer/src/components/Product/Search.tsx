@@ -1,43 +1,25 @@
 import { useEffect, useState } from "react";
-import {
-  Stack,
-  InputGroup,
-  Form,
-  Row,
-  Col,
-  Button,
-  Accordion,
-} from "react-bootstrap";
+import { Stack, Form, Row, Col, Button } from "react-bootstrap";
 import useAxios, { RefetchFunction } from "axios-hooks";
-import {
-  SeriesDetailResponse,
-  SeriesField,
-  SeriesFieldDataType,
-  SeriesResponse,
-} from "../Series/Interfaces";
+import { SeriesDetailResponse, SeriesResponse } from "../Series/Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { Pagination } from "../Pagination";
-import { get, orderBy } from "lodash";
+import { get } from "lodash";
 import {
   ProductSearchFilters,
   ProductSearchPayloadField,
-  ProductSearchPayloadOperation,
   ProductSearchResponse,
 } from "./Interface";
 import ProductTable from "./ProductTable";
-import {
-  FavoriteRecord,
-  useFavoriteFilterField,
-  usePaginate,
-} from "@renderer/hooks";
-
-const MAX_FAVORITE_FIELDS = 3;
+import { SearchBar } from "./SearchBar";
+import { useFavoriteFilterField, usePaginate } from "@renderer/hooks";
+import { useLocation } from "react-router-dom";
 
 const pageSizes = [25, 50, 100];
 
 export const Search = () => {
-  const [{ data: seriesResponse, loading: seriesLoading }] =
+  const [{ data: seriesResponse, loading: seriesLoading }, fetchSeries] =
     useAxios<SeriesResponse>({
       url: "/series",
       method: "GET",
@@ -78,6 +60,10 @@ export const Search = () => {
   const { currentPage, availablePages, limit } = PaginateState;
 
   useEffect(() => {
+    fetchSeries();
+  }, [fetchSeries]);
+
+  useEffect(() => {
     if (productSearchResponse) {
       PaginateAction.changeTotal(productSearchResponse.totalCount);
     }
@@ -105,6 +91,8 @@ export const Search = () => {
           first: PaginateAction.first,
           onSeriesChange,
           seriesDetail: get(seriesDetailResponse, "data"),
+          setLimit: setPageLimit,
+          setPage: PaginateAction.setCurrentPage,
         }}
       />
       <hr />
@@ -150,6 +138,8 @@ interface BarProps {
   first: () => void;
   page: number;
   limit: number;
+  setLimit: (limit: number) => void;
+  setPage: (page: number) => void;
 }
 
 const Bar = ({
@@ -160,6 +150,8 @@ const Bar = ({
   first,
   onSeriesChange,
   seriesDetail,
+  setLimit,
+  setPage,
 }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(1);
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
@@ -168,6 +160,8 @@ const Bar = ({
     useFavoriteFilterField(selectedSeries, get(series, "[0].fields", []));
   const targetSeries = series.find((series) => series.id === selectedSeries);
   const fields = get(targetSeries, "fields", []);
+  const { snapshot, restore } = useHistorySearch();
+  const location = useLocation();
 
   useEffect(() => {
     // 每次系列改變時，清空搜尋欄位，並且直接協助無條件搜尋
@@ -202,6 +196,26 @@ const Bar = ({
     return () => {};
   }, [series, selectedSeries, page, forceRefresh, limit]);
 
+  useEffect(() => {
+    const { selectedSeries, limit, page, searchFields } = restore();
+
+    if (selectedSeries) {
+      setSelectedSeries(selectedSeries);
+    }
+
+    if (limit && pageSizes.includes(limit)) {
+      setLimit(limit);
+    }
+
+    if (page) {
+      setPage(page);
+    }
+
+    if (searchFields) {
+      setSearchFields(searchFields);
+    }
+  }, [location]);
+
   const handleInput = (data: ProductSearchFilters) => {
     const { fieldId, value, operation } = data;
     let isNewField = true;
@@ -229,6 +243,14 @@ const Bar = ({
     const filters = searchFields.filter((field) => field.value);
     // 更新最愛欄位
     updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
+    // 儲存搜尋欄位
+    snapshot({
+      selectedSeries,
+      searchFields: filters,
+      page,
+      limit,
+    });
+
     searchProduct({
       data: {
         seriesId: selectedSeries,
@@ -254,7 +276,7 @@ const Bar = ({
 
   return (
     <Stack gap={2}>
-      <Form.Select onChange={(e) => handleSelect(e)}>
+      <Form.Select value={selectedSeries} onChange={(e) => handleSelect(e)}>
         {series.map((series) => (
           <option key={series.id} value={series.id}>
             {series.name}
@@ -278,117 +300,6 @@ const Bar = ({
           handleClear={handleClear}
         />
       </Form>
-    </Stack>
-  );
-};
-
-interface SearchBarProps {
-  fields: SeriesField[];
-  searchFields: ProductSearchFilters[];
-  seriesFavoriteRecord: FavoriteRecord[];
-  seriesDetail: SeriesDetailResponse["data"];
-  handleInput: (data: ProductSearchFilters) => void;
-}
-
-const SearchBar = ({
-  fields,
-  handleInput,
-  searchFields,
-  seriesFavoriteRecord,
-  seriesDetail,
-}: SearchBarProps) => {
-  const filterFields = fields.filter((field) => field.isFiltered);
-  const topLatestLastUsedIds = orderBy(seriesFavoriteRecord, "lastUsed", "desc")
-    .slice(0, MAX_FAVORITE_FIELDS)
-    .map((record) => record.id);
-  const favoriteFields = filterFields.filter((field) =>
-    topLatestLastUsedIds.includes(get(field, "id", 0))
-  );
-  const hideFields = filterFields.filter(
-    (field) => !topLatestLastUsedIds.includes(get(field, "id", 0))
-  );
-
-  const renderField = (field: SeriesField) => {
-    const id = get(field, "id", 0);
-    const currentFieldData = get(seriesDetail, "fields", []).find(
-      (field) => field.id === id
-    );
-    const defaultValue = [] as (string | number)[];
-    const autoCompleteValues = get(currentFieldData, "values", defaultValue);
-    const searchData = searchFields.find(
-      (searchField) => searchField.fieldId === id
-    );
-    const wrap = (children: React.ReactNode) => (
-      <Col key={id} xs={12} md={6} lg={4}>
-        {children}
-      </Col>
-    );
-    const handleChange = (
-      value: string | number | boolean,
-      operation?: ProductSearchPayloadOperation
-    ) => {
-      return handleInput({ fieldId: field.id!, value, operation });
-    };
-
-    switch (field.dataType) {
-      case SeriesFieldDataType.number:
-        return wrap(
-          <NumberFilter
-            {...{
-              title: field.name,
-              id: field.id,
-              handleChange,
-              searchData,
-              autoCompleteValues,
-            }}
-          />
-        );
-      case SeriesFieldDataType.string:
-        return wrap(
-          <StringFilter
-            {...{
-              title: field.name,
-              id: field.id,
-              handleChange,
-              searchData,
-              autoCompleteValues,
-            }}
-          />
-        );
-      case SeriesFieldDataType.date:
-        return wrap(
-          <DatetimeFilter
-            title={field.name}
-            handleChange={handleChange}
-            searchData={searchData}
-          />
-        );
-      case SeriesFieldDataType.boolean:
-        return wrap(
-          <BooleanFilter
-            title={field.name}
-            handleChange={handleChange}
-            searchData={searchData}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <Stack gap={2}>
-      <Row className="g-2">{favoriteFields.map(renderField)}</Row>
-      {hideFields.length !== 0 && (
-        <Accordion>
-          <Accordion.Item eventKey={"0"}>
-            <Accordion.Header>更多選項</Accordion.Header>
-            <Accordion.Body>
-              <Row className="g-2">{hideFields.map(renderField)}</Row>
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-      )}
     </Stack>
   );
 };
@@ -421,160 +332,45 @@ const ControlBar = ({ handleSearch, handleClear }: ControlBarProps) => {
   );
 };
 
-interface FilterProps {
-  title: string;
-  id?: number;
-  handleChange: (
-    value: string | number | boolean,
-    operation?: ProductSearchPayloadOperation
-  ) => void;
-  searchData?: ProductSearchFilters;
-  autoCompleteValues?: (string | number)[];
-}
+/**
+ * 處理搜尋欄位的邏輯，在使用者進入編輯頁面前，會先將搜尋欄位的資料存到 sessionStorage
+ * 以及他的瀏覽頁數，這樣使用者在編輯完後，可以回到原本的頁數
+ */
+const useHistorySearch = () => {
+  const { sessionStorage } = window;
+  const SESSION_STORAGE_KEY = "ONE_TIME_SEARCH_FIELDS";
 
-const NumberFilter = ({
-  title,
-  id = 0,
-  handleChange,
-  searchData,
-  autoCompleteValues = [],
-}: FilterProps) => {
-  const operator = get(
-    searchData,
-    "operation",
-    ProductSearchPayloadOperation.EQUAL
-  );
-  const value = get(searchData, "value", "") as string;
+  interface Snapshot {
+    selectedSeries: number;
+    searchFields: ProductSearchFilters[];
+    page: number;
+    limit: number;
+  }
 
-  const handleOperatorChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    handleChange(
-      value,
-      event.currentTarget.value as ProductSearchPayloadOperation
+  const snapshot = ({
+    selectedSeries,
+    searchFields,
+    page,
+    limit,
+  }: Snapshot) => {
+    sessionStorage.setItem(
+      SESSION_STORAGE_KEY,
+      JSON.stringify({
+        selectedSeries,
+        searchFields,
+        page,
+        limit,
+      })
     );
   };
 
-  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const num = parseFloat(event.currentTarget.value);
-    handleChange(num, operator);
-  };
-
-  const dataListId = `list-${id}`;
-
-  return (
-    <InputGroup>
-      <InputGroup.Text>{title}</InputGroup.Text>
-      <Form.Select onChange={handleOperatorChange} value={operator}>
-        <option value={ProductSearchPayloadOperation.EQUAL}>=</option>
-        <option value={ProductSearchPayloadOperation.GREATER}>{">="}</option>
-        <option value={ProductSearchPayloadOperation.LESS}>{"<="}</option>
-      </Form.Select>
-      <Form.Control
-        value={value}
-        onChange={handleValueChange}
-        type="number"
-        step="any"
-        list={dataListId}
-      />
-      <datalist id={dataListId}>
-        {autoCompleteValues.map((value) => (
-          <option key={value} value={value} />
-        ))}
-      </datalist>
-    </InputGroup>
-  );
-};
-
-const StringFilter = ({
-  title,
-  id = 0,
-  handleChange,
-  searchData,
-  autoCompleteValues = [],
-}: FilterProps) => {
-  const value = get(searchData, "value", "") as string;
-
-  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    handleChange(event.currentTarget.value);
-  };
-
-  const dataListId = `list-${id}`;
-
-  return (
-    <InputGroup>
-      <InputGroup.Text>{title}</InputGroup.Text>
-      <Form.Control
-        list={dataListId}
-        type="text"
-        value={value}
-        onChange={handleValueChange}
-      />
-      <datalist id={dataListId}>
-        {autoCompleteValues.map((value) => (
-          <option key={value} value={value} />
-        ))}
-      </datalist>
-    </InputGroup>
-  );
-};
-
-const DatetimeFilter = ({ title, handleChange, searchData }: FilterProps) => {
-  const operator = get(
-    searchData,
-    "operation",
-    ProductSearchPayloadOperation.EQUAL
-  );
-  const value = get(searchData, "value", "") as string;
-
-  const handleOperatorChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    handleChange(
-      value,
-      event.currentTarget.value as ProductSearchPayloadOperation
+  const restore = (): Snapshot => {
+    const snapshot = JSON.parse(
+      sessionStorage.getItem(SESSION_STORAGE_KEY) || "{}"
     );
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    return snapshot;
   };
 
-  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    handleChange(event.currentTarget.value, operator);
-  };
-
-  return (
-    <InputGroup>
-      <InputGroup.Text>{title}</InputGroup.Text>
-      <Form.Select value={operator} onChange={handleOperatorChange}>
-        <option value={ProductSearchPayloadOperation.EQUAL}>=</option>
-        <option value={ProductSearchPayloadOperation.GREATER}>{">="}</option>
-        <option value={ProductSearchPayloadOperation.LESS}>{"<="}</option>
-      </Form.Select>
-      <Form.Control
-        className="w-50"
-        type="datetime-local"
-        value={value}
-        onChange={handleValueChange}
-      />
-    </InputGroup>
-  );
-};
-
-const BooleanFilter = ({ title, handleChange, searchData }: FilterProps) => {
-  const value = get(searchData, "value", false) as boolean;
-
-  const handleValueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    handleChange(event.currentTarget.value === "true");
-  };
-
-  return (
-    <InputGroup>
-      <InputGroup.Text>{title}</InputGroup.Text>
-      <Form.Select
-        value={value ? "true" : "false"}
-        onChange={handleValueChange}
-      >
-        <option value="true">是</option>
-        <option value="false">否</option>
-      </Form.Select>
-    </InputGroup>
-  );
+  return { snapshot, restore };
 };
