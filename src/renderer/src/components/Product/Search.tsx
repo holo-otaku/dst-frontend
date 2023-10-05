@@ -37,7 +37,7 @@ const MAX_FAVORITE_FIELDS = 3;
 const pageSizes = [25, 50, 100];
 
 export const Search = () => {
-  const [{ data: seriesResponse, loading: seriesLoading }, fetchSeries] =
+  const [{ data: seriesResponse, loading: seriesLoading }] =
     useAxios<SeriesResponse>({
       url: "/series",
       method: "GET",
@@ -78,22 +78,15 @@ export const Search = () => {
   const { currentPage, availablePages, limit } = PaginateState;
 
   useEffect(() => {
-    void fetchSeries();
-    return () => {};
-  }, [fetchSeries]);
-
-  useEffect(() => {
     if (productSearchResponse) {
       PaginateAction.changeTotal(productSearchResponse.totalCount);
     }
   }, [productSearchResponse]);
 
-  const onSeriesChange = (seriesId: number) => {
-    console.log("onSeriesChange", seriesId);
+  const onSeriesChange = (seriesId: number) =>
     fetchSeriesDetail({
       url: `/series/${seriesId}`,
     });
-  };
 
   const pageLoading =
     seriesLoading || productSearchLoading || seriesDetailLoading;

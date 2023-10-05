@@ -97,7 +97,7 @@ const renderFormControl = (
         />
       );
     case "picture":
-      if (typeof fieldValue !== "string") {
+      if (!["string", "undefined"].includes(typeof fieldValue)) {
         return null;
       }
 
@@ -105,7 +105,7 @@ const renderFormControl = (
         <PictureFormControl
           handleInputChange={handleInputChange}
           field={field}
-          fieldValue={fieldValue}
+          fieldValue={(fieldValue as string) || ""}
         />
       );
   }
