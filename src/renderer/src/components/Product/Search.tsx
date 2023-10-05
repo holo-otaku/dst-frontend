@@ -92,7 +92,7 @@ export const Search = () => {
           onSeriesChange,
           seriesDetail: get(seriesDetailResponse, "data"),
           setLimit: setPageLimit,
-          setPage: PaginateAction.goto,
+          setPage: PaginateAction.setCurrentPage,
         }}
       />
       <hr />

@@ -21,6 +21,7 @@ export interface PaginateActions {
   last: () => void;
   goto: (page: number) => void;
   changeTotal: (total: number) => void;
+  setCurrentPage: (page: number) => void;
 }
 
 export const usePaginate = ({
@@ -83,6 +84,7 @@ export const usePaginate = ({
       previous,
       goto,
       changeTotal: setTotalCount,
+      setCurrentPage,
     },
   ];
 };
