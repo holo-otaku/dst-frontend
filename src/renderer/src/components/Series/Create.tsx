@@ -33,6 +33,7 @@ export const Create = () => {
   const [fields, setFields] = useState<SeriesField[]>([
     {
       name: "",
+      sequence: 0,
       dataType: SeriesFieldDataType.string,
       isFiltered: false,
       isRequired: false,
@@ -59,6 +60,7 @@ export const Create = () => {
   const handleAdd = () => {
     const newFields = [...fields];
     newFields.push({
+      sequence: fields.length,
       name: "",
       dataType: SeriesFieldDataType.string,
       isFiltered: false,
