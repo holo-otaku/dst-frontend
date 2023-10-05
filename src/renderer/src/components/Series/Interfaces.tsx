@@ -30,6 +30,7 @@ export interface SeriesField {
   isFiltered: boolean;
   isRequired: boolean;
   isErp: boolean;
+  sequence: number;
   id?: number;
 }
 

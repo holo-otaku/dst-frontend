@@ -1,6 +1,7 @@
-import { Table, Form, InputGroup, Button } from "react-bootstrap";
+import { Table, Form, InputGroup, Button, Stack } from "react-bootstrap";
 import { SeriesField, SeriesFieldDataType, SeriesFieldKey } from "./Interfaces";
 import { BiMinus } from "react-icons/bi";
+import { AiOutlineCaretUp, AiOutlineCaretDown } from "react-icons/ai";
 
 export interface SeriesFormProps {
   fields: SeriesField[];
@@ -40,10 +41,31 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
     setFields(newFields);
   };
 
+  const handleMoveUp = (index: number) => {
+    if (index > 0) {
+      const newFields = [...fields];
+      const currentField = newFields[index];
+      newFields[index] = newFields[index - 1];
+      newFields[index - 1] = currentField;
+      setFields(newFields);
+    }
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index < fields.length - 1) {
+      const newFields = [...fields];
+      const currentField = newFields[index];
+      newFields[index] = newFields[index + 1];
+      newFields[index + 1] = currentField;
+      setFields(newFields);
+    }
+  };
+
   return (
     <Table striped bordered>
       <thead>
-        <tr>
+        <tr className="align-middle text-center">
+          <th>調整</th>
           <th>#</th>
           <th>欄位名稱</th>
           <th>資料類型</th>
@@ -56,8 +78,32 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
       <tbody>
         {fields.map((field, index) => (
           <tr key={index}>
-            <td>{index + 1}</td>
-            <td>
+            <td className={index === 0 ? "align-bottom" : ""}>
+              <Stack>
+                {index > 0 && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="p-0 mb-1"
+                    onClick={() => handleMoveUp(index)}
+                  >
+                    <AiOutlineCaretUp />
+                  </Button>
+                )}
+                {index < fields.length - 1 && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="p-0"
+                    onClick={() => handleMoveDown(index)}
+                  >
+                    <AiOutlineCaretDown />
+                  </Button>
+                )}
+              </Stack>
+            </td>
+            <td className="align-middle text-center">{index + 1}</td>
+            <td className="align-middle text-center">
               <InputGroup>
                 <Form.Control
                   value={field.name}
@@ -68,7 +114,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 />
               </InputGroup>
             </td>
-            <td>
+            <td className="align-middle text-center">
               <Form.Select
                 value={field.dataType}
                 onChange={(e) =>
