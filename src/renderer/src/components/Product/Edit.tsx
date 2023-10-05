@@ -9,16 +9,19 @@ import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { get } from "lodash";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   ProductAttributePayload,
   ProductDetailResponse,
   ProductEditPayload,
 } from "./Interface";
 import { useNavigate, useParams } from "react-router-dom";
+import { AuthContext } from "@renderer/context";
 
 export const Edit = () => {
   const navigate = useNavigate();
+  const { getPayload } = useContext(AuthContext);
+  const { permissions = [] } = getPayload();
   const { id } = useParams();
   const [{ data: seriesResponse, loading: seriesLoading }] =
     useAxios<SeriesResponse>({
@@ -45,6 +48,7 @@ export const Edit = () => {
       method: "GET",
       url: `/series/${selectedSeries}`,
     });
+  const canDelete = permissions.includes("product.delete");
 
   useEffect(() => {
     if (!productResponse) return;
@@ -124,6 +128,7 @@ export const Edit = () => {
         <Col xs="auto">
           <Button
             variant="danger"
+            disabled={!canDelete}
             onClick={() => navigate(`/products/${id}/delete`)}
           >
             刪除
