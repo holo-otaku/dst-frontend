@@ -116,13 +116,20 @@ export const Edit = () => {
 
   const handleAdd = () => {
     const newFields = [...fields];
+    const maxSequence = Math.max(
+      ...newFields.map((field) => field.sequence),
+      0
+    );
+
     newFields.push({
       name: "",
       dataType: SeriesFieldDataType.string,
       isFiltered: false,
       isRequired: false,
       isErp: false,
+      sequence: maxSequence + 1, // 計算新的 sequence 值
     });
+
     setFields(newFields);
   };
 
