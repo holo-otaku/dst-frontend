@@ -14,6 +14,7 @@ import {
 import ProductTable from "./ProductTable";
 import { SearchBar } from "./SearchBar";
 import { useFavoriteFilterField, usePaginate } from "@renderer/hooks";
+import { useLocation } from "react-router-dom";
 
 const pageSizes = [25, 50, 100];
 
@@ -90,6 +91,8 @@ export const Search = () => {
           first: PaginateAction.first,
           onSeriesChange,
           seriesDetail: get(seriesDetailResponse, "data"),
+          setLimit: setPageLimit,
+          setPage: PaginateAction.goto,
         }}
       />
       <hr />
@@ -135,6 +138,8 @@ interface BarProps {
   first: () => void;
   page: number;
   limit: number;
+  setLimit: (limit: number) => void;
+  setPage: (page: number) => void;
 }
 
 const Bar = ({
@@ -145,6 +150,8 @@ const Bar = ({
   first,
   onSeriesChange,
   seriesDetail,
+  setLimit,
+  setPage,
 }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(1);
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
@@ -153,6 +160,8 @@ const Bar = ({
     useFavoriteFilterField(selectedSeries, get(series, "[0].fields", []));
   const targetSeries = series.find((series) => series.id === selectedSeries);
   const fields = get(targetSeries, "fields", []);
+  const { snapshot, restore } = useHistorySearch();
+  const location = useLocation();
 
   useEffect(() => {
     // 每次系列改變時，清空搜尋欄位，並且直接協助無條件搜尋
@@ -187,6 +196,26 @@ const Bar = ({
     return () => {};
   }, [series, selectedSeries, page, forceRefresh, limit]);
 
+  useEffect(() => {
+    const { selectedSeries, limit, page, searchFields } = restore();
+
+    if (selectedSeries) {
+      setSelectedSeries(selectedSeries);
+    }
+
+    if (limit && pageSizes.includes(limit)) {
+      setLimit(limit);
+    }
+
+    if (page) {
+      setPage(page);
+    }
+
+    if (searchFields) {
+      setSearchFields(searchFields);
+    }
+  }, [location]);
+
   const handleInput = (data: ProductSearchFilters) => {
     const { fieldId, value, operation } = data;
     let isNewField = true;
@@ -214,6 +243,14 @@ const Bar = ({
     const filters = searchFields.filter((field) => field.value);
     // 更新最愛欄位
     updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
+    // 儲存搜尋欄位
+    snapshot({
+      selectedSeries,
+      searchFields: filters,
+      page,
+      limit,
+    });
+
     searchProduct({
       data: {
         seriesId: selectedSeries,
@@ -239,7 +276,7 @@ const Bar = ({
 
   return (
     <Stack gap={2}>
-      <Form.Select onChange={(e) => handleSelect(e)}>
+      <Form.Select value={selectedSeries} onChange={(e) => handleSelect(e)}>
         {series.map((series) => (
           <option key={series.id} value={series.id}>
             {series.name}
@@ -293,4 +330,47 @@ const ControlBar = ({ handleSearch, handleClear }: ControlBarProps) => {
       </Col>
     </Row>
   );
+};
+
+/**
+ * 處理搜尋欄位的邏輯，在使用者進入編輯頁面前，會先將搜尋欄位的資料存到 sessionStorage
+ * 以及他的瀏覽頁數，這樣使用者在編輯完後，可以回到原本的頁數
+ */
+const useHistorySearch = () => {
+  const { sessionStorage } = window;
+  const SESSION_STORAGE_KEY = "ONE_TIME_SEARCH_FIELDS";
+
+  interface Snapshot {
+    selectedSeries: number;
+    searchFields: ProductSearchFilters[];
+    page: number;
+    limit: number;
+  }
+
+  const snapshot = ({
+    selectedSeries,
+    searchFields,
+    page,
+    limit,
+  }: Snapshot) => {
+    sessionStorage.setItem(
+      SESSION_STORAGE_KEY,
+      JSON.stringify({
+        selectedSeries,
+        searchFields,
+        page,
+        limit,
+      })
+    );
+  };
+
+  const restore = (): Snapshot => {
+    const snapshot = JSON.parse(
+      sessionStorage.getItem(SESSION_STORAGE_KEY) || "{}"
+    );
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    return snapshot;
+  };
+
+  return { snapshot, restore };
 };
