@@ -18,7 +18,6 @@ const RoleTable = ({ roles, onDeleteRole }: RoleTableProps) => {
 
   return (
     <div>
-      <h2>角色列表</h2>
       <Table striped bordered hover>
         <thead>
           <tr>

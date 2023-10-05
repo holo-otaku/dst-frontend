@@ -5,7 +5,6 @@ const Product = () => {
   return (
     <Container>
       <Stack direction="vertical" gap={3} className="mt-2">
-        <h1>產品管理</h1>
         <Outlet />
       </Stack>
     </Container>

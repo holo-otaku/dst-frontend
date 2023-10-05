@@ -5,7 +5,6 @@ const Role = () => {
   return (
     <Container>
       <Stack direction="vertical" gap={3} className="mt-2">
-        <h1>角色管理</h1>
         <Outlet />
       </Stack>
     </Container>

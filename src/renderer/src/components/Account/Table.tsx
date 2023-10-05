@@ -18,7 +18,6 @@ const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
 
   return (
     <div>
-      <h2>帳號列表</h2>
       <Table striped bordered hover>
         <thead>
           <tr>
