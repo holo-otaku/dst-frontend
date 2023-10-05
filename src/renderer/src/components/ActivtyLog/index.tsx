@@ -72,6 +72,7 @@ const LogTable = ({ data }: ILogTableProps) => (
     <thead>
       <tr>
         <th>路徑</th>
+        <th>方法</th>
         <th>資料</th>
         <th>使用者</th>
         <th>時間</th>
@@ -81,6 +82,7 @@ const LogTable = ({ data }: ILogTableProps) => (
       {data.map((log, index) => (
         <tr key={index}>
           <td>{log.url}</td>
+          <td>{log.method}</td>
           <td>{JSON.stringify(get(log, "payload", {}))}</td>
           <td>{log.userName}</td>
           <td>{log.createdAt}</td>
