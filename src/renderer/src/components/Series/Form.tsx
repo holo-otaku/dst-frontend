@@ -1,7 +1,7 @@
-import { Table, Form, InputGroup, Button, ButtonGroup } from "react-bootstrap";
+import { Table, Form, InputGroup, Button, Stack } from "react-bootstrap";
 import { SeriesField, SeriesFieldDataType, SeriesFieldKey } from "./Interfaces";
 import { BiMinus } from "react-icons/bi";
-import { FaArrowUp, FaArrowDown } from "react-icons/fa"; // Font Awesome 圖示
+import { AiOutlineCaretUp, AiOutlineCaretDown } from "react-icons/ai";
 
 export interface SeriesFormProps {
   fields: SeriesField[];
@@ -78,32 +78,32 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
       <tbody>
         {fields.map((field, index) => (
           <tr key={index}>
-            <td className="align-middle text-center">
-              <ButtonGroup>
+            <td className={index === 0 ? "align-bottom" : ""}>
+              <Stack>
                 {index > 0 && (
                   <Button
-                    variant="outline-primary"
-                    className="rounded-circle"
+                    variant="secondary"
                     size="sm"
+                    className="p-0 mb-1"
                     onClick={() => handleMoveUp(index)}
                   >
-                    <FaArrowUp />
+                    <AiOutlineCaretUp />
                   </Button>
                 )}
                 {index < fields.length - 1 && (
                   <Button
-                    variant="outline-primary"
-                    className="rounded-circle"
+                    variant="secondary"
                     size="sm"
+                    className="p-0"
                     onClick={() => handleMoveDown(index)}
                   >
-                    <FaArrowDown />
+                    <AiOutlineCaretDown />
                   </Button>
                 )}
-              </ButtonGroup>
+              </Stack>
             </td>
             <td className="align-middle text-center">{index + 1}</td>
-            <td>
+            <td className="align-middle text-center">
               <InputGroup>
                 <Form.Control
                   value={field.name}
@@ -114,7 +114,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 />
               </InputGroup>
             </td>
-            <td>
+            <td className="align-middle text-center">
               <Form.Select
                 value={field.dataType}
                 onChange={(e) =>

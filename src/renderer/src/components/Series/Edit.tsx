@@ -55,6 +55,7 @@ export const Edit = () => {
   const [fields, setFields] = useState<SeriesField[]>([
     {
       name: "",
+      sequence: 0,
       dataType: SeriesFieldDataType.string,
       isFiltered: false,
       isRequired: false,
