@@ -32,8 +32,11 @@ export const Edit = () => {
         limit: 100,
       },
     });
-  const [{ data: productResponse, loading: productLoading }] =
-    useAxios<ProductDetailResponse>({ method: "GET", url: `/product/${id}` });
+  const [{ data: productResponse, loading: productLoading }, loadProduct] =
+    useAxios<ProductDetailResponse>(
+      { method: "GET", url: `/product/${id}` },
+      { manual: true }
+    );
   const [{ loading: editProductLoading }, editProduct] = useAxios(
     {
       url: "/product/edit",
@@ -57,6 +60,12 @@ export const Edit = () => {
     setSelectedSeries(product.seriesId);
     setAttributes(product.attributes);
   }, [productResponse]);
+
+  useEffect(() => {
+    if (id) {
+      loadProduct();
+    }
+  }, [loadProduct]);
 
   const handleInputChange = (fieldId: number, value: string) => {
     const index = attributes.findIndex(
