@@ -1,14 +1,10 @@
-import {
-  Alert,
-  Button,
-  Col,
-  Form,
-  InputGroup,
-  Row,
-  Stack,
-} from "react-bootstrap";
+import { Alert, Button, Col, Form, Row, Stack } from "react-bootstrap";
 import FormTable from "./FormTable";
-import { SeriesFieldDataType, SeriesResponse } from "../Series/Interfaces";
+import {
+  SeriesDetailResponse,
+  SeriesFieldDataType,
+  SeriesResponse,
+} from "../Series/Interfaces";
 import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
@@ -43,8 +39,25 @@ export const Create = () => {
   }, [refetch]);
 
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
-  const [name, setName] = useState<string>("");
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
+  const [
+    { data: seriesDetailResponse, loading: seriesDetailLoading },
+    fetchSeriesDetail,
+  ] = useAxios<SeriesDetailResponse>(
+    {
+      method: "GET",
+    },
+    {
+      manual: true,
+    }
+  );
+
+  useEffect(() => {
+    if (!selectedSeries) return;
+    fetchSeriesDetail({
+      url: `/series/${selectedSeries}`,
+    });
+  }, [selectedSeries]);
 
   const handleInputChange = (fieldId: number, value: string | boolean) => {
     const index = attributes.findIndex(
@@ -88,7 +101,6 @@ export const Create = () => {
   const handleSubmit = () => {
     const payload: ProductPayload = {
       seriesId: selectedSeries,
-      name,
       attributes,
     };
 
@@ -99,16 +111,16 @@ export const Create = () => {
       .catch((e) => console.error(e));
   };
 
-  const pageLoading = seriesLoading || createProductLoading;
+  const pageLoading =
+    seriesLoading || createProductLoading || seriesDetailLoading;
 
   return (
     <Stack>
       <Backdrop show={pageLoading}>
         <RingLoader color="#36d7b7" />
       </Backdrop>
-      <p className="fs-2">新增產品</p>
-      <Row className="g-1">
-        <Col xs={12} md={3} lg={2}>
+      <Row className="mb-2">
+        <Col>
           <Form.Select onChange={(e) => handleSelect(e)}>
             {[
               <option key={0} value={0}>
@@ -122,21 +134,13 @@ export const Create = () => {
             ]}
           </Form.Select>
         </Col>
-        <Col xs={12} md={9} lg={10}>
-          <InputGroup className="mb-3">
-            <InputGroup.Text id="basic-addon1">產品名稱</InputGroup.Text>
-            <Form.Control
-              placeholder="請輸入產品名稱"
-              onChange={(e) => setName(e.currentTarget.value)}
-            />
-          </InputGroup>
-        </Col>
       </Row>
       {fields ? (
         <FormTable
           attributes={attributes}
           fields={fields}
           handleInputChange={handleInputChange}
+          seriesDetail={seriesDetailResponse?.data}
         />
       ) : (
         <Alert variant="info">請選擇要將此產品新增到的系列</Alert>

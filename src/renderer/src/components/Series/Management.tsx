@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { SeriesTable } from "./Table";
 import { Controls } from "./Controls";
 import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { SeriesResponse } from "./Interfaces";
-import { Pagination, Stack } from "react-bootstrap";
+import { Stack } from "react-bootstrap";
+import { Pagination } from "../Pagination";
+import { usePaginate } from "@renderer/hooks";
+import { get } from "lodash";
 
 export const Management = () => {
   const [{ data, loading }, refetch] = useAxios<SeriesResponse>(
@@ -23,20 +26,26 @@ export const Management = () => {
       manual: true,
     }
   );
-  const [page, setPage] = useState<number>(1);
-  const limit = 10;
-  const totalCount = data?.totalCount || 0;
-  const totalPage = Math.ceil(totalCount / limit);
+  const [{ currentPage, availablePages, limit }, PaginateAction] = usePaginate({
+    total: get(data, "totalCount", 0),
+    limit: 10,
+  });
+
+  useEffect(() => {
+    if (data) {
+      PaginateAction.changeTotal(data.totalCount);
+    }
+  }, [data]);
 
   useEffect(() => {
     void refetch({
       params: {
-        page,
+        page: currentPage,
         limit,
       },
     });
     return () => {};
-  }, [refetch, page]);
+  }, [refetch, currentPage]);
 
   const handleDelete = (id: number) => {
     void deleteSeries({
@@ -54,19 +63,13 @@ export const Management = () => {
       <Controls />
       {data && <SeriesTable data={data.data} handleDelete={handleDelete} />}
       <Stack direction="horizontal" className="justify-content-center">
-        <Pagination>
-          <Pagination.First onClick={() => setPage(1)} />
-          {Array.from({ length: totalPage }).map((_, index) => (
-            <Pagination.Item
-              key={index}
-              active={index + 1 === page}
-              onClick={() => setPage(index + 1)}
-            >
-              {index + 1}
-            </Pagination.Item>
-          ))}
-          <Pagination.Last onClick={() => setPage(totalPage)} />
-        </Pagination>
+        <Pagination
+          {...{
+            currentPage,
+            availablePages,
+            ...PaginateAction,
+          }}
+        />
       </Stack>
     </Stack>
   );

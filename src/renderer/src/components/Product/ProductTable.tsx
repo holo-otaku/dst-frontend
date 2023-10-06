@@ -27,7 +27,6 @@ const ProductTable = ({ products }: ProductTableProps) => {
           <tr>
             <th>#</th>
             <th>系列</th>
-            <th>名稱</th>
             {attributes.map((attribute, attributeIndex) => (
               <th key={attributeIndex}>{attribute.fieldName}</th>
             ))}
@@ -44,14 +43,15 @@ const ProductTable = ({ products }: ProductTableProps) => {
             >
               <td>{product.itemId}</td>
               <td>{product.seriesName}</td>
-              <td>{product.name}</td>
               {product.attributes.map((attribute, attributeIndex) => (
                 <td key={attributeIndex}>
                   {getDisplayValue(attribute.dataType, attribute.value)}
                 </td>
               ))}
               {product.erp.map((erpData, erpIndex) => (
-                <td key={erpIndex}>{erpData.value}</td>
+                <td className="table-info" key={erpIndex}>
+                  {erpData.value}
+                </td>
               ))}
             </tr>
           ))}
@@ -74,7 +74,7 @@ const getDisplayValue = (
       if (value) {
         return (
           <Image
-            src={`${serverBaseUrl}${value}`}
+            src={`${serverBaseUrl}${value}?t=${new Date().getTime()}`}
             alt="Product"
             style={{ maxWidth: "100px" }}
           />

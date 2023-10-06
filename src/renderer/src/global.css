@@ -2,3 +2,7 @@ th,
 td {
   white-space: nowrap;
 }
+
+body {
+  padding-top: 54px;
+}

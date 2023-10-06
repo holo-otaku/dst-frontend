@@ -4,7 +4,10 @@ import useAxios from "axios-hooks";
 import { RoleResponse } from "./Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
-import RoleTable from "./Table"; // Import the RoleTable component
+import RoleTable from "./Table";
+import { usePaginate } from "@renderer/hooks";
+import { Pagination } from "../Pagination";
+import { get } from "lodash";
 
 export const Search = () => {
   const [{ data: roleResponse, loading: roleLoading }, refetchRoles] =
@@ -24,6 +27,12 @@ export const Search = () => {
       manual: true,
     }
   );
+  const [PaginateState, PaginateAction] = usePaginate({
+    total: get(roleResponse, "totalCount", 0),
+    limit: 10,
+  });
+
+  const { currentPage, availablePages } = PaginateState;
 
   const pageLoading = roleLoading;
 
@@ -31,6 +40,12 @@ export const Search = () => {
   useEffect(() => {
     void refetchRoles();
   }, [refetchRoles]);
+
+  useEffect(() => {
+    if (roleResponse) {
+      PaginateAction.changeTotal(roleResponse.totalCount);
+    }
+  }, [roleResponse]);
 
   const handleDeleteRole = (roleId: number) => {
     // Implement your logic to handle delete here
@@ -47,6 +62,15 @@ export const Search = () => {
       {roleResponse && (
         <RoleTable roles={roleResponse.data} onDeleteRole={handleDeleteRole} />
       )}
+      <Stack direction="horizontal" className="justify-content-center">
+        <Pagination
+          {...{
+            currentPage,
+            availablePages,
+            ...PaginateAction,
+          }}
+        />
+      </Stack>
     </Stack>
   );
 };

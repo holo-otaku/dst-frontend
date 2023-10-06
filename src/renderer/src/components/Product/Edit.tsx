@@ -1,20 +1,27 @@
-import { Button, Col, Form, InputGroup, Row, Stack } from "react-bootstrap";
+import { Button, Col, Form, Row, Stack } from "react-bootstrap";
 import FormTable from "./FormTable";
-import { SeriesFieldDataType, SeriesResponse } from "../Series/Interfaces";
+import {
+  SeriesDetailResponse,
+  SeriesFieldDataType,
+  SeriesResponse,
+} from "../Series/Interfaces";
 import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { get } from "lodash";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   ProductAttributePayload,
   ProductDetailResponse,
   ProductEditPayload,
 } from "./Interface";
 import { useNavigate, useParams } from "react-router-dom";
+import { AuthContext } from "@renderer/context";
 
 export const Edit = () => {
   const navigate = useNavigate();
+  const { getPayload } = useContext(AuthContext);
+  const { permissions = [] } = getPayload();
   const { id } = useParams();
   const [{ data: seriesResponse, loading: seriesLoading }] =
     useAxios<SeriesResponse>({
@@ -25,8 +32,11 @@ export const Edit = () => {
         limit: 100,
       },
     });
-  const [{ data: productResponse, loading: productLoading }] =
-    useAxios<ProductDetailResponse>({ method: "GET", url: `/product/${id}` });
+  const [{ data: productResponse, loading: productLoading }, loadProduct] =
+    useAxios<ProductDetailResponse>(
+      { method: "GET", url: `/product/${id}` },
+      { manual: true }
+    );
   const [{ loading: editProductLoading }, editProduct] = useAxios(
     {
       url: "/product/edit",
@@ -35,19 +45,27 @@ export const Edit = () => {
     { manual: true }
   );
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
-  const [name, setName] = useState<string>(
-    get(productResponse, "data.name", "")
-  );
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
+  const [{ data: seriesDetailResponse, loading: seriesDetailLoading }] =
+    useAxios<SeriesDetailResponse>({
+      method: "GET",
+      url: `/series/${selectedSeries}`,
+    });
+  const canDelete = permissions.includes("product.delete");
 
   useEffect(() => {
     if (!productResponse) return;
     const product = productResponse.data;
 
     setSelectedSeries(product.seriesId);
-    setName(product.name);
     setAttributes(product.attributes);
   }, [productResponse]);
+
+  useEffect(() => {
+    if (id) {
+      loadProduct();
+    }
+  }, [loadProduct]);
 
   const handleInputChange = (fieldId: number, value: string) => {
     const index = attributes.findIndex(
@@ -87,7 +105,6 @@ export const Edit = () => {
   const handleSubmit = () => {
     const payload: ProductEditPayload = {
       itemId: parseInt(id!),
-      name,
       attributes,
     };
 
@@ -102,7 +119,11 @@ export const Edit = () => {
       });
   };
 
-  const pageLoading = seriesLoading || productLoading || editProductLoading;
+  const pageLoading =
+    seriesLoading ||
+    productLoading ||
+    editProductLoading ||
+    seriesDetailLoading;
 
   return (
     <Stack>
@@ -110,41 +131,30 @@ export const Edit = () => {
         <RingLoader color="#36d7b7" />
       </Backdrop>
       <Row className="g-1 align-item-center">
-        <Col>
-          <p className="fs-2">修改產品資訊</p>
-        </Col>
         <Col xs="auto">
           <Button
             variant="danger"
+            disabled={!canDelete}
             onClick={() => navigate(`/products/${id}/delete`)}
           >
             刪除
           </Button>
         </Col>
       </Row>
-      <Row className="g-1">
-        <Col xs={12} md={3} lg={2}>
+      <Row className="mb-2">
+        <Col>
           <Form.Select disabled={true}>
             <option>
               {series.find((series) => series.id === selectedSeries)?.name}
             </option>
           </Form.Select>
         </Col>
-        <Col xs={12} md={9} lg={10}>
-          <InputGroup className="mb-3">
-            <InputGroup.Text id="basic-addon1">產品名稱</InputGroup.Text>
-            <Form.Control
-              placeholder="請輸入產品名稱"
-              value={name}
-              onChange={(e) => setName(e.currentTarget.value)}
-            />
-          </InputGroup>
-        </Col>
       </Row>
       <FormTable
         attributes={attributes}
         fields={fields || []}
         handleInputChange={handleInputChange}
+        seriesDetail={seriesDetailResponse?.data}
       />
       <Row className="g-1 justify-content-end">
         <Col xs="auto">

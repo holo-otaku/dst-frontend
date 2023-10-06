@@ -1,19 +1,26 @@
-import { SeriesField, SeriesFieldDataType } from "../Series/Interfaces";
+import {
+  SeriesDetailField,
+  SeriesDetailResponse,
+  SeriesField,
+  SeriesFieldDataType,
+} from "../Series/Interfaces";
 import { Form, Table, Image } from "react-bootstrap";
 import { ProductAttributePayload } from "./Interface";
 import moment from "moment";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface FormTableProps {
   fields: SeriesField[];
   attributes: ProductAttributePayload[];
   handleInputChange: (fieldId: number, value: string) => void;
+  seriesDetail?: SeriesDetailResponse["data"];
 }
 
 const FormTable = ({
   fields,
   handleInputChange,
   attributes,
+  seriesDetail,
 }: FormTableProps) => {
   return (
     <Table striped bordered hover>
@@ -25,15 +32,25 @@ const FormTable = ({
         </tr>
       </thead>
       <tbody>
-        {fields.map((field) => (
-          <tr key={field.id}>
-            <td>{field.name}</td>
-            <td>{getDataType(field.dataType)}</td>
-            <td>
-              {renderFormControl(field, { handleInputChange, attributes })}
-            </td>
-          </tr>
-        ))}
+        {fields.map((field) => {
+          const targetFieldData = seriesDetail?.fields.find(
+            (fieldData) => fieldData.id === field.id
+          );
+          const autoCompleteValues = targetFieldData?.values;
+          return (
+            <tr key={field.id}>
+              <td>{field.name}</td>
+              <td>{getDataType(field.dataType)}</td>
+              <td>
+                {renderFormControl(
+                  field,
+                  { handleInputChange, attributes },
+                  autoCompleteValues
+                )}
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </Table>
   );
@@ -41,11 +58,16 @@ const FormTable = ({
 
 const renderFormControl = (
   field: SeriesField,
-  { handleInputChange, attributes }: Omit<FormTableProps, "fields">
+  {
+    handleInputChange,
+    attributes,
+  }: Omit<FormTableProps, "fields" | "seriesDetail">,
+  autoCompleteValues?: SeriesDetailField["values"]
 ) => {
   const dataType = getFormTypeByDataType(field.dataType);
-  const fieldValue =
-    attributes.find((attr) => attr.fieldId === field.id)?.value || "";
+  const currentAttribute = attributes.find((attr) => attr.fieldId === field.id);
+  const fieldValue = currentAttribute?.value;
+  const dataListId = `datalist-${field.id}`;
 
   switch (dataType) {
     case "switch":
@@ -75,35 +97,61 @@ const renderFormControl = (
         />
       );
     case "picture":
+      if (!["string", "undefined"].includes(typeof fieldValue)) {
+        return null;
+      }
+
       return (
         <PictureFormControl
           handleInputChange={handleInputChange}
           field={field}
+          fieldValue={(fieldValue as string) || ""}
         />
       );
   }
 
   return (
-    <Form.Control
-      onChange={(e) => handleInputChange(field.id as number, e.target.value)}
-      value={fieldValue as string}
-      type={dataType}
-      {...(dataType === "number" && { step: "any" })}
-      isInvalid={field.isRequired && fieldValue === ""}
-    />
+    <>
+      <Form.Control
+        onChange={(e) => handleInputChange(field.id as number, e.target.value)}
+        value={fieldValue as string}
+        type={dataType}
+        {...(dataType === "number" && { step: "any" })}
+        isInvalid={field.isRequired && fieldValue === ""}
+        list={dataListId}
+      />
+      {autoCompleteValues && (
+        <datalist id={dataListId}>
+          {autoCompleteValues.map((value) => (
+            <option key={value} value={value} />
+          ))}
+        </datalist>
+      )}
+    </>
   );
 };
 
 interface PictureFormControlProps {
   handleInputChange: (fieldId: number, value: string) => void;
   field: SeriesField;
+  fieldValue: string;
 }
 
 const PictureFormControl = ({
   handleInputChange,
   field,
+  fieldValue,
 }: PictureFormControlProps) => {
   const [picture, setPicture] = useState<string | null>();
+  const serverBaseUrl = localStorage.getItem("server") || ""; // Get server base URL from localStorage
+  useEffect(() => {
+    // 有可能進來的是 base64 的圖片，所以要先判斷
+    if (fieldValue.startsWith("/image")) {
+      setPicture(`${serverBaseUrl}${fieldValue}`);
+    } else {
+      setPicture(fieldValue);
+    }
+  }, []);
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {

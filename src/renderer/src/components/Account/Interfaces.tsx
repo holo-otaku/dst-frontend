@@ -1,5 +1,6 @@
 export interface AccountResponse extends APIResponse {
   data: UserData[];
+  totalCount: number;
 }
 
 export interface UserResponse extends APIResponse {

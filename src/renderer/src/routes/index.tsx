@@ -28,6 +28,8 @@ import { AuthContext, ServerContext } from "@renderer/context";
 import axios from "axios";
 import Backdrop from "@renderer/components/Backdrop/Backdrop";
 import { BeatLoader } from "react-spinners";
+import ActivityLog from "@renderer/components/ActivtyLog";
+import MyBreadcrumb from "@renderer/components/Breadcrumb";
 
 const Layout = () => {
   const { accessToken, isAuthenticated } = useContext(AuthContext);
@@ -54,6 +56,7 @@ const Layout = () => {
   return (
     <>
       <MyNavbar />
+      <MyBreadcrumb />
       <Outlet />
     </>
   );
@@ -63,90 +66,116 @@ export default [
   {
     path: "/",
     element: <Layout />,
+    handle: { crumb: "首頁" },
     children: [
       {
         path: "/",
         element: <Container>Home</Container>,
+        breadcrumb: "首頁",
       },
       {
         path: "/series",
         element: <Series />,
+        handle: { crumb: "系列" },
         children: [
           {
             path: "/series",
             element: <Management />,
+            breadcrumb: "管理",
+            handle: { crumb: "管理" },
           },
           {
             path: "/series/create",
             element: <SeriesCreate />,
+            handle: { crumb: "新增" },
           },
           {
             path: "/series/:id/edit",
             element: <SeriesEdit />,
+            handle: { crumb: "編輯" },
           },
         ],
       },
       {
         path: "/products",
         element: <Product />,
+        handle: { crumb: "產品" },
         children: [
           {
             path: "/products",
             element: <ProductSearch />,
+            handle: { crumb: "管理" },
           },
           {
             path: "/products/create",
             element: <ProductCreate />,
+            handle: { crumb: "新增" },
           },
           {
             path: "/products/:id/edit",
             element: <ProductEdit />,
+            handle: { crumb: "編輯" },
           },
           {
             path: "/products/:id/delete",
             element: <ProductDelete />,
+            handle: { crumb: "刪除" },
           },
         ],
       },
       {
         path: "/accounts",
         element: <Account />,
+        handle: { crumb: "帳號" },
         children: [
           {
             path: "/accounts",
             element: <AccountSearch />,
+            handle: { crumb: "管理" },
           },
           {
             path: "/accounts/create",
             element: <AccountCreate />,
+            handle: { crumb: "新增" },
           },
           {
             path: "/accounts/:id/edit",
             element: <AccountEdit />,
+            handle: { crumb: "編輯" },
           },
         ],
       },
       {
         path: "/roles",
         element: <Role />,
+        handle: { crumb: "角色" },
         children: [
           {
             path: "/roles",
             element: <RoleSearch />,
+            handle: { crumb: "管理" },
           },
           {
             path: "/roles/create",
             element: <RoleCreate />,
+            handle: { crumb: "新增" },
           },
           {
             path: "/roles/:id/edit",
             element: <RoleEdit />,
+            handle: { crumb: "編輯" },
           },
         ],
       },
       {
+        path: "/activity-log",
+        element: <ActivityLog />,
+        handle: { crumb: "活動紀錄" },
+      },
+      {
         path: "*",
         element: <Container>404</Container>,
+        handle: { crumb: "404" },
       },
     ],
   },

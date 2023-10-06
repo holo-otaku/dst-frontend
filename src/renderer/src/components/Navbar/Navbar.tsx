@@ -15,6 +15,7 @@ import { MdLogout } from "react-icons/md";
 interface NavTreeItem {
   title: string;
   permission: string;
+  path?: string;
   children: {
     title: string;
     path: string;
@@ -98,9 +99,13 @@ const NavTree: NavTreeItem[] = [
       },
     ],
   },
+  {
+    title: "操作記錄",
+    permission: "log.read",
+    path: "/activity-log",
+    children: [],
+  },
 ];
-
-// 注意：「匯出」並沒有相應的權限許可在你所提供的列表中，所以我暫時沒有給它分配特定的權限。
 
 const MyNavbar: React.FC = () => {
   const { colorMode, toggleColorMode } = useContext(ColorModeContext);
@@ -108,7 +113,7 @@ const MyNavbar: React.FC = () => {
   const { permissions = [] } = getPayload();
 
   return (
-    <Navbar collapseOnSelect expand="lg" bg="body-tertiary">
+    <Navbar collapseOnSelect expand="lg" bg="body-tertiary" fixed="top">
       <Container>
         <Navbar.Brand as={Link} to="/">
           DST
@@ -118,7 +123,8 @@ const MyNavbar: React.FC = () => {
           <Nav className="me-auto">
             {NavTree.map(
               (navItem, index) =>
-                permissions.includes(navItem.permission) && (
+                permissions.includes(navItem.permission) &&
+                (navItem.children.length > 0 ? (
                   <NavDropdown
                     title={navItem.title}
                     id="collasible-nav-dropdown"
@@ -133,7 +139,11 @@ const MyNavbar: React.FC = () => {
                         )
                     )}
                   </NavDropdown>
-                )
+                ) : (
+                  <Nav.Link as={Link} to={navItem.path!} key={index}>
+                    {navItem.title}
+                  </Nav.Link>
+                ))
             )}
           </Nav>
           <Nav>
