@@ -1,0 +1,32 @@
+.table-container {
+  overflow-x: auto;
+  overflow-y: scroll;
+}
+
+.custom-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.sticky-header th {
+  position: sticky;
+  top: 0;
+  border: 1px solid #495057;
+  padding: 8px;
+  background-color: #000;
+  z-index: 1;
+}
+
+.table-row {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.table-cell {
+  border: 1px solid #495057;
+  padding: 8px;
+}
+
+.blue-cell {
+  background-color: #17a2b8;
+  border: 1px solid #495057;
+}
