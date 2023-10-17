@@ -45,7 +45,9 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
     if (index > 0) {
       const newFields = [...fields];
       const currentField = newFields[index];
+      newFields[index - 1].sequence += 1;
       newFields[index] = newFields[index - 1];
+      currentField.sequence -= 1;
       newFields[index - 1] = currentField;
       setFields(newFields);
     }
@@ -55,7 +57,9 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
     if (index < fields.length - 1) {
       const newFields = [...fields];
       const currentField = newFields[index];
+      newFields[index + 1].sequence -= 1;
       newFields[index] = newFields[index + 1];
+      currentField.sequence += 1;
       newFields[index + 1] = currentField;
       setFields(newFields);
     }
