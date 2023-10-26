@@ -1,3 +1,17 @@
+:root {
+  --border-color: #495057;
+  --background-color: #cecece;
+  --blue-cell-color: #17a2b8;
+  --row-border-color: #dee2e6;
+}
+
+[data-bs-theme="dark"] {
+  --border-color: #aaa;
+  --background-color: #333;
+  --blue-cell-color: #008080;
+  --row-border-color: #555;
+}
+
 .table-container {
   overflow-x: auto;
   overflow-y: scroll;
@@ -11,22 +25,22 @@
 .sticky-header th {
   position: sticky;
   top: 0;
-  border: 1px solid #495057;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-color);
   padding: 8px;
-  background-color: #000;
   z-index: 1;
 }
 
 .table-row {
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid var(--row-border-color);
 }
 
 .table-cell {
-  border: 1px solid #495057;
+  border: 1px solid var(--border-color);
   padding: 8px;
 }
 
 .blue-cell {
-  background-color: #17a2b8;
-  border: 1px solid #495057;
+  background-color: var(--blue-cell-color);
+  border: 1px solid var(--border-color);
 }
