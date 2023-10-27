@@ -17,6 +17,10 @@
   overflow-y: scroll;
 }
 
+.table-container th {
+  cursor: pointer;
+}
+
 .custom-table {
   border-collapse: collapse;
   width: 100%;

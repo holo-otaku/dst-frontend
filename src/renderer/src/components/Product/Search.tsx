@@ -56,6 +56,13 @@ export const Search = () => {
     total: get(productSearchResponse, "totalCount", 0),
     limit: pageLimit,
   });
+  const [sortState, setSortState] = useState<{
+    fieldId: number;
+    order: "asc" | "desc";
+  }>({
+    fieldId: -1,
+    order: "asc",
+  });
 
   const { currentPage, availablePages, limit } = PaginateState;
 
@@ -93,6 +100,8 @@ export const Search = () => {
           seriesDetail: get(seriesDetailResponse, "data"),
           setLimit: setPageLimit,
           setPage: PaginateAction.setCurrentPage,
+          sortState,
+          setSortState,
         }}
       />
       <hr />
@@ -113,7 +122,11 @@ export const Search = () => {
           </Form.Select>
         </div>
       </Stack>
-      <ProductTable products={get(productSearchResponse, "data", [])} />
+      <ProductTable
+        products={get(productSearchResponse, "data", [])}
+        setSortState={setSortState}
+        sortState={sortState}
+      />
       <Stack direction="horizontal" className="justify-content-center">
         <Pagination
           {...{
@@ -140,6 +153,10 @@ interface BarProps {
   limit: number;
   setLimit: (limit: number) => void;
   setPage: (page: number) => void;
+  sortState: {
+    fieldId: number;
+    order: "asc" | "desc";
+  };
 }
 
 const Bar = ({
@@ -152,6 +169,7 @@ const Bar = ({
   seriesDetail,
   setLimit,
   setPage,
+  sortState,
 }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(1);
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
@@ -183,18 +201,24 @@ const Bar = ({
     }
 
     setSearchFields([]);
+    const { fieldId, order } = sortState;
+    const params = {
+      page,
+      limit,
+    };
+
+    if (fieldId !== -1) {
+      params["sort"] = `${fieldId},${order}`;
+    }
     searchProduct({
       data: {
         seriesId: selectedSeries,
         filters: [],
       },
-      params: {
-        page,
-        limit,
-      },
+      params,
     });
     return () => {};
-  }, [series, selectedSeries, page, forceRefresh, limit]);
+  }, [series, selectedSeries, page, forceRefresh, limit, sortState]);
 
   useEffect(() => {
     const { selectedSeries, limit, page, searchFields } = restore();
@@ -251,15 +275,22 @@ const Bar = ({
       limit,
     });
 
+    const { fieldId, order } = sortState;
+    const params = {
+      page,
+      limit,
+    };
+
+    if (fieldId !== -1) {
+      params["sort"] = `${fieldId},${order}`;
+    }
+
     searchProduct({
       data: {
         seriesId: selectedSeries,
         filters,
       },
-      params: {
-        page,
-        limit,
-      },
+      params,
     });
   };
 
