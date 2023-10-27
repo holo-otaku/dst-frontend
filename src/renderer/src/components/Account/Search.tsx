@@ -33,9 +33,14 @@ export const Search = () => {
   const { currentPage, availablePages } = PaginateState;
 
   useEffect(() => {
-    void refetchAccounts();
+    refetchAccounts({
+      params: {
+        page: currentPage,
+        limit: 10,
+      },
+    });
     return () => {};
-  }, [refetchAccounts]);
+  }, [refetchAccounts, currentPage]);
 
   useEffect(() => {
     if (accountResponse) {
