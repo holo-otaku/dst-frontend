@@ -157,6 +157,7 @@ interface BarProps {
     fieldId: number;
     order: "asc" | "desc";
   };
+  setSortState: (sortState: { fieldId: number; order: "asc" | "desc" }) => void;
 }
 
 const Bar = ({
@@ -170,6 +171,7 @@ const Bar = ({
   setLimit,
   setPage,
   sortState,
+  setSortState,
 }: BarProps) => {
   const [selectedSeries, setSelectedSeries] = useState<number>(1);
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
@@ -298,6 +300,10 @@ const Bar = ({
     setSelectedSeries(parseInt(event.target.value));
     setSearchFields([]);
     first();
+    setSortState({
+      fieldId: -1,
+      order: "asc",
+    });
   };
 
   const handleClear = () => {
