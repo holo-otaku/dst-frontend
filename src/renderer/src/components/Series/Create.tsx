@@ -38,6 +38,7 @@ export const Create = () => {
       isFiltered: false,
       isRequired: false,
       isErp: false,
+      isLimitField: false,
     },
   ]);
   const [name, setName] = useState("");
@@ -66,6 +67,7 @@ export const Create = () => {
       isFiltered: false,
       isRequired: false,
       isErp: false,
+      isLimitField: false,
     });
     setFields(newFields);
   };
@@ -79,6 +81,7 @@ export const Create = () => {
         isFiltered: field.isFiltered ? 1 : 0,
         isRequired: field.isRequired ? 1 : 0,
         isErp: field.isErp ? 1 : 0,
+        isLimitField: field.isLimitField ? 1 : 0,
       })),
     };
     createSeries({
