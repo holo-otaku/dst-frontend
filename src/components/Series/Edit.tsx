@@ -218,7 +218,7 @@ const transformToEditPayload = (
   const editFields = fields.filter((field) => field.id);
   const deleteFieldIds = original.fields
     .filter((field) => !fields.find((f) => f.id === field.id))
-    .map((field) => field.id!);
+    .map((field) => field.id);
 
   const payload: SeriesEditPayload = {
     name,

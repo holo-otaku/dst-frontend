@@ -1,4 +1,4 @@
-import { FavoriteRecord } from "@renderer/hooks";
+import { FavoriteRecord } from "../../hooks";
 import {
   SeriesDetailResponse,
   SeriesField,

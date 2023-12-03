@@ -7,7 +7,7 @@ import RingLoader from "react-spinners/RingLoader";
 import { SeriesResponse } from "./Interfaces";
 import { Stack } from "react-bootstrap";
 import { Pagination } from "../Pagination";
-import { usePaginate } from "@renderer/hooks";
+import { usePaginate } from "../../hooks";
 import { get } from "lodash";
 
 export const Management = () => {

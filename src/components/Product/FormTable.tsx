@@ -195,15 +195,15 @@ const getTodayDate = () => {
 
 const getFormTypeByDataType = (dataType: SeriesFieldDataType) => {
   switch (dataType) {
-    case "string":
+    case SeriesFieldDataType.string:
       return "text";
-    case "number":
+    case SeriesFieldDataType.number:
       return "number";
-    case "datetime":
+    case SeriesFieldDataType.date:
       return "datetime";
-    case "boolean":
+    case SeriesFieldDataType.boolean:
       return "switch";
-    case "picture":
+    case SeriesFieldDataType.picture:
       return "picture";
     default:
       return "text";
@@ -212,15 +212,15 @@ const getFormTypeByDataType = (dataType: SeriesFieldDataType) => {
 
 const getDataType = (dataType: SeriesFieldDataType) => {
   switch (dataType) {
-    case "string":
+    case SeriesFieldDataType.string:
       return "字串";
-    case "number":
+    case SeriesFieldDataType.number:
       return "數字";
-    case "datetime":
+    case SeriesFieldDataType.date:
       return "日期";
-    case "boolean":
+    case SeriesFieldDataType.boolean:
       return "布林值";
-    case "picture":
+    case SeriesFieldDataType.picture:
       return "圖片";
     default:
       return "未知";

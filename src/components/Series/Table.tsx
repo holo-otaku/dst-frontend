@@ -3,7 +3,7 @@ import { SeriesData } from "./Interfaces";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import { useContext, useState } from "react";
-import { AuthContext } from "@renderer/context";
+import { AuthContext } from "../../context";
 import ConfirmDeleteModal from "./Delete"; // 確保路徑正確
 
 interface SeriesTableProps {
