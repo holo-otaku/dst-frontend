@@ -31,6 +31,9 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
       case SeriesFieldKey.isErp:
         newFields[index].isErp = value as boolean;
         break;
+      case SeriesFieldKey.isLimitField:
+        newFields[index].isLimitField = value as boolean;
+        break;
     }
     setFields(newFields);
   };
@@ -76,6 +79,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
           <th>篩選條件</th>
           <th>必填</th>
           <th>Erp欄位</th>
+          <th>限制讀取</th>
           <th>操作</th>
         </tr>
       </thead>
@@ -159,6 +163,20 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 checked={field.isErp}
                 onChange={(e) =>
                   handleEdit(index, SeriesFieldKey.isErp, e.target.checked)
+                }
+              />
+            </td>
+            <td className="align-middle text-center">
+              <Form.Check
+                type="switch"
+                className="fs-5"
+                checked={field.isLimitField}
+                onChange={(e) =>
+                  handleEdit(
+                    index,
+                    SeriesFieldKey.isLimitField,
+                    e.target.checked
+                  )
                 }
               />
             </td>

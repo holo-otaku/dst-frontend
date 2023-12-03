@@ -39,6 +39,7 @@ const hasDiff = (original: SeriesDetail, current: EditPayload) => {
       isFiltered: field.isFiltered,
       isRequired: field.isRequired,
       isErp: field.isErp,
+      isLimitField: field.isLimitField,
     }));
 
   return (
@@ -60,6 +61,7 @@ export const Edit = () => {
       isFiltered: false,
       isRequired: false,
       isErp: false,
+      isLimitField: false,
     },
   ]);
   const [name, setName] = useState("");
@@ -128,6 +130,7 @@ export const Edit = () => {
       isFiltered: false,
       isRequired: false,
       isErp: false,
+      isLimitField: false,
       sequence: maxSequence + 1, // 計算新的 sequence 值
     });
 
