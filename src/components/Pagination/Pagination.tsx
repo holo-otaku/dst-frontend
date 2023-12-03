@@ -31,7 +31,7 @@ const MyPagination = ({
         <Pagination.Item
           key={index}
           active={page === currentPage}
-          onClick={() => goto(page )}
+          onClick={() => goto(page)}
         >
           {page}
         </Pagination.Item>
