@@ -1,20 +1,20 @@
-import { Table, Button } from "react-bootstrap";
-import { UserData } from "./Interfaces";
-import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
-import { AuthContext } from "@renderer/context";
+import { Table, Button } from "react-bootstrap";
+import { RoleData } from "./Interfaces";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context";
 
-interface AccountTableProps {
-  accounts: UserData[];
-  onDeleteAccount: (accountId: number) => void;
+interface RoleTableProps {
+  roles: RoleData[];
+  onDeleteRole: (roleId: number) => void;
 }
 
-const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
+const RoleTable = ({ roles, onDeleteRole }: RoleTableProps) => {
   const navigate = useNavigate();
   const { getPayload } = useContext(AuthContext);
   const { permissions = [] } = getPayload();
-  const editable = permissions.includes("user.edit");
-  const deletable = permissions.includes("user.delete");
+  const editable = permissions.includes("role.edit");
+  const deletable = permissions.includes("role.delete");
 
   return (
     <div>
@@ -22,20 +22,15 @@ const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
         <thead>
           <tr>
             <th>ID</th>
-            <th>角色</th>
-            <th>使用者名稱</th>
+            <th>角色名稱</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody>
-          {accounts.map((account) => (
-            <tr
-              key={account.id}
-              onDoubleClick={() => navigate(`${account.id}/edit`)}
-            >
-              <td>{account.id}</td>
-              <td>{account.role}</td>
-              <td>{account.userName}</td>
+          {roles.map((role) => (
+            <tr key={role.id} onDoubleClick={() => navigate(`${role.id}/edit`)}>
+              <td>{role.id}</td>
+              <td>{role.name}</td>
               <td>
                 <Button
                   {...{
@@ -44,18 +39,18 @@ const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
                   }}
                   size="sm"
                   className="mx-1"
-                  onClick={() => onDeleteAccount(account.id)}
+                  onClick={() => onDeleteRole(role.id)}
                 >
                   刪除
                 </Button>
                 <Button
                   {...{
-                    variant: editable ? "primary" : "secondary",
+                    variant: editable ? "warning" : "secondary",
                     disabled: !editable,
                   }}
                   size="sm"
                   className="mx-1"
-                  onClick={() => navigate(`${account.id}/edit`)}
+                  onClick={() => navigate(`${role.id}/edit`)}
                 >
                   編輯
                 </Button>
@@ -68,4 +63,4 @@ const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
   );
 };
 
-export default AccountTable;
+export default RoleTable;

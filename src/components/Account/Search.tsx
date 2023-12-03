@@ -5,7 +5,7 @@ import { AccountResponse } from "./Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import AccountTable from "./Table";
-import { usePaginate } from "@renderer/hooks";
+import { usePaginate } from "../../hooks";
 import { Pagination } from "../Pagination";
 import { get } from "lodash";
 

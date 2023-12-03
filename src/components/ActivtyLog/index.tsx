@@ -5,7 +5,7 @@ import { IActivityLogResponse } from "./Interface";
 import Backdrop from "../Backdrop/Backdrop";
 import { HashLoader } from "react-spinners";
 import { get } from "lodash";
-import { usePaginate } from "@renderer/hooks";
+import { usePaginate } from "../../hooks";
 import { Pagination } from "../Pagination";
 
 const MAX_PER_PAGE_LIMIT = 25;

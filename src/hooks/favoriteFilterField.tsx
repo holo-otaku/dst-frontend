@@ -1,4 +1,4 @@
-import { SeriesField } from "@renderer/components/Series/Interfaces";
+import { SeriesField } from "../components/Series/Interfaces";
 import { get } from "lodash";
 import moment from "moment";
 import { useState, useEffect } from "react";
@@ -24,7 +24,7 @@ export const useFavoriteFilterField = (
   const [favoriteFields, setFavoriteFields] = useState<FavoriteFilterField>(
     () => {
       const storageFields = localStorage.getItem(FAVORITE_FILTER_FIELD) || "{}";
-      return JSON.parse(storageFields);
+      return JSON.parse(storageFields) as FavoriteFilterField;
     }
   );
 

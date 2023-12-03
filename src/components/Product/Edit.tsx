@@ -16,7 +16,7 @@ import {
   ProductEditPayload,
 } from "./Interface";
 import { useNavigate, useParams } from "react-router-dom";
-import { AuthContext } from "@renderer/context";
+import { AuthContext } from "../../context";
 
 export const Edit = () => {
   const navigate = useNavigate();

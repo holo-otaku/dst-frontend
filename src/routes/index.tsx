@@ -1,35 +1,35 @@
-import MyNavbar from "@renderer/components/Navbar/Navbar";
-import Login from "@renderer/components/Login/Login";
+import MyNavbar from "../components/Navbar/Navbar";
+import Login from "../components/Login/Login";
 import Series, {
   Management,
   Create as SeriesCreate,
   Edit as SeriesEdit,
-} from "@renderer/components/Series";
+} from "../components/Series";
 import Product, {
   Search as ProductSearch,
   Create as ProductCreate,
   Edit as ProductEdit,
   Delete as ProductDelete,
-} from "@renderer/components/Product";
+} from "../components/Product";
 import Account, {
   Search as AccountSearch,
   Create as AccountCreate,
   Edit as AccountEdit,
-} from "@renderer/components/Account";
+} from "../components/Account";
 import Role, {
   Search as RoleSearch,
   Create as RoleCreate,
   Edit as RoleEdit,
-} from "@renderer/components/Role";
+} from "../components/Role";
 import { Container } from "react-bootstrap";
 import { Outlet, RouteObject, useNavigate } from "react-router-dom";
 import { useContext, useEffect } from "react";
-import { AuthContext, ServerContext } from "@renderer/context";
+import { AuthContext, ServerContext } from "../context";
 import axios from "axios";
-import Backdrop from "@renderer/components/Backdrop/Backdrop";
+import Backdrop from "../components/Backdrop/Backdrop";
 import { BeatLoader } from "react-spinners";
-import ActivityLog from "@renderer/components/ActivtyLog";
-import MyBreadcrumb from "@renderer/components/Breadcrumb";
+import ActivityLog from "../components/ActivtyLog";
+import MyBreadcrumb from "../components/Breadcrumb";
 
 const Layout = () => {
   const { accessToken, isAuthenticated } = useContext(AuthContext);

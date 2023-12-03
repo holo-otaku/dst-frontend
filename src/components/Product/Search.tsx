@@ -13,7 +13,7 @@ import {
 } from "./Interface";
 import ProductTable from "./ProductTable";
 import { SearchBar } from "./SearchBar";
-import { useFavoriteFilterField, usePaginate } from "@renderer/hooks";
+import { useFavoriteFilterField, usePaginate } from "../../hooks";
 import { useLocation } from "react-router-dom";
 
 const pageSizes = [25, 50, 100];
@@ -207,6 +207,10 @@ const Bar = ({
     const params = {
       page,
       limit,
+    } as {
+      page: number;
+      limit: number;
+      sort?: string;
     };
 
     if (fieldId !== -1) {
@@ -281,6 +285,10 @@ const Bar = ({
     const params = {
       page,
       limit,
+    } as {
+      page: number;
+      limit: number;
+      sort?: string;
     };
 
     if (fieldId !== -1) {
@@ -404,7 +412,7 @@ const useHistorySearch = () => {
   const restore = (): Snapshot => {
     const snapshot = JSON.parse(
       sessionStorage.getItem(SESSION_STORAGE_KEY) || "{}"
-    );
+    ) as Snapshot;
     sessionStorage.removeItem(SESSION_STORAGE_KEY);
     return snapshot;
   };
