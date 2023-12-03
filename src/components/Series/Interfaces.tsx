@@ -30,6 +30,7 @@ export interface SeriesField {
   isFiltered: boolean;
   isRequired: boolean;
   isErp: boolean;
+  isLimitField: boolean;
   sequence: number;
   id?: number;
 }
@@ -48,12 +49,14 @@ export enum SeriesFieldKey {
   isFiltered = "isFiltered",
   isRequired = "isRequired",
   isErp = "isErp",
+  isLimitField = "isLimitField",
 }
 
 export enum SeriesSwitchKey {
   isFiltered = "isFiltered",
   isRequired = "isRequired",
   isErp = "isErp",
+  isLimitField = "isLimitField",
 }
 
 export interface SeriesEditFieldPayload {
