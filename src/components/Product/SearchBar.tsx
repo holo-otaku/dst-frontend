@@ -56,7 +56,7 @@ export const SearchBar = ({
       (searchField) => searchField.fieldId === id
     );
     const wrap = (children: React.ReactNode) => (
-      <Col key={id} xs={12} md={6} lg={4}>
+      <Col key={id} xs={12} md={6} lg={3}>
         {children}
       </Col>
     );

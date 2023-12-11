@@ -49,6 +49,7 @@ export enum ProductSearchPayloadOperation {
   EQUAL = "equal",
   GREATER = "greater",
   LESS = "less",
+  RANGE = "range",
 }
 
 export interface ProductSearchResponse extends APIResponse {
