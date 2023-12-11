@@ -9,6 +9,7 @@ import { get } from "lodash";
 import {
   ProductSearchFilters,
   ProductSearchPayloadField,
+  ProductSearchPayloadOperation,
   ProductSearchResponse,
 } from "./Interface";
 import ProductTable from "./ProductTable";
@@ -271,6 +272,30 @@ const Bar = ({
   const handleSearch = () => {
     // 去除空值
     const filters = searchFields.filter((field) => field.value);
+    // 去除 range 的欄位，因為 range 的欄位會被轉換成兩個欄位
+    const normalFilters = filters.filter(
+      (filter) => filter.operation !== ProductSearchPayloadOperation.RANGE
+    );
+    // 特別處理 range 的情況
+    const rangeFilters = filters.filter(
+      (filter) => filter.operation === ProductSearchPayloadOperation.RANGE
+    );
+    // 要轉換成兩個欄位
+    const rangeSearchFilter: ProductSearchFilters[] = [];
+    rangeFilters.forEach((filter) => {
+      const [min, max] = filter.value.toString().split(",");
+      rangeSearchFilter.push({
+        fieldId: filter.fieldId,
+        value: parseFloat(min),
+        operation: ProductSearchPayloadOperation.GREATER,
+      });
+      rangeSearchFilter.push({
+        fieldId: filter.fieldId,
+        value: parseFloat(max),
+        operation: ProductSearchPayloadOperation.LESS,
+      });
+    });
+    const finalFilters = [...normalFilters, ...rangeSearchFilter];
     // 更新最愛欄位
     updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
     // 儲存搜尋欄位
@@ -298,7 +323,7 @@ const Bar = ({
     searchProduct({
       data: {
         seriesId: selectedSeries,
-        filters,
+        filters: finalFilters,
       },
       params,
     });
