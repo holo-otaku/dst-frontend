@@ -11,7 +11,7 @@ export const NumberFilter = ({
   searchData,
   autoCompleteValues = [],
 }: IFilterProps) => {
-  const [range, setRange] = useState({ min: 0, max: 0 });
+  const [range, setRange] = useState({ min: "0", max: "0" });
   const operator = get(
     searchData,
     "operation",
@@ -22,7 +22,7 @@ export const NumberFilter = ({
   useEffect(() => {
     if (`${value}`.includes(",")) {
       const [min, max] = value.split(",");
-      setRange({ min: parseFloat(min), max: parseFloat(max) });
+      setRange({ min: min, max: max });
     }
   }, [value]);
 
@@ -40,7 +40,7 @@ export const NumberFilter = ({
   ) => {
     const opValue = event.target.value as ProductSearchPayloadOperation;
     if (opValue === ProductSearchPayloadOperation.RANGE) {
-      setRange({ min: 0, max: 0 });
+      setRange({ min: "0", max: "0" });
       handleChange(`${range.min},${range.max}`, opValue);
     } else {
       handleChange(value, opValue);
@@ -49,9 +49,9 @@ export const NumberFilter = ({
 
   const handleRangeChange = (type: "min" | "max", value: string) => {
     if (type === "min") {
-      setRange({ ...range, min: parseFloat(value) });
+      setRange({ ...range, min: value });
     } else if (type === "max") {
-      setRange({ ...range, max: parseFloat(value) });
+      setRange({ ...range, max: value });
     }
   };
 
