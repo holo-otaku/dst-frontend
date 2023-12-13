@@ -97,7 +97,10 @@ const renderFormControl = (
         />
       );
     case "picture":
-      if (!["string", "undefined"].includes(typeof fieldValue)) {
+      if (
+        !["string", "undefined"].includes(typeof fieldValue) &&
+        !(fieldValue === null)
+      ) {
         return null;
       }
 
