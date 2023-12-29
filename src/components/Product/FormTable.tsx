@@ -180,6 +180,9 @@ const PictureFormControl = ({
         accept="image/*"
         isInvalid={field.isRequired && !picture}
       />
+      <Form.Text className="text-muted">
+        僅支援圖片格式 (png, jpg, jpeg)
+      </Form.Text>
       {picture && (
         <div className="mt-2">
           <Form.Label>預覽</Form.Label>
