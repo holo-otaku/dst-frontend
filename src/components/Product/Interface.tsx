@@ -19,6 +19,7 @@ export interface ProductData {
   seriesName: string;
   attributes: ProductDataAttribute[];
   erp: ErpData[];
+  hasArchive: boolean;
 }
 
 export interface ErpData {

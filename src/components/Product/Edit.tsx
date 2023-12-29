@@ -51,7 +51,16 @@ export const Edit = () => {
       method: "GET",
       url: `/series/${selectedSeries}`,
     });
+  const [{ loading: archiveLoading }, archiveProduct] = useAxios(
+    {
+      method: "PATCH",
+    },
+    { manual: true }
+  );
   const canDelete = permissions.includes("product.delete");
+  const canArchive =
+    permissions.includes("archive.update") &&
+    get(productResponse, "data.hasArchive", false) === false;
 
   useEffect(() => {
     if (!productResponse) return;
@@ -123,14 +132,15 @@ export const Edit = () => {
     seriesLoading ||
     productLoading ||
     editProductLoading ||
-    seriesDetailLoading;
+    seriesDetailLoading ||
+    archiveLoading;
 
   return (
     <Stack>
       <Backdrop show={pageLoading}>
         <RingLoader color="#36d7b7" />
       </Backdrop>
-      <Row className="g-1 align-item-center">
+      <Row className="mb-1 g-1 align-item-center">
         <Col xs="auto">
           <Button
             variant="danger"
@@ -138,6 +148,19 @@ export const Edit = () => {
             onClick={() => navigate(`/products/${id}/delete`)}
           >
             刪除
+          </Button>
+        </Col>
+        <Col xs="auto">
+          <Button
+            variant="primary"
+            disabled={!canArchive}
+            onClick={() =>
+              archiveProduct({ url: `archive/${id}` }).then(() =>
+                navigate("/products")
+              )
+            }
+          >
+            封存
           </Button>
         </Col>
       </Row>
