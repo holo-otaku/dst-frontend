@@ -48,3 +48,7 @@
   background-color: var(--blue-cell-color);
   border: 1px solid var(--border-color);
 }
+
+.archive-row {
+  background-color: #f4433622;
+}
