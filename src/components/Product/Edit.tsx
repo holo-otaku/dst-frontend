@@ -157,29 +157,31 @@ export const Edit = () => {
             刪除
           </Button>
         </Col>
-        <Col xs="auto">
-          <Button
-            variant={canArchive ? "primary" : "danger"}
-            onClick={() => {
-              if (canArchive) {
-                archiveProduct({ data: { itemId: id } }).then(() =>
-                  navigate("/products")
-                );
-              } else {
-                deleteArchiveProduct({ url: `archive/${id}` }).then(() =>
-                  navigate("/products")
-                );
+        {canArchive && (
+          <Col xs="auto">
+            <Button
+              variant={canArchive ? "primary" : "danger"}
+              onClick={() => {
+                if (canArchive) {
+                  archiveProduct({ data: { itemId: id } }).then(() =>
+                    navigate("/products")
+                  );
+                } else {
+                  deleteArchiveProduct({ url: `archive/${id}` }).then(() =>
+                    navigate("/products")
+                  );
+                }
+              }}
+              disabled={
+                pageLoading ||
+                (canArchive && archiveLoading) ||
+                (!canArchive && deleteArchiveLoading)
               }
-            }}
-            disabled={
-              pageLoading ||
-              (canArchive && archiveLoading) ||
-              (!canArchive && deleteArchiveLoading)
-            }
-          >
-            {canArchive ? "封存" : "取消封存"}
-          </Button>
-        </Col>
+            >
+              {canArchive ? "封存" : "取消封存"}
+            </Button>
+          </Col>
+        )}
       </Row>
       <Row className="mb-2">
         <Col>
