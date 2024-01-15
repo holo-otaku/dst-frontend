@@ -157,7 +157,7 @@ export const Edit = () => {
             刪除
           </Button>
         </Col>
-        {canArchive && (
+        {permissions.includes("archive.create") && (
           <Col xs="auto">
             <Button
               variant={canArchive ? "primary" : "danger"}
