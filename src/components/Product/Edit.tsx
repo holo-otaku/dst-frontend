@@ -51,7 +51,23 @@ export const Edit = () => {
       method: "GET",
       url: `/series/${selectedSeries}`,
     });
+  const [{ loading: archiveLoading }, archiveProduct] = useAxios(
+    {
+      method: "POST",
+      url: "archive",
+    },
+    { manual: true }
+  );
+  const [{ loading: deleteArchiveLoading }, deleteArchiveProduct] = useAxios(
+    {
+      method: "DELETE",
+    },
+    { manual: true }
+  );
   const canDelete = permissions.includes("product.delete");
+  const canArchive =
+    permissions.includes("archive.create") &&
+    get(productResponse, "data.hasArchive", false) === false;
 
   useEffect(() => {
     if (!productResponse) return;
@@ -123,14 +139,15 @@ export const Edit = () => {
     seriesLoading ||
     productLoading ||
     editProductLoading ||
-    seriesDetailLoading;
+    seriesDetailLoading ||
+    archiveLoading;
 
   return (
     <Stack>
       <Backdrop show={pageLoading}>
         <RingLoader color="#36d7b7" />
       </Backdrop>
-      <Row className="g-1 align-item-center">
+      <Row className="mb-1 g-1 align-item-center">
         <Col xs="auto">
           <Button
             variant="danger"
@@ -140,6 +157,31 @@ export const Edit = () => {
             刪除
           </Button>
         </Col>
+        {canArchive && (
+          <Col xs="auto">
+            <Button
+              variant={canArchive ? "primary" : "danger"}
+              onClick={() => {
+                if (canArchive) {
+                  archiveProduct({ data: { itemId: id } }).then(() =>
+                    navigate("/products")
+                  );
+                } else {
+                  deleteArchiveProduct({ url: `archive/${id}` }).then(() =>
+                    navigate("/products")
+                  );
+                }
+              }}
+              disabled={
+                pageLoading ||
+                (canArchive && archiveLoading) ||
+                (!canArchive && deleteArchiveLoading)
+              }
+            >
+              {canArchive ? "封存" : "取消封存"}
+            </Button>
+          </Col>
+        )}
       </Row>
       <Row className="mb-2">
         <Col>

@@ -41,7 +41,7 @@ const Login = () => {
 
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
-  const [server, setServer] = useState("");
+  const [server, setServer] = useState(`${location.host}/api`);
 
   const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -57,6 +57,11 @@ const Login = () => {
       });
     }
   };
+
+  useEffect(() => {
+    // 執行一次，確認可否跳過設定 domain 的步驟
+    setHost(server);
+  }, []);
 
   useEffect(() => {
     if (data) {

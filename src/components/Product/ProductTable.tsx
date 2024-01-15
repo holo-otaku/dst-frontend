@@ -108,7 +108,9 @@ const ProductTable = ({
           <tbody>
             {products.map((product, index) => (
               <tr
-                className="table-row"
+                className={
+                  product.hasArchive ? "table-row archive-row" : "table-row"
+                }
                 key={index}
                 onDoubleClick={() =>
                   navigate(`/products/${product.itemId}/edit`)
