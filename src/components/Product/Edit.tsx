@@ -53,13 +53,20 @@ export const Edit = () => {
     });
   const [{ loading: archiveLoading }, archiveProduct] = useAxios(
     {
-      method: "PATCH",
+      method: "POST",
+      url: "archive",
+    },
+    { manual: true }
+  );
+  const [{ loading: deleteArchiveLoading }, deleteArchiveProduct] = useAxios(
+    {
+      method: "DELETE",
     },
     { manual: true }
   );
   const canDelete = permissions.includes("product.delete");
   const canArchive =
-    permissions.includes("archive.update") &&
+    permissions.includes("archive.create") &&
     get(productResponse, "data.hasArchive", false) === false;
 
   useEffect(() => {
@@ -150,19 +157,31 @@ export const Edit = () => {
             刪除
           </Button>
         </Col>
-        <Col xs="auto">
-          <Button
-            variant="primary"
-            disabled={!canArchive}
-            onClick={() =>
-              archiveProduct({ url: `archive/${id}` }).then(() =>
-                navigate("/products")
-              )
-            }
-          >
-            封存
-          </Button>
-        </Col>
+        {canArchive && (
+          <Col xs="auto">
+            <Button
+              variant={canArchive ? "primary" : "danger"}
+              onClick={() => {
+                if (canArchive) {
+                  archiveProduct({ data: { itemId: id } }).then(() =>
+                    navigate("/products")
+                  );
+                } else {
+                  deleteArchiveProduct({ url: `archive/${id}` }).then(() =>
+                    navigate("/products")
+                  );
+                }
+              }}
+              disabled={
+                pageLoading ||
+                (canArchive && archiveLoading) ||
+                (!canArchive && deleteArchiveLoading)
+              }
+            >
+              {canArchive ? "封存" : "取消封存"}
+            </Button>
+          </Col>
+        )}
       </Row>
       <Row className="mb-2">
         <Col>
