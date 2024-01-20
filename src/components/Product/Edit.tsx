@@ -46,6 +46,9 @@ export const Edit = () => {
   );
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
+  const [editAttributes, setEditAttributes] = useState<
+    ProductAttributePayload[]
+  >([]);
   const [{ data: seriesDetailResponse, loading: seriesDetailLoading }] =
     useAxios<SeriesDetailResponse>({
       method: "GET",
@@ -84,7 +87,8 @@ export const Edit = () => {
   }, [loadProduct]);
 
   const handleInputChange = (fieldId: number, value: string) => {
-    const index = attributes.findIndex(
+    // 這邊整理出要送出的資料格式
+    const index = editAttributes.findIndex(
       (attribute) => attribute.fieldId === fieldId
     );
     const fieldDetail = fields?.find((field) => field.id === fieldId);
@@ -101,16 +105,35 @@ export const Edit = () => {
     }
 
     if (index === -1) {
-      setAttributes([
-        ...attributes,
+      setEditAttributes([
+        ...editAttributes,
         {
           fieldId,
           value: parsedValue,
         },
       ]);
     } else {
-      const newAttributes = [...attributes];
+      const newAttributes = [...editAttributes];
       newAttributes[index].value = parsedValue;
+      console.log(newAttributes, "newAttributes");
+      setEditAttributes(newAttributes);
+    }
+
+    // 這邊整理出要顯示的資料格式
+    const attributeIndex = attributes.findIndex(
+      (attribute) => attribute.fieldId === fieldId
+    );
+    if (attributeIndex === -1) {
+      setAttributes([
+        ...attributes,
+        {
+          fieldId,
+          value,
+        },
+      ]);
+    } else {
+      const newAttributes = [...attributes];
+      newAttributes[attributeIndex].value = value;
       setAttributes(newAttributes);
     }
   };
@@ -121,7 +144,7 @@ export const Edit = () => {
   const handleSubmit = () => {
     const payload: ProductEditPayload = {
       itemId: parseInt(id!),
-      attributes,
+      attributes: editAttributes,
     };
 
     editProduct({
