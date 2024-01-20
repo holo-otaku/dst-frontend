@@ -46,6 +46,9 @@ export const Edit = () => {
   );
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
+  const [editAttributes, setEditAttributes] = useState<
+    ProductAttributePayload[]
+  >([]);
   const [{ data: seriesDetailResponse, loading: seriesDetailLoading }] =
     useAxios<SeriesDetailResponse>({
       method: "GET",
@@ -84,7 +87,7 @@ export const Edit = () => {
   }, [loadProduct]);
 
   const handleInputChange = (fieldId: number, value: string) => {
-    const index = attributes.findIndex(
+    const index = editAttributes.findIndex(
       (attribute) => attribute.fieldId === fieldId
     );
     const fieldDetail = fields?.find((field) => field.id === fieldId);
@@ -101,17 +104,17 @@ export const Edit = () => {
     }
 
     if (index === -1) {
-      setAttributes([
-        ...attributes,
+      setEditAttributes([
+        ...editAttributes,
         {
           fieldId,
           value: parsedValue,
         },
       ]);
     } else {
-      const newAttributes = [...attributes];
+      const newAttributes = [...editAttributes];
       newAttributes[index].value = parsedValue;
-      setAttributes(newAttributes);
+      setEditAttributes(newAttributes);
     }
   };
 
@@ -121,7 +124,7 @@ export const Edit = () => {
   const handleSubmit = () => {
     const payload: ProductEditPayload = {
       itemId: parseInt(id!),
-      attributes,
+      attributes: editAttributes,
     };
 
     editProduct({
