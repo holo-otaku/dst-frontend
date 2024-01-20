@@ -87,6 +87,7 @@ export const Edit = () => {
   }, [loadProduct]);
 
   const handleInputChange = (fieldId: number, value: string) => {
+    // 這邊整理出要送出的資料格式
     const index = editAttributes.findIndex(
       (attribute) => attribute.fieldId === fieldId
     );
@@ -114,7 +115,26 @@ export const Edit = () => {
     } else {
       const newAttributes = [...editAttributes];
       newAttributes[index].value = parsedValue;
+      console.log(newAttributes, "newAttributes");
       setEditAttributes(newAttributes);
+    }
+
+    // 這邊整理出要顯示的資料格式
+    const attributeIndex = attributes.findIndex(
+      (attribute) => attribute.fieldId === fieldId
+    );
+    if (attributeIndex === -1) {
+      setAttributes([
+        ...attributes,
+        {
+          fieldId,
+          value,
+        },
+      ]);
+    } else {
+      const newAttributes = [...attributes];
+      newAttributes[attributeIndex].value = value;
+      setAttributes(newAttributes);
     }
   };
 
