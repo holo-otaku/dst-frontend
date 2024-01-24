@@ -111,6 +111,18 @@ const renderFormControl = (
           fieldValue={(fieldValue as string) || ""}
         />
       );
+
+    case "text":
+      return (
+        <textarea
+          onChange={(e) =>
+            handleInputChange(field.id as number, e.target.value)
+          }
+          value={fieldValue as string}
+          rows={4}
+          style={{ width: "100%" }} // 設定寬度為100%
+        />
+      );
   }
 
   return (
@@ -123,6 +135,7 @@ const renderFormControl = (
         isInvalid={field.isRequired && fieldValue === ""}
         list={dataListId}
       />
+
       {autoCompleteValues && (
         <datalist id={dataListId}>
           {autoCompleteValues.map((value) => (
