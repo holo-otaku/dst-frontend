@@ -15,6 +15,7 @@
 .table-container {
   overflow-x: auto;
   overflow-y: scroll;
+  width: 100%;
 }
 
 .table-container th {
@@ -24,6 +25,7 @@
 .custom-table {
   border-collapse: collapse;
   width: 100%;
+  table-layout: fixed;
 }
 
 .sticky-header th {
@@ -33,6 +35,11 @@
   background-color: var(--background-color);
   padding: 8px;
   z-index: 1;
+  height: 40px;
+  width: 200px;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .table-row {
@@ -41,12 +48,25 @@
 
 .table-cell {
   border: 1px solid var(--border-color);
-  padding: 8px;
+  padding: 8px 12px;
+  height: 40px;
+  width: 200px;
+  white-space: normal;
+  overflow-wrap: break-word; /* 使用 break-word 來根據字元數換行 */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .blue-cell {
   background-color: var(--blue-cell-color);
   border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  height: 40px;
+  width: 200px;
+  white-space: normal;
+  overflow-wrap: break-word; /* 使用 break-word 來根據字元數換行 */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .archive-row {

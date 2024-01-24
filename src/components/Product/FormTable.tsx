@@ -115,14 +115,27 @@ const renderFormControl = (
 
   return (
     <>
-      <Form.Control
-        onChange={(e) => handleInputChange(field.id as number, e.target.value)}
-        value={fieldValue as string}
-        type={dataType}
-        {...(dataType === "number" && { step: "any" })}
-        isInvalid={field.isRequired && fieldValue === ""}
-        list={dataListId}
-      />
+      {typeof fieldValue === "string" && fieldValue.length > 50 ? (
+        <textarea
+          onChange={(e) =>
+            handleInputChange(field.id as number, e.target.value)
+          }
+          value={fieldValue}
+          rows={4}
+          style={{ width: "100%" }} // 設定寬度為100%
+        />
+      ) : (
+        <Form.Control
+          onChange={(e) =>
+            handleInputChange(field.id as number, e.target.value)
+          }
+          value={fieldValue as string}
+          type={dataType}
+          {...(dataType === "number" && { step: "any" })}
+          isInvalid={field.isRequired && fieldValue === ""}
+          list={dataListId}
+        />
+      )}
       {autoCompleteValues && (
         <datalist id={dataListId}>
           {autoCompleteValues.map((value) => (
