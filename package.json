@@ -1,7 +1,7 @@
 {
   "name": "dst-client",
   "private": true,
-  "version": "1.2.3",
+  "version": "1.2.4",
   "type": "module",
   "main": "./out/main/index.js",
   "author": {
@@ -16,7 +16,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json --composite false",
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "version:patch": "git checkout -b chore/bump && npm version patch --no-git-tag-version"
   },
   "dependencies": {
     "axios": "^1.6.7",
