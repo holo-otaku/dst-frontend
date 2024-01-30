@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 
 const Series = () => {
   return (
-    <Container>
+    <Container fluid>
       <Stack direction="vertical" gap={3} className="mt-2">
         <Outlet />
       </Stack>

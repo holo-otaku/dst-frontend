@@ -41,7 +41,7 @@ const ActivityLog = () => {
   const logs = get(activityLog, "data", []) as IActivityLogResponse["data"];
 
   return (
-    <Container>
+    <Container fluid>
       <Stack gap={3} className="mt-2">
         {loading && (
           <Backdrop show={loading}>

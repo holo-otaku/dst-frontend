@@ -1,7 +1,7 @@
-import { Container, Form, Button, Collapse } from "react-bootstrap";
+import { Container, Form, Button } from "react-bootstrap";
 import useAxios from "axios-hooks";
-import { useContext, useRef, useEffect, useState } from "react";
-import { AuthContext, ServerContext } from "../../context";
+import { useContext, useRef, useEffect } from "react";
+import { AuthContext } from "../../context";
 import { get } from "lodash";
 import Backdrop from "../Backdrop/Backdrop";
 import { DotLoader } from "react-spinners";
@@ -37,11 +37,9 @@ const Login = () => {
     { manual: true }
   );
   const { login, isAuthenticated } = useContext(AuthContext);
-  const { setHost, isHealth, healthChecking } = useContext(ServerContext);
 
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
-  const [server, setServer] = useState(`${location.host}/api`);
 
   const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -59,11 +57,6 @@ const Login = () => {
   };
 
   useEffect(() => {
-    // 執行一次，確認可否跳過設定 domain 的步驟
-    setHost(server);
-  }, []);
-
-  useEffect(() => {
     if (data) {
       const token = get(data, "data.accessToken", "");
       login(token);
@@ -77,71 +70,38 @@ const Login = () => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    usernameRef.current?.focus();
-  }, [isHealth]);
-
-  useEffect(() => {
     if (error) {
       alert(`登入失敗: ${error.response?.data.msg}`);
     }
   }, [error]);
 
-  const pageLoading = loading || healthChecking;
+  const pageLoading = loading;
 
   return (
     <Container
+      fluid
       className="d-flex flex-column align-items-center justify-content-center"
       style={{ minHeight: "100vh" }}
     >
       <h1>DST System</h1>
-
       <Backdrop show={pageLoading}>
         <DotLoader color="#36d7b7" />
       </Backdrop>
+      <Form>
+        <Form.Group className="mb-3" controlId="formUsername">
+          <Form.Label>使用者名稱</Form.Label>
+          <Form.Control type="text" ref={usernameRef} />
+        </Form.Group>
 
-      <Collapse in={!isHealth}>
-        <Form>
-          <Form.Group>
-            <Form.Label>伺服器網域/IP</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="localhost:5000"
-              value={server}
-              onChange={(e) => setServer(e.target.value)}
-            />
-          </Form.Group>
-          <Button
-            variant="primary"
-            className="mt-1"
-            disabled={server === ""}
-            type="submit"
-            onClick={(e) => {
-              e.preventDefault();
-              setHost(server);
-            }}
-          >
-            Link Start
-          </Button>
-        </Form>
-      </Collapse>
+        <Form.Group className="mb-3" controlId="formPassword">
+          <Form.Label>密碼</Form.Label>
+          <Form.Control type="password" ref={passwordRef} />
+        </Form.Group>
 
-      <Collapse in={isHealth}>
-        <Form>
-          <Form.Group className="mb-3" controlId="formUsername">
-            <Form.Label>使用者名稱</Form.Label>
-            <Form.Control type="text" ref={usernameRef} />
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="formPassword">
-            <Form.Label>密碼</Form.Label>
-            <Form.Control type="password" ref={passwordRef} />
-          </Form.Group>
-
-          <Button variant="primary" type="submit" onClick={handleLogin}>
-            登入
-          </Button>
-        </Form>
-      </Collapse>
+        <Button variant="primary" type="submit" onClick={handleLogin}>
+          登入
+        </Button>
+      </Form>
     </Container>
   );
 };

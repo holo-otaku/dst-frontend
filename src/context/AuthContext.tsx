@@ -1,12 +1,20 @@
-import { createContext, useState, ReactNode, useEffect } from "react";
+import {
+  createContext,
+  useState,
+  ReactNode,
+  useEffect,
+  useCallback,
+} from "react";
 import useAxios from "axios-hooks";
 import { get } from "lodash";
 import moment from "moment";
+import axios from "axios";
 
 export interface AuthContextProps {
   accessToken: string;
   login: (jwt: string) => void;
   logout: () => void;
+  detectIsNeedToRefresh: () => void;
   isAuthenticated: () => boolean;
   getPayload: () => Payload;
 }
@@ -15,6 +23,7 @@ export const AuthContext = createContext<AuthContextProps>({
   accessToken: "",
   login: () => undefined,
   logout: () => undefined,
+  detectIsNeedToRefresh: () => undefined,
   isAuthenticated: () => false,
   getPayload: () => ({}) as Payload,
 });
@@ -51,10 +60,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     { manual: true }
   );
 
-  const refreshInterval = 60000; // set interval to wait for the next check, in milliseconds
-  let timeoutId: NodeJS.Timeout | null = null;
-
-  const refreshToken = async () => {
+  const detectIsNeedToRefresh = useCallback(async () => {
     if (accessToken === "") return;
     if (refreshLoading) return;
     try {
@@ -72,7 +78,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       // If the token will expire within 5 minutes, refresh the token
-      if (timeDifference <= 5) {
+      if (timeDifference <= 29) {
         // Call refresh API
         const response = await refresh();
         if (response.status === 200) {
@@ -88,15 +94,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     } catch (error) {
       console.error("An error occurred while refreshing the token", error);
-      logout();
-    } finally {
-      // Only schedule the next refresh if the previous one was successful
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      timeoutId = setTimeout(() => void refreshToken(), refreshInterval);
     }
-  };
+  }, []);
 
   const jwtDecode = (accessToken: string) => {
     const [, encryPayload] = accessToken.split(".");
@@ -104,11 +103,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return payload;
   };
-
-  useEffect(() => {
-    // Call refreshToken immediately on component mount
-    void refreshToken();
-  });
 
   useEffect(() => {
     if (accessToken === "") {
@@ -145,9 +139,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return accessToken ? jwtDecode(accessToken) : ({} as Payload);
   };
 
+  if (isAuthenticated() === true) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+  }
+
   return (
     <AuthContext.Provider
-      value={{ accessToken, login, logout, isAuthenticated, getPayload }}
+      value={{
+        accessToken,
+        detectIsNeedToRefresh,
+        login,
+        logout,
+        isAuthenticated,
+        getPayload,
+      }}
     >
       {children}
     </AuthContext.Provider>

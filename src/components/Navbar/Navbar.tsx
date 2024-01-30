@@ -114,7 +114,7 @@ const MyNavbar: React.FC = () => {
 
   return (
     <Navbar collapseOnSelect expand="lg" bg="body-tertiary" fixed="top">
-      <Container>
+      <Container fluid>
         <Navbar.Brand as={Link} to="/">
           DST
         </Navbar.Brand>

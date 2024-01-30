@@ -23,35 +23,35 @@ import Role, {
 } from "../components/Role";
 import { Container } from "react-bootstrap";
 import { Outlet, RouteObject, useNavigate } from "react-router-dom";
-import { useContext, useEffect } from "react";
-import { AuthContext, ServerContext } from "../context";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../context";
 import axios from "axios";
-import Backdrop from "../components/Backdrop/Backdrop";
-import { BeatLoader } from "react-spinners";
 import ActivityLog from "../components/ActivtyLog";
 import MyBreadcrumb from "../components/Breadcrumb";
 
+const DETECT_REFRESH_INTERVAL = 10 * 60 * 1000;
+
 const Layout = () => {
-  const { accessToken, isAuthenticated } = useContext(AuthContext);
-  const { healthChecking } = useContext(ServerContext);
+  const { accessToken, isAuthenticated, detectIsNeedToRefresh } =
+    useContext(AuthContext);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-    } else {
+    if (!isAuthenticated()) {
       axios.defaults.headers.common["Authorization"] = null;
+      intervalId && clearInterval(intervalId);
       navigate("/login");
     }
   }, [accessToken, isAuthenticated, navigate]);
 
-  if (healthChecking) {
-    return (
-      <Backdrop show={true}>
-        <BeatLoader color="#36d7b7" />
-      </Backdrop>
-    );
-  }
+  useEffect(() => {
+    const id = setInterval(detectIsNeedToRefresh, DETECT_REFRESH_INTERVAL);
+    setIntervalId(id);
+    return () => {
+      clearInterval(id);
+    };
+  }, []);
 
   return (
     <>
@@ -70,7 +70,7 @@ export default [
     children: [
       {
         path: "/",
-        element: <Container>Home</Container>,
+        element: <Container fluid>Home</Container>,
         breadcrumb: "首頁",
       },
       {
@@ -174,7 +174,7 @@ export default [
       },
       {
         path: "*",
-        element: <Container>404</Container>,
+        element: <Container fluid>404</Container>,
         handle: { crumb: "404" },
       },
     ],
