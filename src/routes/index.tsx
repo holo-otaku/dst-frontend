@@ -34,9 +34,7 @@ const Layout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-    } else {
+    if (!isAuthenticated()) {
       axios.defaults.headers.common["Authorization"] = null;
       navigate("/login");
     }

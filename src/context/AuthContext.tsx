@@ -8,6 +8,7 @@ import {
 import useAxios from "axios-hooks";
 import { get } from "lodash";
 import moment from "moment";
+import axios from "axios";
 
 export interface AuthContextProps {
   accessToken: string;
@@ -147,6 +148,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const getPayload = () => {
     return accessToken ? jwtDecode(accessToken) : ({} as Payload);
   };
+
+  if (isAuthenticated() === true) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+  }
 
   return (
     <AuthContext.Provider

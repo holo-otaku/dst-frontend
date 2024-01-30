@@ -74,7 +74,6 @@ const Login = () => {
       alert(`登入失敗: ${error.response?.data.msg}`);
     }
   }, [error]);
-  console.log(import.meta.env.VITE_API_HOST);
 
   const pageLoading = loading;
 
