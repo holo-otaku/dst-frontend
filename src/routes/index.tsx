@@ -70,7 +70,7 @@ export default [
     children: [
       {
         path: "/",
-        element: <Container>Home</Container>,
+        element: <Container fluid>Home</Container>,
         breadcrumb: "首頁",
       },
       {
@@ -174,7 +174,7 @@ export default [
       },
       {
         path: "*",
-        element: <Container>404</Container>,
+        element: <Container fluid>404</Container>,
         handle: { crumb: "404" },
       },
     ],

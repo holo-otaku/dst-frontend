@@ -79,6 +79,7 @@ const Login = () => {
 
   return (
     <Container
+      fluid
       className="d-flex flex-column align-items-center justify-content-center"
       style={{ minHeight: "100vh" }}
     >

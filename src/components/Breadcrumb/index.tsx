@@ -16,7 +16,7 @@ const MyBreadcrumb = () => {
     .filter((data) => data.crumb);
 
   return (
-    <Container className="pt-2">
+    <Container fluid className="pt-2">
       <Breadcrumb>
         {breadcrumbs.map((breadcrumb, index) => (
           <Breadcrumb.Item
