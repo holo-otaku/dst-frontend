@@ -57,7 +57,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     { manual: true }
   );
 
-  const refreshInterval = 60 * 10 * 1000; // set interval to wait for the next check, in milliseconds
+  let intervalId: NodeJS.Timeout | null = null;
+  const refreshInterval = 10 * 60 * 1000; // set interval to wait for the next check, in milliseconds
   const refreshToken = useCallback(async () => {
     if (accessToken === "") return;
     if (refreshLoading) return;
@@ -92,8 +93,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     } catch (error) {
       console.error("An error occurred while refreshing the token", error);
-    } finally {
-      setTimeout(refreshToken, refreshInterval);
     }
   }, []);
 
@@ -106,7 +105,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     // Call refreshToken immediately on component mount
-    void refreshToken();
+    if (intervalId === null) {
+      intervalId = setInterval(() => {
+        void refreshToken();
+      }, refreshInterval);
+    }
     return () => {};
   }, []);
 
