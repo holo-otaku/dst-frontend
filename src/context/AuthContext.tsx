@@ -14,6 +14,7 @@ export interface AuthContextProps {
   accessToken: string;
   login: (jwt: string) => void;
   logout: () => void;
+  detectIsNeedToRefresh: () => void;
   isAuthenticated: () => boolean;
   getPayload: () => Payload;
 }
@@ -22,6 +23,7 @@ export const AuthContext = createContext<AuthContextProps>({
   accessToken: "",
   login: () => undefined,
   logout: () => undefined,
+  detectIsNeedToRefresh: () => undefined,
   isAuthenticated: () => false,
   getPayload: () => ({}) as Payload,
 });
@@ -58,9 +60,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     { manual: true }
   );
 
-  let intervalId: NodeJS.Timeout | null = null;
-  const refreshInterval = 10 * 60 * 1000; // set interval to wait for the next check, in milliseconds
-  const refreshToken = useCallback(async () => {
+  const detectIsNeedToRefresh = useCallback(async () => {
     if (accessToken === "") return;
     if (refreshLoading) return;
     try {
@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       // If the token will expire within 5 minutes, refresh the token
-      if (timeDifference <= 5) {
+      if (timeDifference <= 29) {
         // Call refresh API
         const response = await refresh();
         if (response.status === 200) {
@@ -103,16 +103,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return payload;
   };
-
-  useEffect(() => {
-    // Call refreshToken immediately on component mount
-    if (intervalId === null) {
-      intervalId = setInterval(() => {
-        void refreshToken();
-      }, refreshInterval);
-    }
-    return () => {};
-  }, []);
 
   useEffect(() => {
     if (accessToken === "") {
@@ -155,7 +145,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider
-      value={{ accessToken, login, logout, isAuthenticated, getPayload }}
+      value={{
+        accessToken,
+        detectIsNeedToRefresh,
+        login,
+        logout,
+        isAuthenticated,
+        getPayload,
+      }}
     >
       {children}
     </AuthContext.Provider>
