@@ -24,16 +24,13 @@ import Role, {
 import { Container } from "react-bootstrap";
 import { Outlet, RouteObject, useNavigate } from "react-router-dom";
 import { useContext, useEffect } from "react";
-import { AuthContext, ServerContext } from "../context";
+import { AuthContext } from "../context";
 import axios from "axios";
-import Backdrop from "../components/Backdrop/Backdrop";
-import { BeatLoader } from "react-spinners";
 import ActivityLog from "../components/ActivtyLog";
 import MyBreadcrumb from "../components/Breadcrumb";
 
 const Layout = () => {
   const { accessToken, isAuthenticated } = useContext(AuthContext);
-  const { healthChecking } = useContext(ServerContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,14 +41,6 @@ const Layout = () => {
       navigate("/login");
     }
   }, [accessToken, isAuthenticated, navigate]);
-
-  if (healthChecking) {
-    return (
-      <Backdrop show={true}>
-        <BeatLoader color="#36d7b7" />
-      </Backdrop>
-    );
-  }
 
   return (
     <>

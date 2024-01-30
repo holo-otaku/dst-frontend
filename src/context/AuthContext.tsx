@@ -1,4 +1,10 @@
-import { createContext, useState, ReactNode, useEffect } from "react";
+import {
+  createContext,
+  useState,
+  ReactNode,
+  useEffect,
+  useCallback,
+} from "react";
 import useAxios from "axios-hooks";
 import { get } from "lodash";
 import moment from "moment";
@@ -51,10 +57,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     { manual: true }
   );
 
-  const refreshInterval = 60000; // set interval to wait for the next check, in milliseconds
-  let timeoutId: NodeJS.Timeout | null = null;
-
-  const refreshToken = async () => {
+  const refreshInterval = 60 * 10 * 1000; // set interval to wait for the next check, in milliseconds
+  const refreshToken = useCallback(async () => {
     if (accessToken === "") return;
     if (refreshLoading) return;
     try {
@@ -88,15 +92,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     } catch (error) {
       console.error("An error occurred while refreshing the token", error);
-      logout();
     } finally {
-      // Only schedule the next refresh if the previous one was successful
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      timeoutId = setTimeout(() => void refreshToken(), refreshInterval);
+      setTimeout(refreshToken, refreshInterval);
     }
-  };
+  }, []);
 
   const jwtDecode = (accessToken: string) => {
     const [, encryPayload] = accessToken.split(".");
@@ -108,7 +107,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     // Call refreshToken immediately on component mount
     void refreshToken();
-  });
+    return () => {};
+  }, []);
 
   useEffect(() => {
     if (accessToken === "") {
