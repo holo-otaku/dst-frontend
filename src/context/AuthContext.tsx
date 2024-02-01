@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       // If the token will expire within 5 minutes, refresh the token
-      if (timeDifference <= 29) {
+      if (timeDifference <= 5) {
         // Call refresh API
         const response = await refresh();
         if (response.status === 200) {
