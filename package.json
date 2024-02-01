@@ -1,7 +1,7 @@
 {
   "name": "dst-client",
   "private": true,
-  "version": "1.2.3",
+  "version": "1.2.4",
   "type": "module",
   "main": "./out/main/index.js",
   "author": {
@@ -16,10 +16,11 @@
     "typecheck": "tsc --noEmit -p tsconfig.json --composite false",
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "version:patch": "git checkout -b chore/bump && npm version patch --no-git-tag-version"
   },
   "dependencies": {
-    "axios": "^1.6.5",
+    "axios": "^1.6.7",
     "axios-hooks": "^5.0.2",
     "bootstrap": "^5.3.2",
     "lodash": "^4.17.21",
@@ -31,11 +32,11 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.202",
-    "@types/node": "^20.11.5",
+    "@types/node": "^20.11.10",
     "@types/react": "18.2.48",
     "@types/react-dom": "^18.2.18",
-    "@typescript-eslint/eslint-plugin": "^6.19.0",
-    "@typescript-eslint/parser": "^6.19.0",
+    "@typescript-eslint/eslint-plugin": "^6.20.0",
+    "@typescript-eslint/parser": "^6.20.0",
     "@vitejs/plugin-react": "^4.2.1",
     "commitizen": "^4.3.0",
     "cz-conventional-changelog": "^3.3.0",
