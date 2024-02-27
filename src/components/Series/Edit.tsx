@@ -21,6 +21,7 @@ import Backdrop from "../Backdrop/Backdrop";
 import { ScaleLoader } from "react-spinners";
 import { useNavigate, useParams } from "react-router-dom";
 import { cloneDeep, isEqual } from "lodash";
+import { AxiosError } from "axios";
 
 interface EditPayload {
   name: string;
@@ -139,10 +140,14 @@ export const Edit = () => {
 
   const handleSubmit = () => {
     const payload = transformToEditPayload(name, fields, readonlyDetailData!);
-    void editSeries({
+    editSeries({
       url: `/series/${id!}`,
       data: payload,
-    });
+    }).catch((e) =>
+      alert(
+        (e as AxiosError<APIError>).response?.data.msg || (e as Error).message
+      )
+    );
   };
 
   const hasModify =

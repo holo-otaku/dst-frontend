@@ -12,6 +12,7 @@ import { get } from "lodash";
 import { useState, useEffect } from "react";
 import { ProductAttributePayload, ProductPayload } from "./Interface";
 import { useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 
 export const Create = () => {
   const navigate = useNavigate();
@@ -108,7 +109,11 @@ export const Create = () => {
       data: [payload],
     })
       .then(() => navigate("/products"))
-      .catch((e) => console.error(e));
+      .catch((e) =>
+        alert(
+          (e as AxiosError<APIError>).response?.data.msg || (e as Error).message
+        )
+      );
   };
 
   const pageLoading =
