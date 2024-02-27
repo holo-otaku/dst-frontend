@@ -12,6 +12,7 @@ import {
   RoleDetailResponse,
 } from "./Interfaces";
 import PermissionTable from "./PermissionTable";
+import { AxiosError } from "axios";
 
 export const Edit = () => {
   const navigate = useNavigate();
@@ -92,7 +93,10 @@ export const Edit = () => {
       data: payload,
     }).then(
       () => navigate("/roles"), // Redirect to the accounts list page on success
-      () => undefined // Handle error, you can add an error notification here
+      (e) =>
+        alert(
+          (e as AxiosError<APIError>).response?.data.msg || (e as Error).message
+        )
     );
   };
 

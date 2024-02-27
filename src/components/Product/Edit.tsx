@@ -17,6 +17,7 @@ import {
 } from "./Interface";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context";
+import { AxiosError } from "axios";
 
 export const Edit = () => {
   const navigate = useNavigate();
@@ -153,8 +154,10 @@ export const Edit = () => {
       .then(() => {
         navigate("/products");
       })
-      .catch((err) => {
-        console.error(err);
+      .catch((e) => {
+        alert(
+          (e as AxiosError<APIError>).response?.data.msg || (e as Error).message
+        );
       });
   };
 

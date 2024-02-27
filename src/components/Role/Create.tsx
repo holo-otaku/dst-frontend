@@ -11,6 +11,7 @@ import {
   PermissionData,
 } from "./Interfaces";
 import PermissionTable from "./PermissionTable";
+import { AxiosError } from "axios";
 
 export const Create = () => {
   const navigate = useNavigate();
@@ -60,10 +61,15 @@ export const Create = () => {
     };
     addRole({
       data: payload,
-    }).then(
-      () => navigate("/roles"), // Redirect to the roles list page on success
-      () => undefined // Handle error, you can add an error notification here
-    );
+    })
+      .then(
+        () => navigate("/roles") // Redirect to the roles list page on success
+      )
+      .catch((e) =>
+        alert(
+          (e as AxiosError<APIError>).response?.data.msg || (e as Error).message
+        )
+      );
   };
 
   return (
