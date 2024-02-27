@@ -5,6 +5,7 @@ import { ScaleLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
 import Backdrop from "../Backdrop/Backdrop";
 import { RoleResponse, Role } from "./Interfaces";
+import { AxiosError } from "axios";
 
 interface CreateUserPayload {
   username: string;
@@ -67,7 +68,11 @@ export const Create = () => {
     };
     await createUser({
       data: payload,
-    });
+    }).catch((e) =>
+      alert(
+        (e as AxiosError<APIError>).response?.data.msg || (e as Error).message
+      )
+    );
 
     return navigate("/accounts");
   };

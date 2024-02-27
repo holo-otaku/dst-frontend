@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Backdrop from "../Backdrop/Backdrop";
 import { RoleResponse, Role } from "./Interfaces";
 import { UserResponse, CreateUserPayload } from "./Interfaces";
+import { AxiosError } from "axios";
 
 export const Edit = () => {
   const navigate = useNavigate();
@@ -60,9 +61,15 @@ export const Edit = () => {
       password,
       roleId,
     };
-    void editUser({
+    editUser({
       data: payload,
-    }).then(() => navigate("/accounts"));
+    })
+      .then(() => navigate("/accounts"))
+      .catch((e) =>
+        alert(
+          (e as AxiosError<APIError>).response?.data.msg || (e as Error).message
+        )
+      );
   };
 
   const isValidPayload = username !== "" && roleId !== "";

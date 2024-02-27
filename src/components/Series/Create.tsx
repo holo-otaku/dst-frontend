@@ -14,6 +14,7 @@ import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import { ScaleLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 
 interface CreatePayload {
   name: string;
@@ -86,9 +87,10 @@ export const Create = () => {
     };
     createSeries({
       data: payload,
-    }).then(
-      () => undefined,
-      () => undefined
+    }).catch((e) =>
+      alert(
+        (e as AxiosError<APIError>).response?.data.msg || (e as Error).message
+      )
     );
   };
 
