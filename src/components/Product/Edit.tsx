@@ -18,6 +18,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context";
 import { AxiosError } from "axios";
+import moment from "moment";
 
 export const Edit = () => {
   const navigate = useNavigate();
@@ -78,7 +79,17 @@ export const Edit = () => {
     const product = productResponse.data;
 
     setSelectedSeries(product.seriesId);
-    setAttributes(product.attributes);
+    // 因為日期格式是 yyyy/MM/dd，所以這邊要轉換成這樣的格式 yyyy-MM-dd
+    const parsedAttributes = product.attributes.map((attribute) => {
+      if (/^\d{4}\/\d{2}\/\d{2}$/.test(attribute.value as string)) {
+        return {
+          ...attribute,
+          value: moment(attribute.value as string).format("YYYY-MM-DD"),
+        };
+      }
+      return attribute;
+    });
+    setAttributes(parsedAttributes);
   }, [productResponse]);
 
   useEffect(() => {
@@ -143,9 +154,20 @@ export const Edit = () => {
   const fields = series.find((series) => series.id === selectedSeries)?.fields;
 
   const handleSubmit = () => {
+    // 因應日期格式，統一在送出前轉換成 yyyy/MM/dd
+    const parsedAttributes = editAttributes.map((attribute) => {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(attribute.value as string)) {
+        return {
+          ...attribute,
+          value: moment(attribute.value as string).format("YYYY/MM/DD"),
+        };
+      }
+      return attribute;
+    });
+
     const payload: ProductEditPayload = {
       itemId: parseInt(id!),
-      attributes: editAttributes,
+      attributes: parsedAttributes,
     };
 
     editProduct({
