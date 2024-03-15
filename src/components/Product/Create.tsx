@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { ProductAttributePayload, ProductPayload } from "./Interface";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
+import moment from "moment";
 
 export const Create = () => {
   const navigate = useNavigate();
@@ -100,9 +101,20 @@ export const Create = () => {
   };
 
   const handleSubmit = () => {
+    // 因應日期格式，統一在送出前轉換成 yyyy/MM/dd
+    const parsedAttributes = attributes.map((attribute) => {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(attribute.value as string)) {
+        return {
+          ...attribute,
+          value: moment(attribute.value as string).format("YYYY/MM/DD"),
+        };
+      }
+      return attribute;
+    });
+
     const payload: ProductPayload = {
       seriesId: selectedSeries,
-      attributes,
+      attributes: parsedAttributes,
     };
 
     createProduct({
