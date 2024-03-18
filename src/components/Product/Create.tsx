@@ -68,9 +68,6 @@ export const Create = () => {
     const fieldDetail = fields?.find((field) => field.id === fieldId);
     let parsedValue: string | number | boolean = value;
     switch (fieldDetail?.dataType) {
-      case SeriesFieldDataType.number:
-        parsedValue = parseFloat(value as string);
-        break;
       case SeriesFieldDataType.boolean:
         parsedValue = !!value;
         break;
@@ -107,6 +104,13 @@ export const Create = () => {
         return {
           ...attribute,
           value: moment(attribute.value as string).format("YYYY/MM/DD"),
+        };
+      }
+      // 純數字的話轉成數字
+      else if (/^[-\d]+$/.test(attribute.value as string)) {
+        return {
+          ...attribute,
+          value: parseFloat(attribute.value as string),
         };
       }
       return attribute;

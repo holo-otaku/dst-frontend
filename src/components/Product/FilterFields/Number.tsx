@@ -89,8 +89,7 @@ export const NumberFilter = ({
             return;
           }
 
-          const num = parseFloat(event.currentTarget.value);
-          handleChange(num, operator);
+          handleChange(event.currentTarget.value, operator);
         }}
         type="number"
         step="any"
