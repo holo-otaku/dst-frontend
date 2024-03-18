@@ -106,9 +106,6 @@ export const Edit = () => {
     const fieldDetail = fields?.find((field) => field.id === fieldId);
     let parsedValue: string | number | boolean = value;
     switch (fieldDetail?.dataType) {
-      case SeriesFieldDataType.number:
-        parsedValue = parseFloat(value);
-        break;
       case SeriesFieldDataType.boolean:
         parsedValue = value === "true";
         break;
@@ -160,6 +157,13 @@ export const Edit = () => {
         return {
           ...attribute,
           value: moment(attribute.value as string).format("YYYY/MM/DD"),
+        };
+      }
+      // 純數字的話轉成數字
+      else if (/^[-\d]+$/.test(attribute.value as string)) {
+        return {
+          ...attribute,
+          value: parseFloat(attribute.value as string),
         };
       }
       return attribute;
