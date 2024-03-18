@@ -295,7 +295,13 @@ const Bar = ({
         operation: ProductSearchPayloadOperation.LESS,
       });
     });
-    const finalFilters = [...normalFilters, ...rangeSearchFilter];
+    const finalFilters = [...normalFilters, ...rangeSearchFilter].map(
+      (data) => {
+        return data.operation
+          ? { ...data, value: parseFloat(data.value as string) }
+          : data;
+      }
+    );
     // 更新最愛欄位
     updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
     // 儲存搜尋欄位
