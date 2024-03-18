@@ -68,9 +68,6 @@ export const Create = () => {
     const fieldDetail = fields?.find((field) => field.id === fieldId);
     let parsedValue: string | number | boolean = value;
     switch (fieldDetail?.dataType) {
-      case SeriesFieldDataType.number:
-        parsedValue = parseFloat(value as string);
-        break;
       case SeriesFieldDataType.boolean:
         parsedValue = !!value;
         break;
