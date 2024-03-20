@@ -111,7 +111,7 @@ export const Create = () => {
       }
       // 純數字的話轉成數字
       else if (
-        /^[-\d]+$/.test(attribute.value as string) &&
+        /^[-\d.]+$/.test(attribute.value as string) &&
         currentFieldDetail.dataType === SeriesFieldDataType.number
       ) {
         return {
