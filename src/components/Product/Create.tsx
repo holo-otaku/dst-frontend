@@ -100,6 +100,9 @@ export const Create = () => {
   const handleSubmit = () => {
     // 因應日期格式，統一在送出前轉換成 yyyy/MM/dd
     const parsedAttributes = attributes.map((attribute) => {
+      const currentFieldDetail = fields!.find(
+        (field) => field.id === attribute.fieldId
+      )!;
       if (/^\d{4}-\d{2}-\d{2}$/.test(attribute.value as string)) {
         return {
           ...attribute,
@@ -107,7 +110,10 @@ export const Create = () => {
         };
       }
       // 純數字的話轉成數字
-      else if (/^[-\d]+$/.test(attribute.value as string)) {
+      else if (
+        /^[-\d]+$/.test(attribute.value as string) &&
+        currentFieldDetail.dataType === SeriesFieldDataType.number
+      ) {
         return {
           ...attribute,
           value: parseFloat(attribute.value as string),
