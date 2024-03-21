@@ -124,7 +124,6 @@ export const Edit = () => {
     } else {
       const newAttributes = [...editAttributes];
       newAttributes[index].value = parsedValue;
-      console.log(newAttributes, "newAttributes");
       setEditAttributes(newAttributes);
     }
 
@@ -152,7 +151,7 @@ export const Edit = () => {
 
   const handleSubmit = () => {
     // 因應日期格式，統一在送出前轉換成 yyyy/MM/dd
-    const parsedAttributes = attributes.map((attribute) => {
+    const parsedAttributes = editAttributes.map((attribute) => {
       const currentFieldDetail = fields!.find(
         (field) => field.id === attribute.fieldId
       )!;
