@@ -7,7 +7,7 @@ import {
 import { Form, Table, Image, Button } from "react-bootstrap";
 import { ProductAttributePayload } from "./Interface";
 import moment from "moment";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface FormTableProps {
   fields: SeriesField[];
@@ -81,7 +81,7 @@ const renderFormControl = (
               e.target.checked ? "true" : "false"
             )
           }
-          checked={fieldValue === true}
+          defaultChecked={fieldValue === "true"}
           isInvalid={field.isRequired && fieldValue === ""}
         />
       );
@@ -160,6 +160,7 @@ const PictureFormControl = ({
 }: PictureFormControlProps) => {
   const [picture, setPicture] = useState<string | null>();
   const serverBaseUrl = localStorage.getItem("server") || ""; // Get server base URL from localStorage
+  const elfileRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     // 有可能進來的是 base64 的圖片，所以要先判斷
     if (fieldValue.startsWith("/image")) {
@@ -197,6 +198,7 @@ const PictureFormControl = ({
           accept="image/*"
           isInvalid={field.isRequired && !picture}
           className="mb-2"
+          ref={elfileRef}
         />
         {picture && (
           <Button
@@ -204,6 +206,7 @@ const PictureFormControl = ({
             onClick={() => {
               setPicture(null);
               handleInputChange(field.id as number, "");
+              elfileRef.current?.value && (elfileRef.current.value = "");
             }}
           >
             移除
