@@ -81,7 +81,7 @@ const renderFormControl = (
               e.target.checked ? "true" : "false"
             )
           }
-          checked={fieldValue === true}
+          defaultChecked={fieldValue === "true"}
           isInvalid={field.isRequired && fieldValue === ""}
         />
       );
