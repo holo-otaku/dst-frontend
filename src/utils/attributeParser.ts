@@ -1,29 +1,26 @@
 import moment from "moment";
 
-export const parseAttributes = (attributes: { value: string | number }[]) => {
-  return attributes.map((attribute) => {
-    if (typeof attribute.value === "string") {
+export const parseAttributes = (
+  attributes: { fieldId: number; value: string | number | boolean }[]
+) => {
+  return attributes.map(({ fieldId, value }) => {
+    if (typeof value === "string") {
       // Check for date format yyyy-MM-dd or yyyy/MM/dd
-      if (/^\d{4}-\d{2}-\d{2}$/.test(attribute.value)) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
         return {
-          ...attribute,
-          value: moment(attribute.value).format("YYYY/MM/DD"),
-        };
-      } else if (/^\d{4}\/\d{2}\/\d{2}$/.test(attribute.value)) {
-        return {
-          ...attribute,
-          value: moment(attribute.value, "YYYY/MM/DD").format("YYYY/MM/DD"),
+          fieldId,
+          value: moment(value).format("YYYY/MM/DD"),
         };
       }
       // Strict numeric check (including negative and decimal numbers)
-      else if (/^-?\d+(\.\d+)?$/.test(attribute.value)) {
+      else if (/^-?\d+(\.\d+)?$/.test(value)) {
         return {
-          ...attribute,
-          value: parseFloat(attribute.value),
+          fieldId,
+          value: parseFloat(value),
         };
       }
     }
     // If none of the above conditions match, return the original value
-    return attribute;
+    return { fieldId, value };
   });
 };
