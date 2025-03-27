@@ -24,8 +24,19 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
-      - run: yarn install
-      - run: yarn prettier:check
-      - run: yarn lint
-      - run: yarn typecheck
+          cache: "yarn"
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Remove stale type declaration files
+        run: rm -f vite.config.d.ts
+
+      - name: Prettier Check
+        run: yarn prettier:check
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Typecheck
+        run: yarn typecheck
