@@ -16,7 +16,7 @@ export const parseAttributes = (
       else if (/^-?\d+(\.\d+)?$/.test(value)) {
         return {
           fieldId,
-          value: parseFloat(value),
+          value: Number(value).toFixed(2),
         };
       }
     }
