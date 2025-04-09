@@ -12,13 +12,6 @@ export const parseAttributes = (
           value: moment(value).format("YYYY/MM/DD"),
         };
       }
-      // Strict numeric check (including negative and decimal numbers)
-      else if (/^-?\d+(\.\d+)?$/.test(value)) {
-        return {
-          fieldId,
-          value: Number(value).toFixed(2),
-        };
-      }
     }
     // If none of the above conditions match, return the original value
     return { fieldId, value };
