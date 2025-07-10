@@ -410,7 +410,11 @@ interface BarProps {
   buildSearchPayload: () => {
     filters: ProductSearchFilters[];
     finalFilters: ProductSearchFilters[];
-    params: any;
+    params: {
+      page: number;
+      limit: number;
+      sort?: string;
+    };
   };
 }
 
