@@ -103,7 +103,9 @@ export const Search = () => {
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
   const [showCheckbox, setShowCheckbox] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [status, setStatus] = useState<"deleted" | "archived" | undefined>(undefined);
+  const [status, setStatus] = useState<"deleted" | "archived" | undefined>(
+    undefined
+  );
 
   const { currentPage, availablePages, limit } = PaginateState;
 
