@@ -103,6 +103,7 @@ export const Search = () => {
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
   const [showCheckbox, setShowCheckbox] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
 
   const { currentPage, availablePages, limit } = PaginateState;
 
@@ -174,6 +175,7 @@ export const Search = () => {
       data: {
         seriesId: selectedSeries,
         filters: finalFilters,
+        isDeleted,
       },
       params,
     });
@@ -186,6 +188,7 @@ export const Search = () => {
         data: {
           seriesId: selectedSeries,
           filters: finalFilters,
+          isDeleted,
         },
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -326,6 +329,8 @@ export const Search = () => {
           setSearchFields,
           buildSearchPayload,
           handleExport,
+          isDeleted,
+          setIsDeleted,
         }}
       />
       <hr />
@@ -460,6 +465,8 @@ interface BarProps {
     };
   };
   handleExport: () => void;
+  isDeleted?: boolean;
+  setIsDeleted: (isDeleted?: boolean) => void;
 }
 
 const Bar = ({
@@ -480,6 +487,8 @@ const Bar = ({
   setSearchFields,
   buildSearchPayload,
   handleExport,
+  isDeleted,
+  setIsDeleted,
 }: BarProps) => {
   const [forceRefresh, setForceRefresh] = useState<number>(1);
   const { seriesFavoriteRecord, updateFavoritesWithIds } =
@@ -498,14 +507,15 @@ const Bar = ({
     if (!fields.length) return;
     onSeriesChange(selectedSeries);
     handleSearch();
-  }, [series, selectedSeries, page, forceRefresh, limit, sortState]);
+  }, [series, selectedSeries, page, forceRefresh, limit, sortState, isDeleted]);
 
   useEffect(() => {
-    const { selectedSeries, limit, page, searchFields } = restore();
+    const { selectedSeries, limit, page, searchFields, isDeleted } = restore();
     if (selectedSeries) setSelectedSeries(selectedSeries);
     if (limit && pageSizes.includes(limit)) setLimit(limit);
     if (page) setPage(page);
     if (searchFields) setSearchFields(searchFields);
+    if (isDeleted) setIsDeleted(isDeleted);
   }, [location]);
 
   const handleInput = (data: ProductSearchFilters) => {
@@ -534,12 +544,14 @@ const Bar = ({
       searchFields: filters,
       page,
       limit,
+      isDeleted,
     });
 
     searchProduct({
       data: {
         seriesId: selectedSeries,
         filters: finalFilters,
+        isDeleted,
       },
       params,
     });
@@ -554,18 +566,39 @@ const Bar = ({
 
   const handleClear = () => {
     setSearchFields([]);
+    setIsDeleted(undefined);
     setForceRefresh((prev) => prev + 1);
   };
 
   return (
     <Stack gap={2}>
-      <Form.Select value={selectedSeries} onChange={(e) => handleSelect(e)}>
-        {series.map((series) => (
-          <option key={series.id} value={series.id}>
-            {series.name}
-          </option>
-        ))}
-      </Form.Select>
+      <Row>
+        <Col xs="auto">
+          <Form.Select value={selectedSeries} onChange={(e) => handleSelect(e)}>
+            {series.map((series) => (
+              <option key={series.id} value={series.id}>
+                {series.name}
+              </option>
+            ))}
+          </Form.Select>
+        </Col>
+        <Col xs="auto">
+          <Form.Select
+            value={isDeleted === undefined ? "all" : isDeleted ? "true" : "false"}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "all") {
+                setIsDeleted(undefined);
+              } else {
+                setIsDeleted(value === "true");
+              }
+            }}
+          >
+            <option value="all">請選擇</option>
+            <option value="true">已刪除</option>
+          </Form.Select>
+        </Col>
+      </Row>
       <Form>
         <SearchBar
           fields={fields}
@@ -634,6 +667,7 @@ const useHistorySearch = () => {
     searchFields: ProductSearchFilters[];
     page: number;
     limit: number;
+    isDeleted?: boolean;
   }
 
   const snapshot = ({
@@ -641,6 +675,7 @@ const useHistorySearch = () => {
     searchFields,
     page,
     limit,
+    isDeleted,
   }: Snapshot) => {
     sessionStorage.setItem(
       SESSION_STORAGE_KEY,
@@ -649,6 +684,7 @@ const useHistorySearch = () => {
         searchFields,
         page,
         limit,
+        isDeleted,
       })
     );
   };

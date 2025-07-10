@@ -38,6 +38,7 @@ export interface ProductEditPayload {
 export interface ProductSearchPayloadField {
   seriesId: number;
   filters: ProductSearchFilters[];
+  isDeleted?: boolean;
 }
 
 export interface ProductSearchFilters {
