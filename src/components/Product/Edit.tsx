@@ -20,6 +20,7 @@ import { AuthContext } from "../../context";
 import { AxiosError } from "axios";
 import moment from "moment";
 import { parseAttributes } from "../../utils/attributeParser";
+import useCopyProduct from "../../hooks/useCopyProduct";
 
 export const Edit = () => {
   const navigate = useNavigate();
@@ -67,9 +68,36 @@ export const Edit = () => {
   const [{ loading: deleteArchiveLoading }, deleteArchiveProduct] = useAxios(
     {
       method: "DELETE",
+      url: "archive",
     },
     { manual: true }
   );
+  const { loading: copyProductLoading, copyProduct } = useCopyProduct();
+
+  const handleCopy = async () => {
+    try {
+      const response = await copyProduct({
+        data: { itemIds: [parseInt(id!)] },
+      });
+
+      const copied = get(response.data, "data");
+      if (Array.isArray(copied) && copied.length > 0) {
+        const newId = copied[0].id;
+
+        const confirmNavigate =
+          window.confirm("商品已複製，是否前往新商品頁面？");
+        if (confirmNavigate) {
+          navigate(`/products/${newId}/edit`);
+        }
+      } else {
+        alert("複製成功，但找不到新商品 ID");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("複製失敗");
+    }
+  };
+
   const canDelete = permissions.includes("product.delete");
   const canArchive =
     permissions.includes("archive.create") &&
@@ -176,7 +204,8 @@ export const Edit = () => {
     productLoading ||
     editProductLoading ||
     seriesDetailLoading ||
-    archiveLoading;
+    archiveLoading ||
+    copyProductLoading;
 
   return (
     <Stack>
@@ -199,11 +228,11 @@ export const Edit = () => {
               variant={canArchive ? "primary" : "danger"}
               onClick={() => {
                 if (canArchive) {
-                  archiveProduct({ data: { itemId: id } }).then(() =>
+                  archiveProduct({ data: { itemIds: [id] } }).then(() =>
                     navigate("/products")
                   );
                 } else {
-                  deleteArchiveProduct({ url: `archive/${id}` }).then(() =>
+                  deleteArchiveProduct({ data: { itemIds: [id] } }).then(() =>
                     navigate("/products")
                   );
                 }
@@ -218,6 +247,15 @@ export const Edit = () => {
             </Button>
           </Col>
         )}
+        <Col xs="auto">
+          <Button
+            variant="success"
+            onClick={handleCopy}
+            disabled={pageLoading || copyProductLoading}
+          >
+            複製
+          </Button>
+        </Col>
       </Row>
       <Row className="mb-2">
         <Col>

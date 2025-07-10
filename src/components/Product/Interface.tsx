@@ -61,3 +61,17 @@ export interface ProductSearchResponse extends APIResponse {
 export interface ProductDeletePayload {
   itemId: number[];
 }
+
+export interface ArchiveProductResponse extends APIResponse {
+  data: { skipped: number[] };
+}
+
+export interface ArchiveProductPayloadField {
+  itemIds: number[];
+}
+
+export interface CopyProductPayloadField extends ArchiveProductPayloadField {}
+
+export interface CopyProductResponse extends APIResponse {
+  data: { id: number; seriesId: number }[];
+}

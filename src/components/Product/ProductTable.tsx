@@ -5,33 +5,41 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "../../../src/styles/table-sticky.css";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+
 interface ProductTableProps {
   products: ProductData[];
   sortState: { fieldId: number; order: "asc" | "desc" };
   setSortState: (sortState: { fieldId: number; order: "asc" | "desc" }) => void;
+  showCheckbox: boolean;
+  selectedIds: Set<number>;
+  toggleCheckbox: (id: number) => void;
+  handleHeaderCheckbox: () => void;
 }
 
 const ProductTable = ({
   products,
   sortState,
   setSortState,
+  showCheckbox,
+  selectedIds,
+  toggleCheckbox,
+  handleHeaderCheckbox,
 }: ProductTableProps) => {
   const [maxHeight, setMaxHeight] = useState("400px");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
-      setMaxHeight(`${window.innerHeight * 0.6}px`); // Adjusts maxHeight to 50% of window height
+      setMaxHeight(`${window.innerHeight * 0.6}px`);
     };
-
     window.addEventListener("resize", handleResize);
-    handleResize(); // Initial call to set maxHeight
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const navigate = useNavigate();
+  const currentPageIds = products.map((p) => p.itemId);
+  const isAllSelected = currentPageIds.every((id) => selectedIds.has(id));
+
   const attributes = get(
     products,
     "[0].attributes",
@@ -45,8 +53,6 @@ const ProductTable = ({
 
   const handleSortLogic = (fieldId: number) => {
     const isSorted = sortState.fieldId === fieldId;
-    // If the table is already sorted by the current attribute, toggle the sort order
-    // First click: asc, Second click: desc, Third click: no sort
     const needResetSort = isSorted && sortState.order === "desc";
     const sortFieldId = needResetSort ? -1 : fieldId;
     const sort = isSorted === false ? "asc" : needResetSort ? "asc" : "desc";
@@ -64,10 +70,6 @@ const ProductTable = ({
       fieldId: sortFieldId,
       order: sort,
       icon: sortIcon,
-    } as {
-      fieldId: number;
-      order: "asc" | "desc";
-      icon: JSX.Element;
     };
   };
 
@@ -77,26 +79,29 @@ const ProductTable = ({
         <table className="custom-table">
           <thead className="sticky-header">
             <tr>
+              {showCheckbox && (
+                <th style={{ width: "40px" }}>
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    onChange={handleHeaderCheckbox}
+                  />
+                </th>
+              )}
               <th>#</th>
               {attributes.map((attribute, attributeIndex) => {
-                const {
-                  fieldId,
-                  order: sort,
-                  icon: sortIcon,
-                } = handleSortLogic(attribute.fieldId);
-
+                const { fieldId, order, icon } = handleSortLogic(
+                  attribute.fieldId
+                );
                 return (
                   <th
                     key={attributeIndex}
                     onClick={() =>
-                      setSortState({
-                        fieldId,
-                        order: sort,
-                      })
+                      setSortState({ fieldId, order: order as "asc" | "desc" })
                     }
                   >
                     {attribute.fieldName}
-                    {sortIcon}
+                    {icon}
                   </th>
                 );
               })}
@@ -116,6 +121,15 @@ const ProductTable = ({
                   navigate(`/products/${product.itemId}/edit`)
                 }
               >
+                {showCheckbox && (
+                  <td className="table-cell">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(product.itemId)}
+                      onChange={() => toggleCheckbox(product.itemId)}
+                    />
+                  </td>
+                )}
                 <td className="table-cell">{product.itemId}</td>
                 {product.attributes.map((attribute, attributeIndex) => (
                   <td key={attributeIndex} className="table-cell">
@@ -140,7 +154,7 @@ const getDisplayValue = (
   dataType: string,
   value: string | number | boolean
 ) => {
-  const serverBaseUrl = localStorage.getItem("server") || ""; // Get server base URL from localStorage
+  const serverBaseUrl = localStorage.getItem("server") || "";
 
   switch (dataType) {
     case "boolean":
@@ -161,4 +175,5 @@ const getDisplayValue = (
       return value;
   }
 };
+
 export default ProductTable;
