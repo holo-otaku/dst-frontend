@@ -11,11 +11,16 @@ import {
   ProductSearchPayloadField,
   ProductSearchPayloadOperation,
   ProductSearchResponse,
+  ProductData,
+  ArchiveProductResponse,
+  ArchiveProductPayloadField,
 } from "./Interface";
 import ProductTable from "./ProductTable";
 import { SearchBar } from "./SearchBar";
 import { useFavoriteFilterField, usePaginate } from "../../hooks";
 import { useLocation } from "react-router-dom";
+import useDeleteProduct from "../../hooks/useDeleteProduct";
+import useCopyProduct from "../../hooks/useCopyProduct";
 
 const pageSizes = [25, 50, 100];
 
@@ -29,6 +34,7 @@ export const Search = () => {
         limit: 100,
       },
     });
+
   const [
     { data: productSearchResponse, loading: productSearchLoading },
     searchProduct,
@@ -41,6 +47,20 @@ export const Search = () => {
       manual: true,
     }
   );
+
+  const [{ loading: archiveProductLoading }, archiveProduct] = useAxios<
+    ArchiveProductResponse,
+    ArchiveProductPayloadField
+  >(
+    {
+      url: "/archive",
+      method: "POST",
+    },
+    {
+      manual: true,
+    }
+  );
+
   const [
     { data: seriesDetailResponse, loading: seriesDetailLoading },
     fetchSeriesDetail,
@@ -52,6 +72,7 @@ export const Search = () => {
       manual: true,
     }
   );
+
   const [pageLimit, setPageLimit] = useState<number>(25);
   const [PaginateState, PaginateAction] = usePaginate({
     total: get(productSearchResponse, "totalCount", 0),
@@ -64,6 +85,10 @@ export const Search = () => {
     fieldId: -1,
     order: "asc",
   });
+  const [selectedSeries, setSelectedSeries] = useState<number>(1);
+  const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
+  const [showCheckbox, setShowCheckbox] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const { currentPage, availablePages, limit } = PaginateState;
 
@@ -77,13 +102,163 @@ export const Search = () => {
     }
   }, [productSearchResponse]);
 
+  useEffect(() => {
+    setShowCheckbox(false);
+    setSelectedIds(new Set());
+  }, [selectedSeries]);
+
   const onSeriesChange = (seriesId: number) =>
     fetchSeriesDetail({
       url: `/series/${seriesId}`,
     });
 
+  const buildSearchPayload = () => {
+    const filters = searchFields.filter((field) => field.value);
+    const normalFilters = filters.filter(
+      (filter) => filter.operation !== ProductSearchPayloadOperation.RANGE
+    );
+    const rangeFilters = filters.filter(
+      (filter) => filter.operation === ProductSearchPayloadOperation.RANGE
+    );
+
+    const rangeSearchFilter: ProductSearchFilters[] = [];
+    rangeFilters.forEach((filter) => {
+      const [min, max] = filter.value.toString().split(",");
+      rangeSearchFilter.push({
+        fieldId: filter.fieldId,
+        value: parseFloat(min),
+        operation: ProductSearchPayloadOperation.GREATER,
+      });
+      rangeSearchFilter.push({
+        fieldId: filter.fieldId,
+        value: parseFloat(max),
+        operation: ProductSearchPayloadOperation.LESS,
+      });
+    });
+
+    const finalFilters = [...normalFilters, ...rangeSearchFilter].map((data) =>
+      data.operation
+        ? { ...data, value: parseFloat(data.value as string) }
+        : data
+    );
+
+    const params = {
+      page: currentPage,
+      limit,
+      ...(sortState.fieldId !== -1 && {
+        sort: `${sortState.fieldId},${sortState.order}`,
+      }),
+    };
+
+    return { filters, finalFilters, params };
+  };
+
+  const reloadProducts = () => {
+    const { finalFilters, params } = buildSearchPayload();
+
+    searchProduct({
+      data: {
+        seriesId: selectedSeries,
+        filters: finalFilters,
+      },
+      params,
+    });
+  };
+
+  const toggleCheckbox = (id: number) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  const handleHeaderCheckbox = () => {
+    const currentPageIds = get(productSearchResponse, "data", []).map(
+      (p: ProductData) => p.itemId
+    );
+    const newSet = new Set(selectedIds);
+    const isAllSelected = currentPageIds.every((id: number) =>
+      selectedIds.has(id)
+    );
+    if (isAllSelected) {
+      currentPageIds.forEach((id: number) => newSet.delete(id));
+    } else {
+      currentPageIds.forEach((id: number) => newSet.add(id));
+    }
+    setSelectedIds(newSet);
+  };
+
+  const handleBatchSelect = () => {
+    setShowCheckbox(true);
+    setSelectedIds(new Set());
+  };
+
+  const handleCancel = () => {
+    setShowCheckbox(false);
+    setSelectedIds(new Set());
+  };
+
+  const { loading: deleteProductLoding, deleteProduct: deleteProduct } =
+    useDeleteProduct();
+
+  const handleBatchDelete = async (itemIds: number[]) => {
+    try {
+      await deleteProduct({
+        data: { itemId: itemIds },
+      });
+      reloadProducts();
+      setShowCheckbox(false);
+      setSelectedIds(new Set());
+      return true;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  };
+
+  const { loading: copyProductLoading, copyProduct: copyProduct } =
+    useCopyProduct();
+
+  const handleBatchCopy = async (itemIds: number[]) => {
+    try {
+      await copyProduct({
+        data: { itemIds: itemIds },
+      });
+      reloadProducts();
+      setShowCheckbox(false);
+      setSelectedIds(new Set());
+      return true;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  };
+
+  const handleBatchArchive = async (itemIds: number[]) => {
+    try {
+      await archiveProduct({
+        data: { itemIds: itemIds },
+      });
+      reloadProducts();
+      setShowCheckbox(false);
+      setSelectedIds(new Set());
+      return true;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  };
+
   const pageLoading =
-    seriesLoading || productSearchLoading || seriesDetailLoading;
+    seriesLoading ||
+    productSearchLoading ||
+    seriesDetailLoading ||
+    archiveProductLoading ||
+    copyProductLoading ||
+    deleteProductLoding;
 
   return (
     <Stack gap={2}>
@@ -103,11 +278,79 @@ export const Search = () => {
           setPage: PaginateAction.setCurrentPage,
           sortState,
           setSortState,
+          selectedSeries,
+          setSelectedSeries,
+          searchFields,
+          setSearchFields,
+          buildSearchPayload,
         }}
       />
       <hr />
-      <Stack direction="horizontal" style={{ flexGrow: 1 }}>
-        <div style={{ marginLeft: "auto" }}>
+      <Stack
+        direction="horizontal"
+        style={{
+          flexGrow: 1,
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ display: "flex", gap: "10px" }}>
+          {!showCheckbox ? (
+            <Button variant="primary" onClick={handleBatchSelect}>
+              批次選擇
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="primary"
+                onClick={async () => {
+                  if (selectedIds.size === 0) return alert("請先選擇項目");
+                  const success = await handleBatchCopy(
+                    Array.from(selectedIds)
+                  );
+                  if (success) alert(`已複製 ${selectedIds.size} 筆資料`);
+                  else alert("複製失敗！");
+                }}
+              >
+                複製 ({selectedIds.size})
+              </Button>
+              <Button
+                variant="warning"
+                onClick={async () => {
+                  if (selectedIds.size === 0) return alert("請先選擇項目");
+                  const success = await handleBatchArchive(
+                    Array.from(selectedIds)
+                  );
+                  if (success) alert(`已封存 ${selectedIds.size} 筆資料`);
+                  else alert("封存失敗！");
+                }}
+              >
+                封存 ({selectedIds.size})
+              </Button>
+              <Button
+                variant="danger"
+                onClick={async () => {
+                  if (selectedIds.size === 0) return alert("請先選擇項目");
+                  if (
+                    !window.confirm(`確定要刪除 ${selectedIds.size} 筆資料嗎？`)
+                  )
+                    return;
+                  const success = await handleBatchDelete(
+                    Array.from(selectedIds)
+                  );
+                  if (success) alert("刪除成功！");
+                  else alert("刪除失敗！");
+                }}
+              >
+                刪除 ({selectedIds.size})
+              </Button>
+              <Button variant="secondary" onClick={handleCancel}>
+                取消
+              </Button>
+            </>
+          )}
+        </div>
+        <div>
           <Form.Select
             size="sm"
             onChange={(e) =>
@@ -125,8 +368,12 @@ export const Search = () => {
       </Stack>
       <ProductTable
         products={get(productSearchResponse, "data", [])}
-        setSortState={setSortState}
         sortState={sortState}
+        setSortState={setSortState}
+        showCheckbox={showCheckbox}
+        selectedIds={selectedIds}
+        toggleCheckbox={toggleCheckbox}
+        handleHeaderCheckbox={handleHeaderCheckbox}
       />
       <Stack direction="horizontal" className="justify-content-center">
         <Pagination
@@ -154,11 +401,21 @@ interface BarProps {
   limit: number;
   setLimit: (limit: number) => void;
   setPage: (page: number) => void;
-  sortState: {
-    fieldId: number;
-    order: "asc" | "desc";
-  };
+  sortState: { fieldId: number; order: "asc" | "desc" };
   setSortState: (sortState: { fieldId: number; order: "asc" | "desc" }) => void;
+  selectedSeries: number;
+  setSelectedSeries: (seriesId: number) => void;
+  searchFields: ProductSearchFilters[];
+  setSearchFields: (fields: ProductSearchFilters[]) => void;
+  buildSearchPayload: () => {
+    filters: ProductSearchFilters[];
+    finalFilters: ProductSearchFilters[];
+    params: {
+      page: number;
+      limit: number;
+      sort?: string;
+    };
+  };
 }
 
 const Bar = ({
@@ -173,9 +430,12 @@ const Bar = ({
   setPage,
   sortState,
   setSortState,
+  selectedSeries,
+  setSelectedSeries,
+  searchFields,
+  setSearchFields,
+  buildSearchPayload,
 }: BarProps) => {
-  const [selectedSeries, setSelectedSeries] = useState<number>(1);
-  const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
   const [forceRefresh, setForceRefresh] = useState<number>(1);
   const { seriesFavoriteRecord, updateFavoritesWithIds } =
     useFavoriteFilterField(selectedSeries, get(series, "[0].fields", []));
@@ -185,146 +445,51 @@ const Bar = ({
   const location = useLocation();
 
   useEffect(() => {
-    // 每次系列改變時，清空搜尋欄位，並且直接協助無條件搜尋
-    // 不過要確保系列資料已經載入完成
     if (!series.length) return;
     if (!targetSeries) {
-      // 初次載入時，targetSeries 會是 undefined
-      // 協助更新 selectedSeries
       setSelectedSeries(get(series, "[0].id", 1));
       return;
     }
     if (!fields.length) return;
     onSeriesChange(selectedSeries);
-
-    // 換頁時，不要清空搜尋欄位
-    if (fields.length !== 0) {
-      handleSearch();
-      return;
-    }
-
-    setSearchFields([]);
-    const { fieldId, order } = sortState;
-    const params = {
-      page,
-      limit,
-    } as {
-      page: number;
-      limit: number;
-      sort?: string;
-    };
-
-    if (fieldId !== -1) {
-      params["sort"] = `${fieldId},${order}`;
-    }
-    searchProduct({
-      data: {
-        seriesId: selectedSeries,
-        filters: [],
-      },
-      params,
-    });
-    return () => {};
+    handleSearch();
   }, [series, selectedSeries, page, forceRefresh, limit, sortState]);
 
   useEffect(() => {
     const { selectedSeries, limit, page, searchFields } = restore();
-
-    if (selectedSeries) {
-      setSelectedSeries(selectedSeries);
-    }
-
-    if (limit && pageSizes.includes(limit)) {
-      setLimit(limit);
-    }
-
-    if (page) {
-      setPage(page);
-    }
-
-    if (searchFields) {
-      setSearchFields(searchFields);
-    }
+    if (selectedSeries) setSelectedSeries(selectedSeries);
+    if (limit && pageSizes.includes(limit)) setLimit(limit);
+    if (page) setPage(page);
+    if (searchFields) setSearchFields(searchFields);
   }, [location]);
 
   const handleInput = (data: ProductSearchFilters) => {
     const { fieldId, value, operation } = data;
     let isNewField = true;
-
     const newSearchFields = searchFields.map((field) => {
       if (field.fieldId === fieldId) {
         isNewField = false;
         return operation ? { ...field, value, operation } : { ...field, value };
       }
-
       return field;
     });
-
     if (isNewField) {
       newSearchFields.push(
         operation ? { fieldId, value, operation } : { fieldId, value }
       );
     }
-
     setSearchFields(newSearchFields);
   };
-
   const handleSearch = () => {
-    // 去除空值
-    const filters = searchFields.filter((field) => field.value);
-    // 去除 range 的欄位，因為 range 的欄位會被轉換成兩個欄位
-    const normalFilters = filters.filter(
-      (filter) => filter.operation !== ProductSearchPayloadOperation.RANGE
-    );
-    // 特別處理 range 的情況
-    const rangeFilters = filters.filter(
-      (filter) => filter.operation === ProductSearchPayloadOperation.RANGE
-    );
-    // 要轉換成兩個欄位
-    const rangeSearchFilter: ProductSearchFilters[] = [];
-    rangeFilters.forEach((filter) => {
-      const [min, max] = filter.value.toString().split(",");
-      rangeSearchFilter.push({
-        fieldId: filter.fieldId,
-        value: parseFloat(min),
-        operation: ProductSearchPayloadOperation.GREATER,
-      });
-      rangeSearchFilter.push({
-        fieldId: filter.fieldId,
-        value: parseFloat(max),
-        operation: ProductSearchPayloadOperation.LESS,
-      });
-    });
-    const finalFilters = [...normalFilters, ...rangeSearchFilter].map(
-      (data) => {
-        return data.operation
-          ? { ...data, value: parseFloat(data.value as string) }
-          : data;
-      }
-    );
-    // 更新最愛欄位
+    const { filters, finalFilters, params } = buildSearchPayload();
+
     updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
-    // 儲存搜尋欄位
     snapshot({
       selectedSeries,
       searchFields: filters,
       page,
       limit,
     });
-
-    const { fieldId, order } = sortState;
-    const params = {
-      page,
-      limit,
-    } as {
-      page: number;
-      limit: number;
-      sort?: string;
-    };
-
-    if (fieldId !== -1) {
-      params["sort"] = `${fieldId},${order}`;
-    }
 
     searchProduct({
       data: {
@@ -339,10 +504,7 @@ const Bar = ({
     setSelectedSeries(parseInt(event.target.value));
     setSearchFields([]);
     first();
-    setSortState({
-      fieldId: -1,
-      order: "asc",
-    });
+    setSortState({ fieldId: -1, order: "asc" });
   };
 
   const handleClear = () => {
@@ -369,7 +531,6 @@ const Bar = ({
         />
         <ControlBar
           handleSearch={() => {
-            // 搜尋按鈕觸發時，直接跳到第一頁
             first();
             handleSearch();
           }}
@@ -408,10 +569,6 @@ const ControlBar = ({ handleSearch, handleClear }: ControlBarProps) => {
   );
 };
 
-/**
- * 處理搜尋欄位的邏輯，在使用者進入編輯頁面前，會先將搜尋欄位的資料存到 sessionStorage
- * 以及他的瀏覽頁數，這樣使用者在編輯完後，可以回到原本的頁數
- */
 const useHistorySearch = () => {
   const { sessionStorage } = window;
   const SESSION_STORAGE_KEY = "ONE_TIME_SEARCH_FIELDS";
@@ -450,3 +607,5 @@ const useHistorySearch = () => {
 
   return { snapshot, restore };
 };
+
+export default Search;

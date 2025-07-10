@@ -1,27 +1,15 @@
 import { useEffect } from "react";
-import useAxios from "axios-hooks";
 import { Button, Modal } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
-import { ProductDeletePayload } from "./Interface";
+import useDeleteProduct from "../../hooks/useDeleteProduct";
 
 export const Delete = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [{ loading, error }, deleteProduct] = useAxios<
-    APIResponse,
-    ProductDeletePayload,
-    APIResponse
-  >(
-    {
-      url: `/product/delete`,
-      method: "DELETE",
-    },
-    {
-      manual: true,
-    }
-  );
+
+  const { loading, error, deleteProduct } = useDeleteProduct();
 
   useEffect(() => {
     if (!error) return;
