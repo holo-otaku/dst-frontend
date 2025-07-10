@@ -112,7 +112,7 @@ export const Search = () => {
       url: `/series/${seriesId}`,
     });
 
-  const reloadProducts = () => {
+  const buildSearchPayload = () => {
     const filters = searchFields.filter((field) => field.value);
     const normalFilters = filters.filter(
       (filter) => filter.operation !== ProductSearchPayloadOperation.RANGE
@@ -120,6 +120,7 @@ export const Search = () => {
     const rangeFilters = filters.filter(
       (filter) => filter.operation === ProductSearchPayloadOperation.RANGE
     );
+
     const rangeSearchFilter: ProductSearchFilters[] = [];
     rangeFilters.forEach((filter) => {
       const [min, max] = filter.value.toString().split(",");
@@ -134,6 +135,7 @@ export const Search = () => {
         operation: ProductSearchPayloadOperation.LESS,
       });
     });
+
     const finalFilters = [...normalFilters, ...rangeSearchFilter].map((data) =>
       data.operation
         ? { ...data, value: parseFloat(data.value as string) }
@@ -147,6 +149,12 @@ export const Search = () => {
         sort: `${sortState.fieldId},${sortState.order}`,
       }),
     };
+
+    return { filters, finalFilters, params };
+  };
+
+  const reloadProducts = () => {
+    const { finalFilters, params } = buildSearchPayload();
 
     searchProduct({
       data: {
@@ -274,6 +282,7 @@ export const Search = () => {
           setSelectedSeries,
           searchFields,
           setSearchFields,
+          buildSearchPayload,
         }}
       />
       <hr />
@@ -398,6 +407,11 @@ interface BarProps {
   setSelectedSeries: (seriesId: number) => void;
   searchFields: ProductSearchFilters[];
   setSearchFields: (fields: ProductSearchFilters[]) => void;
+  buildSearchPayload: () => {
+    filters: ProductSearchFilters[];
+    finalFilters: ProductSearchFilters[];
+    params: any;
+  };
 }
 
 const Bar = ({
@@ -416,6 +430,7 @@ const Bar = ({
   setSelectedSeries,
   searchFields,
   setSearchFields,
+  buildSearchPayload,
 }: BarProps) => {
   const [forceRefresh, setForceRefresh] = useState<number>(1);
   const { seriesFavoriteRecord, updateFavoritesWithIds } =
@@ -461,34 +476,9 @@ const Bar = ({
     }
     setSearchFields(newSearchFields);
   };
-
   const handleSearch = () => {
-    const filters = searchFields.filter((field) => field.value);
-    const normalFilters = filters.filter(
-      (filter) => filter.operation !== ProductSearchPayloadOperation.RANGE
-    );
-    const rangeFilters = filters.filter(
-      (filter) => filter.operation === ProductSearchPayloadOperation.RANGE
-    );
-    const rangeSearchFilter: ProductSearchFilters[] = [];
-    rangeFilters.forEach((filter) => {
-      const [min, max] = filter.value.toString().split(",");
-      rangeSearchFilter.push({
-        fieldId: filter.fieldId,
-        value: parseFloat(min),
-        operation: ProductSearchPayloadOperation.GREATER,
-      });
-      rangeSearchFilter.push({
-        fieldId: filter.fieldId,
-        value: parseFloat(max),
-        operation: ProductSearchPayloadOperation.LESS,
-      });
-    });
-    const finalFilters = [...normalFilters, ...rangeSearchFilter].map((data) =>
-      data.operation
-        ? { ...data, value: parseFloat(data.value as string) }
-        : data
-    );
+    const { filters, finalFilters, params } = buildSearchPayload();
+
     updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
     snapshot({
       selectedSeries,
@@ -496,14 +486,6 @@ const Bar = ({
       page,
       limit,
     });
-
-    const params = {
-      page,
-      limit,
-      ...(sortState.fieldId !== -1 && {
-        sort: `${sortState.fieldId},${sortState.order}`,
-      }),
-    };
 
     searchProduct({
       data: {
