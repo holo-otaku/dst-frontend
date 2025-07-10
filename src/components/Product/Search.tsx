@@ -61,6 +61,20 @@ export const Search = () => {
     }
   );
 
+  const [{ loading: exportProductLoading }, exportProduct] = useAxios<
+    Blob,
+    ProductSearchPayloadField
+  >(
+    {
+      url: "/product/export",
+      method: "POST",
+      responseType: "blob",
+    },
+    {
+      manual: true,
+    }
+  );
+
   const [
     { data: seriesDetailResponse, loading: seriesDetailLoading },
     fetchSeriesDetail,
@@ -165,6 +179,33 @@ export const Search = () => {
     });
   };
 
+  const handleExport = async () => {
+    const { finalFilters } = buildSearchPayload();
+    try {
+      const response = await exportProduct({
+        data: {
+          seriesId: selectedSeries,
+          filters: finalFilters,
+        },
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `products-${new Date().toISOString()}.xlsx`
+      );
+      document.body.appendChild(link);
+      link.click();
+      if (link.parentNode) {
+        link.parentNode.removeChild(link);
+      }
+    } catch (error) {
+      console.error("Export failed:", error);
+      alert("匯出失敗！");
+    }
+  };
+
   const toggleCheckbox = (id: number) => {
     const newSet = new Set(selectedIds);
     if (newSet.has(id)) {
@@ -258,6 +299,7 @@ export const Search = () => {
     seriesDetailLoading ||
     archiveProductLoading ||
     copyProductLoading ||
+    exportProductLoading ||
     deleteProductLoding;
 
   return (
@@ -283,6 +325,7 @@ export const Search = () => {
           searchFields,
           setSearchFields,
           buildSearchPayload,
+          handleExport,
         }}
       />
       <hr />
@@ -416,6 +459,7 @@ interface BarProps {
       sort?: string;
     };
   };
+  handleExport: () => void;
 }
 
 const Bar = ({
@@ -435,6 +479,7 @@ const Bar = ({
   searchFields,
   setSearchFields,
   buildSearchPayload,
+  handleExport,
 }: BarProps) => {
   const [forceRefresh, setForceRefresh] = useState<number>(1);
   const { seriesFavoriteRecord, updateFavoritesWithIds } =
@@ -535,6 +580,7 @@ const Bar = ({
             handleSearch();
           }}
           handleClear={handleClear}
+          handleExport={handleExport}
         />
       </Form>
     </Stack>
@@ -544,9 +590,14 @@ const Bar = ({
 interface ControlBarProps {
   handleSearch: () => void;
   handleClear: () => void;
+  handleExport: () => void;
 }
 
-const ControlBar = ({ handleSearch, handleClear }: ControlBarProps) => {
+const ControlBar = ({
+  handleSearch,
+  handleClear,
+  handleExport,
+}: ControlBarProps) => {
   return (
     <Row className="g-2 my-2 justify-content-end">
       <Col xs="auto">
@@ -563,6 +614,11 @@ const ControlBar = ({ handleSearch, handleClear }: ControlBarProps) => {
       <Col xs="auto">
         <Button type="reset" onClick={handleClear}>
           清空
+        </Button>
+      </Col>
+      <Col xs="auto">
+        <Button variant="success" onClick={handleExport}>
+          匯出 Excel
         </Button>
       </Col>
     </Row>
