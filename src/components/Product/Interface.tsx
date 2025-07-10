@@ -39,6 +39,7 @@ export interface ProductSearchPayloadField {
   seriesId: number;
   filters: ProductSearchFilters[];
   isDeleted?: boolean;
+  isArchived?: boolean;
 }
 
 export interface ProductSearchFilters {
