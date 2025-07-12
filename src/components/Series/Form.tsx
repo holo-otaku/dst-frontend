@@ -73,7 +73,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
 
   const isFieldDisabled = (field: SeriesField, fieldName: string) => {
     if (field.isErp && fieldName !== "isLimitField") {
-      return true; // ERP 欄位除了 isLimitField 外都不能編輯
+      return true; // ERP 欄位除了 isLimitField 外都不能編輯、刪除、移動
     }
     return false;
   };
@@ -104,6 +104,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                     size="sm"
                     className="p-0 mb-1"
                     onClick={() => handleMoveUp(index)}
+                    disabled={isFieldDisabled(field, "moveUp")}
                   >
                     <AiOutlineCaretUp />
                   </Button>
@@ -114,6 +115,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                     size="sm"
                     className="p-0"
                     onClick={() => handleMoveDown(index)}
+                    disabled={isFieldDisabled(field, "moveDown")}
                   >
                     <AiOutlineCaretDown />
                   </Button>
@@ -202,6 +204,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 className="rounded-circle"
                 size="sm"
                 onClick={() => handleDelete(index)}
+                disabled={isFieldDisabled(field, "delete")}
               >
                 <BiMinus />
               </Button>
