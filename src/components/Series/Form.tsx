@@ -31,6 +31,9 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
       case SeriesFieldKey.isErp:
         newFields[index].isErp = value as boolean;
         break;
+      case SeriesFieldKey.searchErp:
+        newFields[index].searchErp = value as boolean;
+        break;
       case SeriesFieldKey.isLimitField:
         newFields[index].isLimitField = value as boolean;
         break;
@@ -68,6 +71,13 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
     }
   };
 
+  const isFieldDisabled = (field: SeriesField, fieldName: string) => {
+    if (field.isErp && fieldName !== "isLimitField") {
+      return true; // ERP 欄位除了 isLimitField 外都不能編輯
+    }
+    return false;
+  };
+
   return (
     <Table striped bordered>
       <thead>
@@ -85,7 +95,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
       </thead>
       <tbody>
         {fields.map((field, index) => (
-          <tr key={index}>
+          <tr key={index} className={field.isErp ? "table-primary" : ""}>
             <td className={index === 0 ? "align-bottom" : ""}>
               <Stack>
                 {index > 0 && (
@@ -119,6 +129,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                   onChange={(e) =>
                     handleEdit(index, SeriesFieldKey.name, e.target.value)
                   }
+                  disabled={isFieldDisabled(field, "name")}
                 />
               </InputGroup>
             </td>
@@ -128,6 +139,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 onChange={(e) =>
                   handleEdit(index, SeriesFieldKey.dataType, e.target.value)
                 }
+                disabled={isFieldDisabled(field, "dataType")}
               >
                 <option value="string">字串</option>
                 <option value="number">數字</option>
@@ -144,6 +156,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 onChange={(e) =>
                   handleEdit(index, SeriesFieldKey.isFiltered, e.target.checked)
                 }
+                disabled={isFieldDisabled(field, "isFiltered")}
               />
             </td>
             <td className="align-middle text-center">
@@ -154,16 +167,18 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 onChange={(e) =>
                   handleEdit(index, SeriesFieldKey.isRequired, e.target.checked)
                 }
+                disabled={isFieldDisabled(field, "isRequired")}
               />
             </td>
             <td className="align-middle text-center">
               <Form.Check
                 type="switch"
                 className="fs-5"
-                checked={field.isErp}
+                checked={field.searchErp}
                 onChange={(e) =>
-                  handleEdit(index, SeriesFieldKey.isErp, e.target.checked)
+                  handleEdit(index, SeriesFieldKey.searchErp, e.target.checked)
                 }
+                disabled={isFieldDisabled(field, "searchErp")}
               />
             </td>
             <td className="align-middle text-center">
@@ -178,6 +193,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                     e.target.checked
                   )
                 }
+                disabled={isFieldDisabled(field, "isLimitField")}
               />
             </td>
             <td className="align-middle text-center">
