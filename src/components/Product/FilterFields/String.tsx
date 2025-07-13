@@ -10,7 +10,7 @@ export const StringFilter = ({
   searchData,
 }: IFilterProps) => {
   const value = get(searchData, "value", "") as string;
-  
+
   const { autoCompleteValues } = useFieldAutoComplete({
     fieldId: id,
     searchValue: value,

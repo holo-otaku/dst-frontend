@@ -14,7 +14,7 @@ export const useFieldAutoComplete = ({
   debounceDelay = 300,
 }: UseFieldAutoCompleteProps) => {
   const [debouncedSearchValue, setDebouncedSearchValue] = useState(searchValue);
-  
+
   // Debounce search value
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -24,19 +24,20 @@ export const useFieldAutoComplete = ({
     return () => clearTimeout(timer);
   }, [searchValue, debounceDelay]);
 
-  const [{ data, loading, error }, refetch] = useAxios<FieldAutoCompleteResponse>(
-    {
-      url: "/field/search",
-      method: "GET",
-      params: {
-        field_id: fieldId,
-        search_value: debouncedSearchValue,
+  const [{ data, loading, error }, refetch] =
+    useAxios<FieldAutoCompleteResponse>(
+      {
+        url: "/field/search",
+        method: "GET",
+        params: {
+          field_id: fieldId,
+          search_value: debouncedSearchValue,
+        },
       },
-    },
-    {
-      manual: !debouncedSearchValue || debouncedSearchValue.length < 1,
-    }
-  );
+      {
+        manual: !debouncedSearchValue || debouncedSearchValue.length < 1,
+      }
+    );
 
   const autoCompleteValues = data?.data || [];
 

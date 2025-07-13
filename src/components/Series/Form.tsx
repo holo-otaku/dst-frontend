@@ -107,7 +107,10 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
       </thead>
       <tbody>
         {fields.map((field, index) => (
-          <tr key={field.id || field.sequence} className={field.isErp ? "table-primary" : ""}>
+          <tr
+            key={field.id || field.sequence}
+            className={field.isErp ? "table-primary" : ""}
+          >
             <td className={index === 0 ? "align-bottom" : ""}>
               <Stack>
                 {index > 0 && (

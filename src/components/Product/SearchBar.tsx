@@ -1,8 +1,5 @@
 import { FavoriteRecord } from "../../hooks";
-import {
-  SeriesField,
-  SeriesFieldDataType,
-} from "../Series/Interfaces";
+import { SeriesField, SeriesFieldDataType } from "../Series/Interfaces";
 import {
   BooleanFilter,
   DatetimeFilter,

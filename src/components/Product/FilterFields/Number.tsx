@@ -18,12 +18,13 @@ export const NumberFilter = ({
     ProductSearchPayloadOperation.EQUAL
   );
   const value = get(searchData, "value", "") as string;
-  
+
   const { autoCompleteValues } = useFieldAutoComplete({
     fieldId: id,
-    searchValue: operator === ProductSearchPayloadOperation.RANGE 
-      ? `${range.min},${range.max}` 
-      : value,
+    searchValue:
+      operator === ProductSearchPayloadOperation.RANGE
+        ? `${range.min},${range.max}`
+        : value,
   });
 
   useEffect(() => {
