@@ -3,6 +3,18 @@ import { SeriesField, SeriesFieldDataType, SeriesFieldKey } from "./Interfaces";
 import { BiMinus } from "react-icons/bi";
 import { AiOutlineCaretUp, AiOutlineCaretDown } from "react-icons/ai";
 
+enum FieldAction {
+  MOVE_UP = "moveUp",
+  MOVE_DOWN = "moveDown",
+  NAME = "name",
+  DATA_TYPE = "dataType",
+  IS_FILTERED = "isFiltered",
+  IS_REQUIRED = "isRequired",
+  SEARCH_ERP = "searchErp",
+  IS_LIMIT_FIELD = "isLimitField",
+  DELETE = "delete",
+}
+
 export interface SeriesFormProps {
   fields: SeriesField[];
   setFields: React.Dispatch<React.SetStateAction<SeriesField[]>>;
@@ -71,8 +83,8 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
     }
   };
 
-  const isFieldDisabled = (field: SeriesField, fieldName: string) => {
-    if (field.isErp && fieldName !== "isLimitField") {
+  const isFieldDisabled = (field: SeriesField, action: FieldAction) => {
+    if (field.isErp && action !== FieldAction.IS_LIMIT_FIELD) {
       return true; // ERP 欄位除了 isLimitField 外都不能編輯、刪除、移動
     }
     return false;
@@ -95,7 +107,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
       </thead>
       <tbody>
         {fields.map((field, index) => (
-          <tr key={index} className={field.isErp ? "table-primary" : ""}>
+          <tr key={field.id || field.sequence} className={field.isErp ? "table-primary" : ""}>
             <td className={index === 0 ? "align-bottom" : ""}>
               <Stack>
                 {index > 0 && (
@@ -104,7 +116,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                     size="sm"
                     className="p-0 mb-1"
                     onClick={() => handleMoveUp(index)}
-                    disabled={isFieldDisabled(field, "moveUp")}
+                    disabled={isFieldDisabled(field, FieldAction.MOVE_UP)}
                   >
                     <AiOutlineCaretUp />
                   </Button>
@@ -115,7 +127,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                     size="sm"
                     className="p-0"
                     onClick={() => handleMoveDown(index)}
-                    disabled={isFieldDisabled(field, "moveDown")}
+                    disabled={isFieldDisabled(field, FieldAction.MOVE_DOWN)}
                   >
                     <AiOutlineCaretDown />
                   </Button>
@@ -131,7 +143,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                   onChange={(e) =>
                     handleEdit(index, SeriesFieldKey.name, e.target.value)
                   }
-                  disabled={isFieldDisabled(field, "name")}
+                  disabled={isFieldDisabled(field, FieldAction.NAME)}
                 />
               </InputGroup>
             </td>
@@ -141,7 +153,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 onChange={(e) =>
                   handleEdit(index, SeriesFieldKey.dataType, e.target.value)
                 }
-                disabled={isFieldDisabled(field, "dataType")}
+                disabled={isFieldDisabled(field, FieldAction.DATA_TYPE)}
               >
                 <option value="string">字串</option>
                 <option value="number">數字</option>
@@ -158,7 +170,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 onChange={(e) =>
                   handleEdit(index, SeriesFieldKey.isFiltered, e.target.checked)
                 }
-                disabled={isFieldDisabled(field, "isFiltered")}
+                disabled={isFieldDisabled(field, FieldAction.IS_FILTERED)}
               />
             </td>
             <td className="align-middle text-center">
@@ -169,7 +181,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 onChange={(e) =>
                   handleEdit(index, SeriesFieldKey.isRequired, e.target.checked)
                 }
-                disabled={isFieldDisabled(field, "isRequired")}
+                disabled={isFieldDisabled(field, FieldAction.IS_REQUIRED)}
               />
             </td>
             <td className="align-middle text-center">
@@ -180,7 +192,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 onChange={(e) =>
                   handleEdit(index, SeriesFieldKey.searchErp, e.target.checked)
                 }
-                disabled={isFieldDisabled(field, "searchErp")}
+                disabled={isFieldDisabled(field, FieldAction.SEARCH_ERP)}
               />
             </td>
             <td className="align-middle text-center">
@@ -195,7 +207,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                     e.target.checked
                   )
                 }
-                disabled={isFieldDisabled(field, "isLimitField")}
+                disabled={isFieldDisabled(field, FieldAction.IS_LIMIT_FIELD)}
               />
             </td>
             <td className="align-middle text-center">
@@ -204,7 +216,7 @@ const SeriesForm = ({ fields, setFields }: SeriesFormProps) => {
                 className="rounded-circle"
                 size="sm"
                 onClick={() => handleDelete(index)}
-                disabled={isFieldDisabled(field, "delete")}
+                disabled={isFieldDisabled(field, FieldAction.DELETE)}
               >
                 <BiMinus />
               </Button>
