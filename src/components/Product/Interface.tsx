@@ -77,3 +77,7 @@ export interface CopyProductPayloadField extends ArchiveProductPayloadField {}
 export interface CopyProductResponse extends APIResponse {
   data: { id: number; seriesId: number }[];
 }
+
+export interface FieldAutoCompleteResponse extends APIResponse {
+  data: string[];
+}

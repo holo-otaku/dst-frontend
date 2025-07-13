@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Stack, Form, Row, Col, Button } from "react-bootstrap";
 import useAxios, { RefetchFunction } from "axios-hooks";
-import { SeriesDetailResponse, SeriesResponse } from "../Series/Interfaces";
+import { SeriesResponse } from "../Series/Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { Pagination } from "../Pagination";
@@ -75,18 +75,6 @@ export const Search = () => {
     }
   );
 
-  const [
-    { data: seriesDetailResponse, loading: seriesDetailLoading },
-    fetchSeriesDetail,
-  ] = useAxios<SeriesDetailResponse>(
-    {
-      method: "GET",
-    },
-    {
-      manual: true,
-    }
-  );
-
   const [pageLimit, setPageLimit] = useState<number>(25);
   const [PaginateState, PaginateAction] = usePaginate({
     total: get(productSearchResponse, "totalCount", 0),
@@ -123,11 +111,6 @@ export const Search = () => {
     setShowCheckbox(false);
     setSelectedIds(new Set());
   }, [selectedSeries]);
-
-  const onSeriesChange = (seriesId: number) =>
-    fetchSeriesDetail({
-      url: `/series/${seriesId}`,
-    });
 
   const buildSearchPayload = () => {
     const filters = searchFields.filter((field) => field.value);
@@ -303,7 +286,6 @@ export const Search = () => {
   const pageLoading =
     seriesLoading ||
     productSearchLoading ||
-    seriesDetailLoading ||
     archiveProductLoading ||
     copyProductLoading ||
     exportProductLoading ||
@@ -321,8 +303,6 @@ export const Search = () => {
           page: currentPage,
           limit,
           first: PaginateAction.first,
-          onSeriesChange,
-          seriesDetail: get(seriesDetailResponse, "data"),
           setLimit: setPageLimit,
           setPage: PaginateAction.setCurrentPage,
           sortState,
@@ -446,8 +426,6 @@ interface BarProps {
     ProductSearchPayloadField,
     ProductSearchResponse
   >;
-  onSeriesChange: (seriesId: number) => void;
-  seriesDetail?: SeriesDetailResponse["data"];
   first: () => void;
   page: number;
   limit: number;
@@ -479,8 +457,6 @@ const Bar = ({
   page,
   limit,
   first,
-  onSeriesChange,
-  seriesDetail,
   setLimit,
   setPage,
   sortState,
@@ -509,7 +485,6 @@ const Bar = ({
       return;
     }
     if (!fields.length) return;
-    onSeriesChange(selectedSeries);
     handleSearch();
   }, [series, selectedSeries, page, forceRefresh, limit, sortState, status]);
 
@@ -611,7 +586,6 @@ const Bar = ({
           searchFields={searchFields}
           handleInput={handleInput}
           seriesFavoriteRecord={seriesFavoriteRecord}
-          seriesDetail={seriesDetail!}
         />
         <ControlBar
           handleSearch={() => {
