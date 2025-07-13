@@ -26,7 +26,7 @@ export const useFieldAutoComplete = ({
 
   const [{ data, loading, error }, refetch] = useAxios<FieldAutoCompleteResponse>(
     {
-      url: "/field/item_attribute/search",
+      url: "/field/search",
       method: "GET",
       params: {
         field_id: fieldId,
