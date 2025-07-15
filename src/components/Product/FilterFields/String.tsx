@@ -11,9 +11,10 @@ export const StringFilter = ({
 }: IFilterProps) => {
   const value = get(searchData, "value", "") as string;
 
-  const { autoCompleteValues } = useFieldAutoComplete({
+  const { autoCompleteValues, onFocus } = useFieldAutoComplete({
     fieldId: id,
     searchValue: value,
+    loadOnFocus: true,
   });
 
   const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,10 +31,11 @@ export const StringFilter = ({
         type="text"
         value={value}
         onChange={handleValueChange}
+        onFocus={onFocus}
       />
       <datalist id={dataListId}>
-        {autoCompleteValues.map((value) => (
-          <option key={value} value={value} />
+        {autoCompleteValues.map((value, index) => (
+          <option key={`${value}-${index}`} value={value} />
         ))}
       </datalist>
     </InputGroup>

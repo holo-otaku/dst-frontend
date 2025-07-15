@@ -6,14 +6,17 @@ interface UseFieldAutoCompleteProps {
   fieldId: number;
   searchValue: string;
   debounceDelay?: number;
+  loadOnFocus?: boolean;
 }
 
 export const useFieldAutoComplete = ({
   fieldId,
   searchValue,
   debounceDelay = 300,
+  loadOnFocus = false,
 }: UseFieldAutoCompleteProps) => {
   const [debouncedSearchValue, setDebouncedSearchValue] = useState(searchValue);
+  const [hasBeenFocused, setHasBeenFocused] = useState(!loadOnFocus);
 
   // Debounce search value
   useEffect(() => {
@@ -35,16 +38,28 @@ export const useFieldAutoComplete = ({
         },
       },
       {
-        manual: !debouncedSearchValue || debouncedSearchValue.length < 1,
+        manual:
+          !hasBeenFocused &&
+          (!debouncedSearchValue || debouncedSearchValue.length < 1),
       }
     );
 
   const autoCompleteValues = data?.data || [];
+
+  const handleFocus = () => {
+    if (loadOnFocus && !hasBeenFocused) {
+      setHasBeenFocused(true);
+      if (!debouncedSearchValue || debouncedSearchValue.length < 1) {
+        refetch();
+      }
+    }
+  };
 
   return {
     autoCompleteValues,
     loading,
     error,
     refetch,
+    onFocus: handleFocus,
   };
 };

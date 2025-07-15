@@ -19,12 +19,13 @@ export const NumberFilter = ({
   );
   const value = get(searchData, "value", "") as string;
 
-  const { autoCompleteValues } = useFieldAutoComplete({
+  const { autoCompleteValues, onFocus } = useFieldAutoComplete({
     fieldId: id,
     searchValue:
       operator === ProductSearchPayloadOperation.RANGE
         ? `${range.min},${range.max}`
         : value,
+    loadOnFocus: true,
   });
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export const NumberFilter = ({
           onChange={(event) =>
             handleRangeChange("min", event.currentTarget.value)
           }
+          onFocus={onFocus}
           type="number"
           step="any"
           list={dataListId}
@@ -99,13 +101,14 @@ export const NumberFilter = ({
 
           handleChange(event.currentTarget.value, operator);
         }}
+        onFocus={onFocus}
         type="number"
         step="any"
         list={dataListId}
       />
       <datalist id={dataListId}>
-        {autoCompleteValues.map((value) => (
-          <option key={value} value={value} />
+        {autoCompleteValues.map((value, index) => (
+          <option key={`${value}-${index}`} value={value} />
         ))}
       </datalist>
     </InputGroup>
