@@ -312,7 +312,6 @@ export const Search = () => {
           searchFields,
           setSearchFields,
           buildSearchPayload,
-          handleExport,
           status,
           setStatus,
         }}
@@ -382,7 +381,10 @@ export const Search = () => {
             </>
           )}
         </div>
-        <div>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <Button variant="success" onClick={handleExport} size="sm">
+            匯出 Excel
+          </Button>
           <Form.Select
             size="sm"
             onChange={(e) =>
@@ -446,7 +448,6 @@ interface BarProps {
       sort?: string;
     };
   };
-  handleExport: () => void;
   status?: "deleted" | "archived";
   setStatus: (status?: "deleted" | "archived") => void;
 }
@@ -466,7 +467,6 @@ const Bar = ({
   searchFields,
   setSearchFields,
   buildSearchPayload,
-  handleExport,
   status,
   setStatus,
 }: BarProps) => {
@@ -574,7 +574,7 @@ const Bar = ({
               }
             }}
           >
-            <option value="all">請選擇</option>
+            <option value="all">正常商品</option>
             <option value="deleted">已刪除</option>
             <option value="archived">已封存</option>
           </Form.Select>
@@ -593,7 +593,6 @@ const Bar = ({
             handleSearch();
           }}
           handleClear={handleClear}
-          handleExport={handleExport}
         />
       </Form>
     </Stack>
@@ -603,13 +602,11 @@ const Bar = ({
 interface ControlBarProps {
   handleSearch: () => void;
   handleClear: () => void;
-  handleExport: () => void;
 }
 
 const ControlBar = ({
   handleSearch,
   handleClear,
-  handleExport,
 }: ControlBarProps) => {
   return (
     <Row className="g-2 my-2 justify-content-end">
@@ -627,11 +624,6 @@ const ControlBar = ({
       <Col xs="auto">
         <Button type="reset" onClick={handleClear}>
           清空
-        </Button>
-      </Col>
-      <Col xs="auto">
-        <Button variant="success" onClick={handleExport}>
-          匯出 Excel
         </Button>
       </Col>
     </Row>

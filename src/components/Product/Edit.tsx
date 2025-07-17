@@ -98,7 +98,40 @@ export const Edit = () => {
     }
   };
 
+  const handleDeleteRestore = async () => {
+    try {
+      const newDeletedStatus = !isDeleted;
+      const confirmMessage = isDeleted ? 
+        "確定要還原此商品嗎？" : 
+        "確定要刪除此商品嗎？";
+      
+      if (!window.confirm(confirmMessage)) {
+        return;
+      }
+
+      // 呼叫 /product/edit API 來更新 isDeleted 狀態
+      const payload: ProductEditPayload = {
+        itemId: parseInt(id!),
+        attributes: [], // 不更新任何屬性，只更新刪除狀態
+        isDeleted: newDeletedStatus
+      };
+
+      await editProduct({
+        data: [payload],
+      });
+
+      // 重新載入產品資料
+      await loadProduct();
+      
+      alert(isDeleted ? "商品已還原" : "商品已刪除");
+    } catch (err) {
+      console.error(err);
+      alert(isDeleted ? "還原失敗" : "刪除失敗");
+    }
+  };
+
   const canDelete = permissions.includes("product.delete");
+  const isDeleted = get(productResponse, "data.isDeleted", false);
   const canArchive =
     permissions.includes("archive.create") &&
     get(productResponse, "data.hasArchive", false) === false;
@@ -215,11 +248,11 @@ export const Edit = () => {
       <Row className="mb-1 g-1 align-item-center">
         <Col xs="auto">
           <Button
-            variant="danger"
+            variant={isDeleted ? "success" : "danger"}
             disabled={!canDelete}
-            onClick={() => navigate(`/products/${id}/delete`)}
+            onClick={handleDeleteRestore}
           >
-            刪除
+            {isDeleted ? "還原" : "刪除"}
           </Button>
         </Col>
         {permissions.includes("archive.create") && (

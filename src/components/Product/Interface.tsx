@@ -20,6 +20,7 @@ export interface ProductData {
   attributes: ProductDataAttribute[];
   erp: ErpData[];
   hasArchive: boolean;
+  isDeleted: boolean;
 }
 
 export interface ErpData {
@@ -33,6 +34,7 @@ export interface ProductDetailResponse extends APIResponse {
 export interface ProductEditPayload {
   itemId: number;
   attributes: Omit<ProductAttributePayload, "fieldName" | "dataType">[];
+  isDeleted?: boolean;
 }
 
 export interface ProductSearchPayloadField {
