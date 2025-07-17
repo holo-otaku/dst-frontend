@@ -28,7 +28,7 @@ const pageSizes = [25, 50, 100];
 export const Search = () => {
   const { getPayload } = useContext(AuthContext);
   const { permissions = [] } = getPayload();
-  
+
   const [{ data: seriesResponse, loading: seriesLoading }, fetchSeries] =
     useAxios<SeriesResponse>({
       url: "/series",
@@ -345,7 +345,9 @@ export const Search = () => {
                   onClick={async () => {
                     if (selectedIds.size === 0) return alert("請先選擇項目");
                     if (
-                      !window.confirm(`確定要刪除 ${selectedIds.size} 筆資料嗎？`)
+                      !window.confirm(
+                        `確定要刪除 ${selectedIds.size} 筆資料嗎？`
+                      )
                     )
                       return;
                     const success = await handleBatchDelete(

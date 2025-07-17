@@ -145,7 +145,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       (response) => response,
       (error: AxiosError) => {
         // 檢查響應中是否有 forceLogout 標誌
-        if (error?.response?.data && typeof error.response.data === 'object' && 'forceLogout' in error.response.data) {
+        if (
+          error?.response?.data &&
+          typeof error.response.data === "object" &&
+          "forceLogout" in error.response.data
+        ) {
           console.log("Token has been revoked. Forcing logout...");
           logout();
           window.location.href = "/login";
