@@ -8,7 +8,7 @@ import {
 import useAxios from "axios-hooks";
 import { get } from "lodash";
 import moment from "moment";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 export interface AuthContextProps {
   accessToken: string;
@@ -138,6 +138,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const getPayload = () => {
     return accessToken ? jwtDecode(accessToken) : ({} as Payload);
   };
+
+  // 設定 axios 響應攔截器來處理強制登出
+  useEffect(() => {
+    const responseInterceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error: AxiosError) => {
+        // 檢查響應中是否有 forceLogout 標誌
+        if (error?.response?.data && typeof error.response.data === 'object' && 'forceLogout' in error.response.data) {
+          console.log("Token has been revoked. Forcing logout...");
+          logout();
+          window.location.href = "/login";
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // 清理函數，移除攔截器
+    return () => {
+      axios.interceptors.response.eject(responseInterceptor);
+    };
+  }, []);
 
   if (isAuthenticated() === true) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
