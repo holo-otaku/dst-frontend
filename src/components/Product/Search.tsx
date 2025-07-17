@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Stack, Form, Row, Col, Button } from "react-bootstrap";
 import useAxios, { RefetchFunction } from "axios-hooks";
-import { SeriesResponse } from "../Series/Interfaces";
+import { SeriesResponse, SeriesFieldDataType } from "../Series/Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { Pagination } from "../Pagination";
@@ -61,20 +61,6 @@ export const Search = () => {
     }
   );
 
-  const [{ loading: exportProductLoading }, exportProduct] = useAxios<
-    Blob,
-    ProductSearchPayloadField
-  >(
-    {
-      url: "/product/export",
-      method: "POST",
-      responseType: "blob",
-    },
-    {
-      manual: true,
-    }
-  );
-
   const [pageLimit, setPageLimit] = useState<number>(25);
   const [PaginateState, PaginateAction] = usePaginate({
     total: get(productSearchResponse, "totalCount", 0),
@@ -112,7 +98,7 @@ export const Search = () => {
     setSelectedIds(new Set());
   }, [selectedSeries]);
 
-  const buildSearchPayload = () => {
+  const buildSearchPayload = (fields: SeriesResponse["data"][0]["fields"]) => {
     const filters = searchFields.filter((field) => field.value);
     const normalFilters = filters.filter(
       (filter) => filter.operation !== ProductSearchPayloadOperation.RANGE
@@ -136,10 +122,28 @@ export const Search = () => {
       });
     });
 
-    const finalFilters = [...normalFilters, ...rangeSearchFilter].map((data) =>
-      data.operation
-        ? { ...data, value: parseFloat(data.value as string) }
-        : data
+    const finalFilters = [...normalFilters, ...rangeSearchFilter].map(
+      (data) => {
+        // 找到對應的欄位資訊
+        const field = fields?.find((f) => f.id === data.fieldId);
+        const isDateField = field?.dataType === SeriesFieldDataType.date;
+
+        if (
+          isDateField &&
+          typeof data.value === "string" &&
+          data.value.includes("-")
+        ) {
+          // 日期欄位：將 YYYY-MM-DD 格式轉換為 MM/DD/YY 格式
+          const [year, month, day] = data.value.split("-");
+          const shortYear = year.slice(-2);
+          const formattedDate = `${month}/${day}/${shortYear}`;
+          return { ...data, value: formattedDate };
+        } else if (data.operation && !isDateField) {
+          // 只有非日期欄位才使用 parseFloat
+          return { ...data, value: parseFloat(data.value as string) };
+        }
+        return data;
+      }
     );
 
     const params = {
@@ -154,46 +158,8 @@ export const Search = () => {
   };
 
   const reloadProducts = () => {
-    const { finalFilters, params } = buildSearchPayload();
-
-    searchProduct({
-      data: {
-        seriesId: selectedSeries,
-        filters: finalFilters,
-        ...(status === "deleted" && { isDeleted: true }),
-        ...(status === "archived" && { isArchived: true }),
-      },
-      params,
-    });
-  };
-
-  const handleExport = async () => {
-    const { finalFilters } = buildSearchPayload();
-    try {
-      const response = await exportProduct({
-        data: {
-          seriesId: selectedSeries,
-          filters: finalFilters,
-          ...(status === "deleted" && { isDeleted: true }),
-          ...(status === "archived" && { isArchived: true }),
-        },
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `products-${new Date().toISOString()}.xlsx`
-      );
-      document.body.appendChild(link);
-      link.click();
-      if (link.parentNode) {
-        link.parentNode.removeChild(link);
-      }
-    } catch (error) {
-      console.error("Export failed:", error);
-      alert("匯出失敗！");
-    }
+    // 重新載入將由 Bar 組件處理
+    window.location.reload();
   };
 
   const toggleCheckbox = (id: number) => {
@@ -288,7 +254,6 @@ export const Search = () => {
     productSearchLoading ||
     archiveProductLoading ||
     copyProductLoading ||
-    exportProductLoading ||
     deleteProductLoding;
 
   return (
@@ -382,9 +347,6 @@ export const Search = () => {
           )}
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          <Button variant="success" onClick={handleExport} size="sm">
-            匯出 Excel
-          </Button>
           <Form.Select
             size="sm"
             onChange={(e) =>
@@ -439,7 +401,7 @@ interface BarProps {
   setSelectedSeries: (seriesId: number) => void;
   searchFields: ProductSearchFilters[];
   setSearchFields: (fields: ProductSearchFilters[]) => void;
-  buildSearchPayload: () => {
+  buildSearchPayload: (fields: SeriesResponse["data"][0]["fields"]) => {
     filters: ProductSearchFilters[];
     finalFilters: ProductSearchFilters[];
     params: {
@@ -478,6 +440,54 @@ const Bar = ({
   const { snapshot, restore } = useHistorySearch();
   const location = useLocation();
 
+  const [, exportProduct] = useAxios<Blob, ProductSearchPayloadField>(
+    {
+      url: "/product/export",
+      method: "POST",
+      responseType: "blob",
+    },
+    {
+      manual: true,
+    }
+  );
+
+  const handleExport = async () => {
+    const { finalFilters } = buildSearchPayload(fields);
+    try {
+      const response = await exportProduct({
+        data: {
+          seriesId: selectedSeries,
+          filters: finalFilters,
+          ...(status === "deleted" && { isDeleted: true }),
+          ...(status === "archived" && { isArchived: true }),
+        },
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      // 使用電腦時間格式化檔名
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const seconds = String(now.getSeconds()).padStart(2, "0");
+      const fileName = `products-${year}${month}${day}_${hours}${minutes}${seconds}.xlsx`;
+
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      if (link.parentNode) {
+        link.parentNode.removeChild(link);
+      }
+    } catch (error) {
+      console.error("Export failed:", error);
+      alert("匯出失敗！");
+    }
+  };
+
   useEffect(() => {
     if (!series.length) return;
     if (!targetSeries) {
@@ -515,7 +525,7 @@ const Bar = ({
     setSearchFields(newSearchFields);
   };
   const handleSearch = () => {
-    const { filters, finalFilters, params } = buildSearchPayload();
+    const { filters, finalFilters, params } = buildSearchPayload(fields);
 
     updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
     snapshot({
@@ -552,8 +562,8 @@ const Bar = ({
 
   return (
     <Stack gap={2}>
-      <Row>
-        <Col xs="auto">
+      <Row className="justify-content-between align-items-center">
+        <Col xs="auto" className="d-flex gap-2">
           <Form.Select value={selectedSeries} onChange={(e) => handleSelect(e)}>
             {series.map((series) => (
               <option key={series.id} value={series.id}>
@@ -561,8 +571,6 @@ const Bar = ({
               </option>
             ))}
           </Form.Select>
-        </Col>
-        <Col xs="auto">
           <Form.Select
             value={status === undefined ? "all" : status}
             onChange={(e) => {
@@ -574,10 +582,15 @@ const Bar = ({
               }
             }}
           >
-            <option value="all">正常商品</option>
+            <option value="all">正常產品</option>
             <option value="deleted">已刪除</option>
             <option value="archived">已封存</option>
           </Form.Select>
+        </Col>
+        <Col xs="auto">
+          <Button variant="success" onClick={handleExport} size="sm">
+            匯出 Excel
+          </Button>
         </Col>
       </Row>
       <Form>
@@ -604,10 +617,7 @@ interface ControlBarProps {
   handleClear: () => void;
 }
 
-const ControlBar = ({
-  handleSearch,
-  handleClear,
-}: ControlBarProps) => {
+const ControlBar = ({ handleSearch, handleClear }: ControlBarProps) => {
   return (
     <Row className="g-2 my-2 justify-content-end">
       <Col xs="auto">

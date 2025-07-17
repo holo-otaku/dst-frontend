@@ -38,7 +38,7 @@ export const DatetimeFilter = ({
       </Form.Select>
       <Form.Control
         className="w-50"
-        type="datetime-local"
+        type="date"
         value={value}
         onChange={handleValueChange}
       />

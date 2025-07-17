@@ -101,10 +101,10 @@ export const Edit = () => {
   const handleDeleteRestore = async () => {
     try {
       const newDeletedStatus = !isDeleted;
-      const confirmMessage = isDeleted ? 
-        "確定要還原此商品嗎？" : 
-        "確定要刪除此商品嗎？";
-      
+      const confirmMessage = isDeleted
+        ? "確定要還原此商品嗎？"
+        : "確定要刪除此商品嗎？";
+
       if (!window.confirm(confirmMessage)) {
         return;
       }
@@ -113,7 +113,7 @@ export const Edit = () => {
       const payload: ProductEditPayload = {
         itemId: parseInt(id!),
         attributes: [], // 不更新任何屬性，只更新刪除狀態
-        isDeleted: newDeletedStatus
+        isDeleted: newDeletedStatus,
       };
 
       await editProduct({
@@ -122,7 +122,7 @@ export const Edit = () => {
 
       // 重新載入產品資料
       await loadProduct();
-      
+
       alert(isDeleted ? "商品已還原" : "商品已刪除");
     } catch (err) {
       console.error(err);
