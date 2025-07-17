@@ -11,5 +11,4 @@ export interface IFilterProps {
     operation?: ProductSearchPayloadOperation
   ) => void;
   searchData?: ProductSearchFilters;
-  autoCompleteValues?: (string | number)[];
 }

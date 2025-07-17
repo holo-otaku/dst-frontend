@@ -33,13 +33,14 @@ const hasDiff = (original: SeriesDetail, current: EditPayload) => {
   if (original.fields.length !== current.fields.length) return true;
 
   const transformToCompareFormat = (data: SeriesDetail | EditPayload) =>
-    // 只比較 name 跟 dataType
+    // 比較所有可編輯的欄位，包含新增的 searchErp
     data.fields.map((field) => ({
       name: field.name,
       dataType: field.dataType,
       isFiltered: field.isFiltered,
       isRequired: field.isRequired,
       isErp: field.isErp,
+      searchErp: field.searchErp, // 新增比較 searchErp
       isLimitField: field.isLimitField,
     }));
 
@@ -62,6 +63,7 @@ export const Edit = () => {
       isFiltered: false,
       isRequired: false,
       isErp: false,
+      searchErp: false, // 新增預設值
       isLimitField: false,
     },
   ]);
@@ -131,8 +133,9 @@ export const Edit = () => {
       isFiltered: false,
       isRequired: false,
       isErp: false,
+      searchErp: false, // 新增預設值
       isLimitField: false,
-      sequence: maxSequence + 1, // 計算新的 sequence 值
+      sequence: maxSequence + 1,
     });
 
     setFields(newFields);

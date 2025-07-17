@@ -39,6 +39,7 @@ export const Create = () => {
       isFiltered: false,
       isRequired: false,
       isErp: false,
+      searchErp: false,
       isLimitField: false,
     },
   ]);
@@ -68,6 +69,7 @@ export const Create = () => {
       isFiltered: false,
       isRequired: false,
       isErp: false,
+      searchErp: false,
       isLimitField: false,
     });
     setFields(newFields);

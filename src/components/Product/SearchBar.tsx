@@ -1,9 +1,5 @@
 import { FavoriteRecord } from "../../hooks";
-import {
-  SeriesDetailResponse,
-  SeriesField,
-  SeriesFieldDataType,
-} from "../Series/Interfaces";
+import { SeriesField, SeriesFieldDataType } from "../Series/Interfaces";
 import {
   BooleanFilter,
   DatetimeFilter,
@@ -21,7 +17,6 @@ interface SearchBarProps {
   fields: SeriesField[];
   searchFields: ProductSearchFilters[];
   seriesFavoriteRecord: FavoriteRecord[];
-  seriesDetail: SeriesDetailResponse["data"];
   handleInput: (data: ProductSearchFilters) => void;
 }
 
@@ -32,7 +27,6 @@ export const SearchBar = ({
   handleInput,
   searchFields,
   seriesFavoriteRecord,
-  seriesDetail,
 }: SearchBarProps) => {
   const filterFields = fields.filter((field) => field.isFiltered);
   const topLatestLastUsedIds = orderBy(seriesFavoriteRecord, "lastUsed", "desc")
@@ -47,11 +41,6 @@ export const SearchBar = ({
 
   const renderField = (field: SeriesField) => {
     const id = get(field, "id", 0);
-    const currentFieldData = get(seriesDetail, "fields", []).find(
-      (field) => field.id === id
-    );
-    const defaultValue = [] as (string | number)[];
-    const autoCompleteValues = get(currentFieldData, "values", defaultValue);
     const searchData = searchFields.find(
       (searchField) => searchField.fieldId === id
     );
@@ -76,7 +65,6 @@ export const SearchBar = ({
               id: field.id,
               handleChange,
               searchData,
-              autoCompleteValues,
             }}
           />
         );
@@ -88,7 +76,6 @@ export const SearchBar = ({
               id: field.id,
               handleChange,
               searchData,
-              autoCompleteValues,
             }}
           />
         );
