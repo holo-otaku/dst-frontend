@@ -120,10 +120,10 @@ export const Edit = () => {
         data: [payload],
       });
 
-      // 重新載入產品資料
-      await loadProduct();
-
       alert(isDeleted ? "商品已還原" : "商品已刪除");
+
+      // 導航回產品搜尋頁面
+      navigate("/products");
     } catch (err) {
       console.error(err);
       alert(isDeleted ? "還原失敗" : "刪除失敗");
