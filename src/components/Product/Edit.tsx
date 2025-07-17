@@ -131,6 +131,7 @@ export const Edit = () => {
   };
 
   const canDelete = permissions.includes("product.delete");
+  const canCreate = permissions.includes("product.create");
   const isDeleted = get(productResponse, "data.isDeleted", false);
   const canArchive =
     permissions.includes("archive.create") &&
@@ -280,15 +281,17 @@ export const Edit = () => {
             </Button>
           </Col>
         )}
-        <Col xs="auto">
-          <Button
-            variant="success"
-            onClick={handleCopy}
-            disabled={pageLoading || copyProductLoading}
-          >
-            複製
-          </Button>
-        </Col>
+        {canCreate && (
+          <Col xs="auto">
+            <Button
+              variant="success"
+              onClick={handleCopy}
+              disabled={pageLoading || copyProductLoading}
+            >
+              複製
+            </Button>
+          </Col>
+        )}
       </Row>
       <Row className="mb-2">
         <Col>

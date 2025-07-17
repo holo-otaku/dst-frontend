@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Stack, Form, Row, Col, Button } from "react-bootstrap";
 import useAxios, { RefetchFunction } from "axios-hooks";
 import { SeriesResponse, SeriesFieldDataType } from "../Series/Interfaces";
@@ -21,10 +21,14 @@ import { useFavoriteFilterField, usePaginate } from "../../hooks";
 import { useLocation } from "react-router-dom";
 import useDeleteProduct from "../../hooks/useDeleteProduct";
 import useCopyProduct from "../../hooks/useCopyProduct";
+import { AuthContext } from "../../context";
 
 const pageSizes = [25, 50, 100];
 
 export const Search = () => {
+  const { getPayload } = useContext(AuthContext);
+  const { permissions = [] } = getPayload();
+  
   const [{ data: seriesResponse, loading: seriesLoading }, fetchSeries] =
     useAxios<SeriesResponse>({
       url: "/series",
@@ -256,6 +260,12 @@ export const Search = () => {
     copyProductLoading ||
     deleteProductLoding;
 
+  // 權限檢查
+  const canCreate = permissions.includes("product.create");
+  const canDelete = permissions.includes("product.delete");
+  const canArchive = permissions.includes("archive.create");
+  const canBatchSelect = canCreate || canDelete || canArchive;
+
   return (
     <Stack gap={2}>
       <Backdrop show={pageLoading}>
@@ -292,54 +302,62 @@ export const Search = () => {
       >
         <div style={{ display: "flex", gap: "10px" }}>
           {!showCheckbox ? (
-            <Button variant="primary" onClick={handleBatchSelect}>
-              批次選擇
-            </Button>
+            canBatchSelect && (
+              <Button variant="primary" onClick={handleBatchSelect}>
+                批次選擇
+              </Button>
+            )
           ) : (
             <>
-              <Button
-                variant="primary"
-                onClick={async () => {
-                  if (selectedIds.size === 0) return alert("請先選擇項目");
-                  const success = await handleBatchCopy(
-                    Array.from(selectedIds)
-                  );
-                  if (success) alert(`已複製 ${selectedIds.size} 筆資料`);
-                  else alert("複製失敗！");
-                }}
-              >
-                複製 ({selectedIds.size})
-              </Button>
-              <Button
-                variant="warning"
-                onClick={async () => {
-                  if (selectedIds.size === 0) return alert("請先選擇項目");
-                  const success = await handleBatchArchive(
-                    Array.from(selectedIds)
-                  );
-                  if (success) alert(`已封存 ${selectedIds.size} 筆資料`);
-                  else alert("封存失敗！");
-                }}
-              >
-                封存 ({selectedIds.size})
-              </Button>
-              <Button
-                variant="danger"
-                onClick={async () => {
-                  if (selectedIds.size === 0) return alert("請先選擇項目");
-                  if (
-                    !window.confirm(`確定要刪除 ${selectedIds.size} 筆資料嗎？`)
-                  )
-                    return;
-                  const success = await handleBatchDelete(
-                    Array.from(selectedIds)
-                  );
-                  if (success) alert("刪除成功！");
-                  else alert("刪除失敗！");
-                }}
-              >
-                刪除 ({selectedIds.size})
-              </Button>
+              {canCreate && (
+                <Button
+                  variant="primary"
+                  onClick={async () => {
+                    if (selectedIds.size === 0) return alert("請先選擇項目");
+                    const success = await handleBatchCopy(
+                      Array.from(selectedIds)
+                    );
+                    if (success) alert(`已複製 ${selectedIds.size} 筆資料`);
+                    else alert("複製失敗！");
+                  }}
+                >
+                  複製 ({selectedIds.size})
+                </Button>
+              )}
+              {canArchive && (
+                <Button
+                  variant="warning"
+                  onClick={async () => {
+                    if (selectedIds.size === 0) return alert("請先選擇項目");
+                    const success = await handleBatchArchive(
+                      Array.from(selectedIds)
+                    );
+                    if (success) alert(`已封存 ${selectedIds.size} 筆資料`);
+                    else alert("封存失敗！");
+                  }}
+                >
+                  封存 ({selectedIds.size})
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="danger"
+                  onClick={async () => {
+                    if (selectedIds.size === 0) return alert("請先選擇項目");
+                    if (
+                      !window.confirm(`確定要刪除 ${selectedIds.size} 筆資料嗎？`)
+                    )
+                      return;
+                    const success = await handleBatchDelete(
+                      Array.from(selectedIds)
+                    );
+                    if (success) alert("刪除成功！");
+                    else alert("刪除失敗！");
+                  }}
+                >
+                  刪除 ({selectedIds.size})
+                </Button>
+              )}
               <Button variant="secondary" onClick={handleCancel}>
                 取消
               </Button>
