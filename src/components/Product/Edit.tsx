@@ -75,6 +75,10 @@ export const Edit = () => {
   const { loading: copyProductLoading, copyProduct } = useCopyProduct();
 
   const handleCopy = async () => {
+    if (!window.confirm("確定要複製這個商品嗎？")) {
+      return;
+    }
+    
     try {
       const response = await copyProduct({
         data: { itemIds: [parseInt(id!)] },
@@ -261,6 +265,11 @@ export const Edit = () => {
             <Button
               variant={canArchive ? "primary" : "danger"}
               onClick={() => {
+                const action = canArchive ? "封存" : "取消封存";
+                if (!window.confirm(`確定要${action}這個商品嗎？`)) {
+                  return;
+                }
+                
                 if (canArchive) {
                   archiveProduct({ data: { itemIds: [id] } }).then(() =>
                     navigate("/products")
