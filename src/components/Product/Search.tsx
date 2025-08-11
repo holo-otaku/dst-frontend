@@ -314,6 +314,12 @@ export const Search = () => {
                   variant="primary"
                   onClick={async () => {
                     if (selectedIds.size === 0) return alert("請先選擇項目");
+                    if (
+                      !window.confirm(
+                        `確定要複製 ${selectedIds.size} 筆資料嗎？`
+                      )
+                    )
+                      return;
                     const success = await handleBatchCopy(
                       Array.from(selectedIds)
                     );
@@ -329,6 +335,12 @@ export const Search = () => {
                   variant="warning"
                   onClick={async () => {
                     if (selectedIds.size === 0) return alert("請先選擇項目");
+                    if (
+                      !window.confirm(
+                        `確定要封存 ${selectedIds.size} 筆資料嗎？`
+                      )
+                    )
+                      return;
                     const success = await handleBatchArchive(
                       Array.from(selectedIds)
                     );
