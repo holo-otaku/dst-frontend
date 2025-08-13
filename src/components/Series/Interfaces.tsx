@@ -25,14 +25,16 @@ export interface SeriesDetailField extends SeriesField {
 }
 
 export interface SeriesField {
+  id?: number;
   name: string;
   dataType: SeriesFieldDataType;
+  sequence: number;
   isFiltered: boolean;
   isRequired: boolean;
   isErp: boolean;
+  searchErp: boolean; // 新增這個欄位
   isLimitField: boolean;
-  sequence: number;
-  id?: number;
+  values?: (string | number)[];
 }
 
 export enum SeriesFieldDataType {
@@ -49,6 +51,7 @@ export enum SeriesFieldKey {
   isFiltered = "isFiltered",
   isRequired = "isRequired",
   isErp = "isErp",
+  searchErp = "searchErp",
   isLimitField = "isLimitField",
 }
 
@@ -78,6 +81,9 @@ export interface SeriesEditFields {
   dataType: SeriesFieldDataType;
   isFiltered: boolean;
   isRequired: boolean;
+  isErp: boolean;
+  searchErp: boolean;
+  isLimitField: boolean;
 }
 
 export type SeriesEditNewField = Omit<SeriesEditFields, "id">;

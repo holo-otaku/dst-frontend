@@ -20,6 +20,7 @@ import { AuthContext } from "../../context";
 import { AxiosError } from "axios";
 import moment from "moment";
 import { parseAttributes } from "../../utils/attributeParser";
+import useCopyProduct from "../../hooks/useCopyProduct";
 
 export const Edit = () => {
   const navigate = useNavigate();
@@ -67,10 +68,75 @@ export const Edit = () => {
   const [{ loading: deleteArchiveLoading }, deleteArchiveProduct] = useAxios(
     {
       method: "DELETE",
+      url: "archive",
     },
     { manual: true }
   );
+  const { loading: copyProductLoading, copyProduct } = useCopyProduct();
+
+  const handleCopy = async () => {
+    if (!window.confirm("確定要複製這個商品嗎？")) {
+      return;
+    }
+
+    try {
+      const response = await copyProduct({
+        data: { itemIds: [parseInt(id!)] },
+      });
+
+      const copied = get(response.data, "data");
+      if (Array.isArray(copied) && copied.length > 0) {
+        const newId = copied[0].id;
+
+        const confirmNavigate =
+          window.confirm("商品已複製，是否前往新商品頁面？");
+        if (confirmNavigate) {
+          navigate(`/products/${newId}/edit`);
+        }
+      } else {
+        alert("複製成功，但找不到新商品 ID");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("複製失敗");
+    }
+  };
+
+  const handleDeleteRestore = async () => {
+    try {
+      const newDeletedStatus = !isDeleted;
+      const confirmMessage = isDeleted
+        ? "確定要還原此商品嗎？"
+        : "確定要刪除此商品嗎？";
+
+      if (!window.confirm(confirmMessage)) {
+        return;
+      }
+
+      // 呼叫 /product/edit API 來更新 isDeleted 狀態
+      const payload: ProductEditPayload = {
+        itemId: parseInt(id!),
+        attributes: [], // 不更新任何屬性，只更新刪除狀態
+        isDeleted: newDeletedStatus,
+      };
+
+      await editProduct({
+        data: [payload],
+      });
+
+      alert(isDeleted ? "商品已還原" : "商品已刪除");
+
+      // 導航回產品搜尋頁面
+      navigate("/products");
+    } catch (err) {
+      console.error(err);
+      alert(isDeleted ? "還原失敗" : "刪除失敗");
+    }
+  };
+
   const canDelete = permissions.includes("product.delete");
+  const canCreate = permissions.includes("product.create");
+  const isDeleted = get(productResponse, "data.isDeleted", false);
   const canArchive =
     permissions.includes("archive.create") &&
     get(productResponse, "data.hasArchive", false) === false;
@@ -176,7 +242,8 @@ export const Edit = () => {
     productLoading ||
     editProductLoading ||
     seriesDetailLoading ||
-    archiveLoading;
+    archiveLoading ||
+    copyProductLoading;
 
   return (
     <Stack>
@@ -186,11 +253,11 @@ export const Edit = () => {
       <Row className="mb-1 g-1 align-item-center">
         <Col xs="auto">
           <Button
-            variant="danger"
+            variant={isDeleted ? "success" : "danger"}
             disabled={!canDelete}
-            onClick={() => navigate(`/products/${id}/delete`)}
+            onClick={handleDeleteRestore}
           >
-            刪除
+            {isDeleted ? "還原" : "刪除"}
           </Button>
         </Col>
         {permissions.includes("archive.create") && (
@@ -198,12 +265,17 @@ export const Edit = () => {
             <Button
               variant={canArchive ? "primary" : "danger"}
               onClick={() => {
+                const action = canArchive ? "封存" : "取消封存";
+                if (!window.confirm(`確定要${action}這個商品嗎？`)) {
+                  return;
+                }
+
                 if (canArchive) {
-                  archiveProduct({ data: { itemId: id } }).then(() =>
+                  archiveProduct({ data: { itemIds: [id] } }).then(() =>
                     navigate("/products")
                   );
                 } else {
-                  deleteArchiveProduct({ url: `archive/${id}` }).then(() =>
+                  deleteArchiveProduct({ data: { itemIds: [id] } }).then(() =>
                     navigate("/products")
                   );
                 }
@@ -215,6 +287,17 @@ export const Edit = () => {
               }
             >
               {canArchive ? "封存" : "取消封存"}
+            </Button>
+          </Col>
+        )}
+        {canCreate && (
+          <Col xs="auto">
+            <Button
+              variant="success"
+              onClick={handleCopy}
+              disabled={pageLoading || copyProductLoading}
+            >
+              複製
             </Button>
           </Col>
         )}

@@ -3,13 +3,13 @@ import { get } from "lodash";
 import { InputGroup, Form } from "react-bootstrap";
 import { IFilterProps } from "./types";
 import { ProductSearchPayloadOperation } from "../Interface";
+import { useFieldAutoComplete } from "../../../hooks";
 
 export const NumberFilter = ({
   title,
   id = 0,
   handleChange,
   searchData,
-  autoCompleteValues = [],
 }: IFilterProps) => {
   const [range, setRange] = useState({ min: "0", max: "0" });
   const operator = get(
@@ -18,6 +18,15 @@ export const NumberFilter = ({
     ProductSearchPayloadOperation.EQUAL
   );
   const value = get(searchData, "value", "") as string;
+
+  const { autoCompleteValues, onFocus } = useFieldAutoComplete({
+    fieldId: id,
+    searchValue:
+      operator === ProductSearchPayloadOperation.RANGE
+        ? `${range.min},${range.max}`
+        : value,
+    loadOnFocus: true,
+  });
 
   useEffect(() => {
     if (`${value}`.includes(",")) {
@@ -68,6 +77,7 @@ export const NumberFilter = ({
           onChange={(event) =>
             handleRangeChange("min", event.currentTarget.value)
           }
+          onFocus={onFocus}
           type="number"
           step="any"
           list={dataListId}
@@ -91,13 +101,14 @@ export const NumberFilter = ({
 
           handleChange(event.currentTarget.value, operator);
         }}
+        onFocus={onFocus}
         type="number"
         step="any"
         list={dataListId}
       />
       <datalist id={dataListId}>
-        {autoCompleteValues.map((value) => (
-          <option key={value} value={value} />
+        {autoCompleteValues.map((value, index) => (
+          <option key={`${value}-${index}`} value={value} />
         ))}
       </datalist>
     </InputGroup>

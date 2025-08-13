@@ -20,6 +20,7 @@ export interface ProductData {
   attributes: ProductDataAttribute[];
   erp: ErpData[];
   hasArchive: boolean;
+  isDeleted: boolean;
 }
 
 export interface ErpData {
@@ -33,11 +34,14 @@ export interface ProductDetailResponse extends APIResponse {
 export interface ProductEditPayload {
   itemId: number;
   attributes: Omit<ProductAttributePayload, "fieldName" | "dataType">[];
+  isDeleted?: boolean;
 }
 
 export interface ProductSearchPayloadField {
   seriesId: number;
   filters: ProductSearchFilters[];
+  isDeleted?: boolean;
+  isArchived?: boolean;
 }
 
 export interface ProductSearchFilters {
@@ -60,4 +64,22 @@ export interface ProductSearchResponse extends APIResponse {
 
 export interface ProductDeletePayload {
   itemId: number[];
+}
+
+export interface ArchiveProductResponse extends APIResponse {
+  data: { skipped: number[] };
+}
+
+export interface ArchiveProductPayloadField {
+  itemIds: number[];
+}
+
+export interface CopyProductPayloadField extends ArchiveProductPayloadField {}
+
+export interface CopyProductResponse extends APIResponse {
+  data: { id: number; seriesId: number }[];
+}
+
+export interface FieldAutoCompleteResponse extends APIResponse {
+  data: string[];
 }
