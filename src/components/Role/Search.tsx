@@ -48,6 +48,9 @@ export const Search = () => {
   }, [roleResponse]);
 
   const handleDeleteRole = (roleId: number) => {
+    if (!window.confirm("確定要刪除此角色嗎？")) {
+      return;
+    }
     // Implement your logic to handle delete here
     void deleteRole({
       url: `/role/${roleId}`,

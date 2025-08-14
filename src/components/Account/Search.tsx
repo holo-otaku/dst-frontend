@@ -51,6 +51,9 @@ export const Search = () => {
   const pageLoading = accountLoading;
 
   const handleDeleteAccount = (accountId: number) => {
+    if (!window.confirm("確定要刪除此帳號嗎？")) {
+      return;
+    }
     void deleteUser({
       url: `/user/${accountId}`,
     }).then(() => refetchAccounts());
