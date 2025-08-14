@@ -178,9 +178,17 @@ const getDisplayValue = (
 };
 
 // 新的圖片組件，支援 Authorization header
-const AuthorizedImage = ({ src, alt, style }: { src: string; alt: string; style: React.CSSProperties }) => {
-  const [imageSrc, setImageSrc] = useState<string>('');
-  
+const AuthorizedImage = ({
+  src,
+  alt,
+  style,
+}: {
+  src: string;
+  alt: string;
+  style: React.CSSProperties;
+}) => {
+  const [imageSrc, setImageSrc] = useState<string>("");
+
   const [{ loading }, fetchImage] = useAxios<Blob>(
     {
       method: "GET",
@@ -191,34 +199,38 @@ const AuthorizedImage = ({ src, alt, style }: { src: string; alt: string; style:
 
   useEffect(() => {
     // 從 src 中提取 image ID，假設格式是 /image/123
-    const imageId = src.split('/image/')[1];
-    
+    const imageId = src.split("/image/")[1];
+
     if (imageId) {
       fetchImage({
-        url: `/image/${imageId}`
+        url: `/image/${imageId}`,
       })
-      .then(response => {
-        const blobUrl = URL.createObjectURL(response.data);
-        setImageSrc(blobUrl);
-      })
-      .catch(error => {
-        console.error('Failed to fetch image:', error);
-        setImageSrc(src); // fallback to direct URL
-      });
+        .then((response) => {
+          const blobUrl = URL.createObjectURL(response.data);
+          setImageSrc(blobUrl);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch image:", error);
+          setImageSrc(src); // fallback to direct URL
+        });
     } else {
       setImageSrc(src);
     }
 
     // Cleanup blob URL when component unmounts
     return () => {
-      if (imageSrc && imageSrc.startsWith('blob:')) {
+      if (imageSrc && imageSrc.startsWith("blob:")) {
         URL.revokeObjectURL(imageSrc);
       }
     };
   }, [src, fetchImage]);
 
   if (loading) return <span>Loading...</span>;
-  return imageSrc ? <Image src={imageSrc} alt={alt} style={style} /> : <span>Error loading image</span>;
+  return imageSrc ? (
+    <Image src={imageSrc} alt={alt} style={style} />
+  ) : (
+    <span>Error loading image</span>
+  );
 };
 
 export default ProductTable;

@@ -161,7 +161,7 @@ const PictureFormControl = ({
 }: PictureFormControlProps) => {
   const [picture, setPicture] = useState<string | null>();
   const elfileRef = useRef<HTMLInputElement>(null);
-  
+
   const [, fetchImage] = useAxios<Blob>(
     {
       method: "GET",
@@ -176,16 +176,16 @@ const PictureFormControl = ({
       // 使用 axios 呼叫 /image/{fieldValue} API
       const imageId = fieldValue.replace("/image/", "");
       fetchImage({
-        url: `/image/${imageId}`
+        url: `/image/${imageId}`,
       })
-      .then(response => {
-        const blobUrl = URL.createObjectURL(response.data);
-        setPicture(blobUrl);
-      })
-      .catch(error => {
-        console.error('Failed to fetch image:', error);
-        setPicture(fieldValue); // fallback
-      });
+        .then((response) => {
+          const blobUrl = URL.createObjectURL(response.data);
+          setPicture(blobUrl);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch image:", error);
+          setPicture(fieldValue); // fallback
+        });
     } else {
       setPicture(fieldValue);
     }
