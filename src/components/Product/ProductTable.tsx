@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "../../../src/styles/table-sticky.css";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+import useAxios from "axios-hooks";
 
 interface ProductTableProps {
   products: ProductData[];
@@ -154,7 +155,7 @@ const getDisplayValue = (
   dataType: string,
   value: string | number | boolean
 ) => {
-  const serverBaseUrl = localStorage.getItem("server") || "";
+  const serverBaseUrl = import.meta.env.VITE_API_HOST;
 
   switch (dataType) {
     case "boolean":
@@ -162,8 +163,8 @@ const getDisplayValue = (
     case "picture":
       if (value) {
         return (
-          <Image
-            src={`${serverBaseUrl}${value}?t=${new Date().getTime()}`}
+          <AuthorizedImage
+            src={`${serverBaseUrl}${value}`}
             alt="Product"
             style={{ maxWidth: "100px" }}
           />
@@ -174,6 +175,62 @@ const getDisplayValue = (
     default:
       return value;
   }
+};
+
+// 新的圖片組件，支援 Authorization header
+const AuthorizedImage = ({
+  src,
+  alt,
+  style,
+}: {
+  src: string;
+  alt: string;
+  style: React.CSSProperties;
+}) => {
+  const [imageSrc, setImageSrc] = useState<string>("");
+
+  const [{ loading }, fetchImage] = useAxios<Blob>(
+    {
+      method: "GET",
+      responseType: "blob",
+    },
+    { manual: true }
+  );
+
+  useEffect(() => {
+    // 從 src 中提取 image ID，假設格式是 /image/123
+    const imageId = src.split("/image/")[1];
+
+    if (imageId) {
+      fetchImage({
+        url: `/image/${imageId}`,
+      })
+        .then((response) => {
+          const blobUrl = URL.createObjectURL(response.data);
+          setImageSrc(blobUrl);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch image:", error);
+          setImageSrc(src); // fallback to direct URL
+        });
+    } else {
+      setImageSrc(src);
+    }
+
+    // Cleanup blob URL when component unmounts
+    return () => {
+      if (imageSrc && imageSrc.startsWith("blob:")) {
+        URL.revokeObjectURL(imageSrc);
+      }
+    };
+  }, [src, fetchImage]);
+
+  if (loading) return <span>Loading...</span>;
+  return imageSrc ? (
+    <Image src={imageSrc} alt={alt} style={style} />
+  ) : (
+    <span>Error loading image</span>
+  );
 };
 
 export default ProductTable;

@@ -8,6 +8,7 @@ import { Form, Table, Image, Button } from "react-bootstrap";
 import { ProductAttributePayload } from "./Interface";
 import moment from "moment";
 import { useState, useEffect, useRef } from "react";
+import useAxios from "axios-hooks";
 
 interface FormTableProps {
   fields: SeriesField[];
@@ -159,16 +160,36 @@ const PictureFormControl = ({
   fieldValue,
 }: PictureFormControlProps) => {
   const [picture, setPicture] = useState<string | null>();
-  const serverBaseUrl = localStorage.getItem("server") || ""; // Get server base URL from localStorage
   const elfileRef = useRef<HTMLInputElement>(null);
+
+  const [, fetchImage] = useAxios<Blob>(
+    {
+      method: "GET",
+      responseType: "blob",
+    },
+    { manual: true }
+  );
+
   useEffect(() => {
     // 有可能進來的是 base64 的圖片，所以要先判斷
     if (fieldValue.startsWith("/image")) {
-      setPicture(`${serverBaseUrl}${fieldValue}`);
+      // 使用 axios 呼叫 /image/{fieldValue} API
+      const imageId = fieldValue.replace("/image/", "");
+      fetchImage({
+        url: `/image/${imageId}`,
+      })
+        .then((response) => {
+          const blobUrl = URL.createObjectURL(response.data);
+          setPicture(blobUrl);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch image:", error);
+          setPicture(fieldValue); // fallback
+        });
     } else {
       setPicture(fieldValue);
     }
-  }, []);
+  }, [fieldValue, fetchImage]);
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
