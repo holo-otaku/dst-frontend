@@ -10,7 +10,6 @@ $custom-theme-colors: (
 
 // 首先設定變數，然後再匯入 Bootstrap
 @use "bootstrap/scss/bootstrap" with (
-  $primary: $primary,
   $theme-colors: map.merge((
     "primary": #0d6efd,
     "secondary": #6c757d,
