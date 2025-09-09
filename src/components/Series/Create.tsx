@@ -33,11 +33,21 @@ export const Create = () => {
   const navigate = useNavigate();
   const [fields, setFields] = useState<SeriesField[]>([
     {
-      name: "",
+      name: "DST料號",
       sequence: 0,
       dataType: SeriesFieldDataType.string,
-      isFiltered: false,
-      isRequired: false,
+      isFiltered: true,
+      isRequired: true,
+      isErp: false,
+      searchErp: false,
+      isLimitField: false,
+    },
+    {
+      name: "供應商料號",
+      sequence: 1,
+      dataType: SeriesFieldDataType.string,
+      isFiltered: true,
+      isRequired: true,
       isErp: false,
       searchErp: false,
       isLimitField: false,
