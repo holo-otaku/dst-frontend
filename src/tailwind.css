@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  /* Tailwind 默認顏色系統 */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-blue-600: #2563eb;
+  --color-blue-400: #60a5fa;
+  --color-blue-100: #dbeafe;
+  --color-red-50: #fef2f2;
+  --color-red-900: #7f1d1d;
+
+  /* 自定義顏色 */
+  --color-border-light: #495057;
+  --color-background-light: #cecece;
+  --color-blue-cell-light: #17a2b8;
+  --color-row-border-light: #dee2e6;
+  --color-border-dark: #aaa;
+  --color-background-dark: #333;
+  --color-blue-cell-dark: #008080;
+  --color-row-border-dark: #555;
+  --color-archive-row: rgba(244, 67, 54, 0.13);
+}

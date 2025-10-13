@@ -1,18 +1,9 @@
+/* Bootstrap SCSS - 必須在最前面 */
 @use "sass:map";
-
-// 將 primary 色調設定為 purple
-$primary: #7749f8;
-
-// 自訂主題顏色
-$custom-theme-colors: (
-  "primary": $primary,
-);
-
-// 首先設定變數，然後再匯入 Bootstrap
 @use "bootstrap/scss/bootstrap" with (
   $theme-colors: map.merge(
       (
-        "primary": #0d6efd,
+        "primary": #7749f8,
         "secondary": #6c757d,
         "success": #198754,
         "info": #0dcaf0,
@@ -21,6 +12,8 @@ $custom-theme-colors: (
         "light": #f8f9fa,
         "dark": #212529,
       ),
-      $custom-theme-colors
+      (
+        "primary": #7749f8,
+      )
     )
 );
