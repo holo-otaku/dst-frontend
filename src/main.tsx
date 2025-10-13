@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { ColorModeProvider, AuthProvider } from "./context";
 import "./global.scss";
+import "./tailwind.css";
 import "./global.css";
 import routes from "./routes/index.js";
 import axios from "axios";
