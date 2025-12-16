@@ -2,7 +2,7 @@ import { Image, Alert } from "react-bootstrap";
 import { ProductData } from "./Interface";
 import { get } from "lodash";
 import { useNavigate } from "react-router-dom";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import useAxios from "axios-hooks";
 
@@ -30,7 +30,58 @@ const ProductTable = ({
     {}
   );
   const [isResizing, setIsResizing] = useState<string | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const userResizedColumnsRef = useRef<Set<string>>(new Set());
   const navigate = useNavigate();
+
+  const getDisplayText = (
+    dataType: string,
+    value: string | number | boolean | null | undefined
+  ): string => {
+    if (value === null || value === undefined) return "";
+
+    switch (dataType) {
+      case "boolean":
+        return value ? "True" : "False";
+      case "picture":
+      case "image":
+        // 圖片欄位視覺上有固定寬度，這裡用文字占位做估算
+        return "Image";
+      case "number":
+        return typeof value === "number" ? value.toString() : String(value);
+      default:
+        return String(value);
+    }
+  };
+
+  const measureTextPx = (() => {
+    let canvas: HTMLCanvasElement | null = null;
+    let ctx: CanvasRenderingContext2D | null = null;
+    let lastFont = "";
+
+    return (text: string, font: string): number => {
+      if (!canvas) {
+        canvas = document.createElement("canvas");
+        ctx = canvas.getContext("2d");
+      }
+      if (!ctx) return text.length * 8;
+      if (lastFont !== font) {
+        ctx.font = font;
+        lastFont = font;
+      }
+      return ctx.measureText(text).width;
+    };
+  })();
+
+  const getGridFont = (): string => {
+    if (!gridRef.current) return "14px system-ui";
+    const style = window.getComputedStyle(gridRef.current);
+    return style.font || "14px system-ui";
+  };
+
+  const clampWidth = (width: number, min: number, max: number) => {
+    return Math.max(min, Math.min(max, width));
+  };
 
   useEffect(() => {
     const calculateMaxHeight = () => {
@@ -76,6 +127,118 @@ const ProductTable = ({
 
       setColumnWidths((prev) => ({ ...initialWidths, ...prev }));
     }
+  }, [products, showCheckbox]);
+
+  // 依目前頁面資料自動估算欄位寬度（避免每次手動調整）
+  useLayoutEffect(() => {
+    if (products.length === 0) return;
+    if (!gridRef.current) return;
+
+    // 等待 DOM style 準備好（確保拿到正確 font）
+    const rafId = window.requestAnimationFrame(() => {
+      const font = getGridFont();
+      const attributes = get(
+        products,
+        "[0].attributes",
+        [] as ProductData["attributes"]
+      );
+      const erpAttributes = get(products, "[0].erp", [] as ProductData["erp"]);
+
+      const allColumnKeys: string[] = [];
+      if (showCheckbox) allColumnKeys.push("checkbox");
+      allColumnKeys.push("id");
+      attributes.forEach((attr) => {
+        allColumnKeys.push(`attr-${attr.fieldId}`);
+      });
+      erpAttributes.forEach((erp) => {
+        allColumnKeys.push(`erp-${erp.key}`);
+      });
+
+      const computeColumnWidthPx = (columnKey: string): number => {
+        if (columnKey === "checkbox") return 50;
+
+        const minWidth = columnKey === "id" ? 80 : 100;
+        const maxWidth = 400;
+
+        // Tailwind p-2 => 8px 左右 padding，另外 header 有 sort icon / resize handle
+        const headerExtra = 56;
+        const cellExtra = 24;
+
+        if (columnKey === "id") {
+          const headerW = measureTextPx("#", font) + headerExtra;
+          let contentW = 0;
+          products.forEach((p) => {
+            contentW = Math.max(
+              contentW,
+              measureTextPx(String(p.itemId), font) + cellExtra
+            );
+          });
+          return clampWidth(Math.max(headerW, contentW), minWidth, maxWidth);
+        }
+
+        if (columnKey.startsWith("attr-")) {
+          const fieldId = Number(columnKey.split("-")[1]);
+          const headerName =
+            attributes.find((a) => a.fieldId === fieldId)?.fieldName || "";
+          const headerW = measureTextPx(headerName, font) + headerExtra;
+
+          let contentW = 0;
+          products.forEach((product) => {
+            const attr = product.attributes.find((a) => a.fieldId == fieldId);
+            if (!attr) return;
+
+            // 圖片欄位以視覺固定寬度估算
+            if (attr.dataType === "picture") {
+              contentW = Math.max(contentW, 120);
+              return;
+            }
+            if (attr.dataType === "image") {
+              contentW = Math.max(contentW, 110);
+              return;
+            }
+
+            const text = getDisplayText(attr.dataType, attr.value);
+            contentW = Math.max(
+              contentW,
+              measureTextPx(text, font) + cellExtra
+            );
+          });
+
+          return clampWidth(Math.max(headerW, contentW), minWidth, maxWidth);
+        }
+
+        if (columnKey.startsWith("erp-")) {
+          const erpKey = columnKey.split("-").slice(1).join("-");
+          const headerW = measureTextPx(erpKey, font) + headerExtra;
+          let contentW = 0;
+
+          products.forEach((product) => {
+            const erpData = product.erp.find((e) => e.key === erpKey);
+            if (!erpData) return;
+            const text = String(erpData.value ?? "");
+            contentW = Math.max(
+              contentW,
+              measureTextPx(text, font) + cellExtra
+            );
+          });
+
+          return clampWidth(Math.max(headerW, contentW), 100, maxWidth);
+        }
+
+        return 120;
+      };
+
+      setColumnWidths((prev) => {
+        const next = { ...prev };
+        allColumnKeys.forEach((key) => {
+          if (userResizedColumnsRef.current.has(key)) return;
+          next[key] = computeColumnWidthPx(key);
+        });
+        return next;
+      });
+    });
+
+    return () => window.cancelAnimationFrame(rafId);
   }, [products, showCheckbox]);
 
   // 從產品數據中取得屬性
@@ -245,6 +408,7 @@ const ProductTable = ({
     e.preventDefault();
     e.stopPropagation(); // 阻止事件冒泡到排序點擊事件
     setIsResizing(columnKey);
+    userResizedColumnsRef.current.add(columnKey);
 
     const startX = e.clientX;
     const startWidth = getColumnWidth(columnKey);
@@ -268,164 +432,88 @@ const ProductTable = ({
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  // 自動調整欄位寬度以適應內容
+  // 自動調整單一欄位寬度以適應內容
   const autoResizeColumn = (columnKey: string) => {
-    console.log("開始自動調整:", columnKey); // Debug 日誌
+    if (products.length === 0) return;
 
-    // 確保有產品數據
-    if (products.length === 0) {
-      console.log("沒有產品數據");
-      return;
-    }
+    const font = getGridFont();
+    const attributes = get(
+      products,
+      "[0].attributes",
+      [] as ProductData["attributes"]
+    );
 
-    let maxWidth = 120; // 預設寬度
+    const headerExtra = 56;
+    const cellExtra = 24;
+    const maxWidth = 400;
 
-    if (columnKey === "checkbox") {
-      maxWidth = 50;
-    } else if (columnKey === "id") {
-      // ID 欄位：基於數字長度估算
-      const maxId = Math.max(...products.map((p) => p.itemId));
-      const idLength = maxId.toString().length;
-      maxWidth = Math.max(80, idLength * 12 + 40);
-    } else if (columnKey.startsWith("attr-")) {
-      // 屬性欄位：遍歷所有產品找出同樣 fieldId 的所有值
-      const fieldIdStr = columnKey.split("-")[1];
-      const fieldId = parseInt(fieldIdStr); // 轉換為數字以匹配接口定義
-      console.log("處理屬性欄位:", fieldIdStr, "轉換為數字:", fieldId);
+    const computeOne = (): number => {
+      if (columnKey === "checkbox") return 50;
 
-      // 收集所有產品中該 fieldId 的屬性資訊
-      let fieldName = "";
-      const allValues: {
-        productIndex: number;
-        value: string | number | boolean;
-        dataType: string;
-      }[] = [];
-
-      // 遍歷所有產品，找出所有具有相同 fieldId 的屬性
-      products.forEach((product, productIndex) => {
-        const attr = product.attributes.find((a) => a.fieldId == fieldId);
-        if (attr) {
-          // 記錄欄位名稱（第一次遇到時）
-          if (!fieldName) {
-            fieldName = attr.fieldName;
-          }
-
-          // 收集所有非空值
-          if (attr.value !== null && attr.value !== undefined) {
-            allValues.push({
-              productIndex,
-              value: attr.value,
-              dataType: attr.dataType,
-            });
-          }
-        }
-      });
-
-      console.log(`找到 ${allValues.length} 個非空值`, allValues);
-
-      if (fieldName) {
-        // 標題寬度估算
-        let headerWidth = fieldName.length * 8 + 60;
-        console.log("標題寬度估算:", headerWidth);
-
-        // 計算所有值的最大寬度
-        let maxContentWidth = 0;
-        console.log("開始計算所有值的寬度...");
-
-        allValues.forEach(
-          ({ productIndex, value, dataType: valueDataType }) => {
-            let contentText = "";
-
-            // 根據資料類型處理，轉換為實際顯示的文字
-            switch (valueDataType) {
-              case "boolean":
-                contentText = value ? "True" : "False";
-                break;
-              case "picture":
-              case "image":
-                contentText = "No Image"; // 圖片顯示的預設文字
-                break;
-              case "number":
-                contentText = value.toString();
-                break;
-              default:
-                contentText = String(value);
-            }
-
-            const contentLength = contentText.length * 9; // 每字符8像素
-            maxContentWidth = Math.max(maxContentWidth, contentLength);
-
-            console.log(
-              `產品 ${productIndex + 1}, 內容: "${contentText}", 長度: ${contentLength}px`
-            );
-          }
-        );
-
-        console.log("內容最大寬度估算:", maxContentWidth);
-        maxWidth = Math.max(headerWidth, maxContentWidth + 32); // 加上 padding
-      } else {
-        console.log("找不到該 fieldId 的任何屬性，使用預設寬度");
-        maxWidth = 150;
-      }
-    } else if (columnKey.startsWith("erp-")) {
-      // ERP 欄位：遍歷所有產品找出同樣 key 的所有值
-      const erpKey = columnKey.split("-")[1];
-      console.log("處理ERP欄位:", erpKey);
-
-      // 收集所有產品中該 key 的 ERP 值
-      const allErpValues: { productIndex: number; value: string }[] = [];
-
-      products.forEach((product, productIndex) => {
-        const erpData = product.erp.find((e) => e.key === erpKey);
-        if (erpData && erpData.value !== null && erpData.value !== undefined) {
-          allErpValues.push({
-            productIndex,
-            value: erpData.value,
-          });
-        }
-      });
-
-      console.log(`找到 ${allErpValues.length} 個非空ERP值`, allErpValues);
-
-      if (allErpValues.length > 0) {
-        let headerWidth = erpKey.length * 8 + 32;
-        let maxContentWidth = 0;
-
-        console.log("開始計算所有ERP值的寬度...");
-        allErpValues.forEach(({ productIndex, value }) => {
-          const contentText = String(value);
-          const contentLength = contentText.length * 8; // 每字符8像素
-          maxContentWidth = Math.max(maxContentWidth, contentLength);
-
-          console.log(
-            `產品 ${productIndex + 1}, ERP內容: "${contentText}", 長度: ${contentLength}px`
+      if (columnKey === "id") {
+        const headerW = measureTextPx("#", font) + headerExtra;
+        let contentW = 0;
+        products.forEach((p) => {
+          contentW = Math.max(
+            contentW,
+            measureTextPx(String(p.itemId), font) + cellExtra
           );
         });
-
-        maxWidth = Math.max(headerWidth, maxContentWidth + 32);
-      } else {
-        console.log("找不到該 ERP key 的任何值，使用預設寬度");
-        maxWidth = 150;
+        return clampWidth(Math.max(headerW, contentW), 80, maxWidth);
       }
-    }
 
-    // 限制寬度範圍
-    maxWidth = Math.min(maxWidth, 400);
-    maxWidth = Math.max(maxWidth, 100);
+      if (columnKey.startsWith("attr-")) {
+        const fieldId = Number(columnKey.split("-")[1]);
+        const headerName =
+          attributes.find((a) => a.fieldId === fieldId)?.fieldName || "";
+        const headerW = measureTextPx(headerName, font) + headerExtra;
+        let contentW = 0;
 
-    console.log(`設置 ${columnKey} 寬度為:`, maxWidth); // Debug 日誌
+        products.forEach((product) => {
+          const attr = product.attributes.find((a) => a.fieldId == fieldId);
+          if (!attr) return;
 
-    setColumnWidths((prev) => ({
-      ...prev,
-      [columnKey]: maxWidth,
-    }));
+          if (attr.dataType === "picture") {
+            contentW = Math.max(contentW, 120);
+            return;
+          }
+          if (attr.dataType === "image") {
+            contentW = Math.max(contentW, 110);
+            return;
+          }
+
+          const text = getDisplayText(attr.dataType, attr.value);
+          contentW = Math.max(contentW, measureTextPx(text, font) + cellExtra);
+        });
+
+        return clampWidth(Math.max(headerW, contentW), 100, maxWidth);
+      }
+
+      if (columnKey.startsWith("erp-")) {
+        const erpKey = columnKey.split("-").slice(1).join("-");
+        const headerW = measureTextPx(erpKey, font) + headerExtra;
+        let contentW = 0;
+
+        products.forEach((product) => {
+          const erpData = product.erp.find((e) => e.key === erpKey);
+          if (!erpData) return;
+          const text = String(erpData.value ?? "");
+          contentW = Math.max(contentW, measureTextPx(text, font) + cellExtra);
+        });
+
+        return clampWidth(Math.max(headerW, contentW), 100, maxWidth);
+      }
+
+      return 120;
+    };
+
+    setColumnWidths((prev) => ({ ...prev, [columnKey]: computeOne() }));
   };
 
   // 處理雙擊自動調整寬度
   const handleDoubleClick = (e: React.MouseEvent, columnKey: string) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("雙擊調整寬度:", columnKey); // Debug 日誌
     autoResizeColumn(columnKey);
   };
 
@@ -440,6 +528,7 @@ const ProductTable = ({
       >
         {/* Grid Container - 滾動容器移到這裡 */}
         <div
+          ref={gridRef}
           className="grid bg-white relative overflow-auto"
           style={{
             gridTemplateColumns: generateGridColumns(),
@@ -876,7 +965,6 @@ const ResizeHandle = ({
   const handleDoubleClickEvent = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation(); // 阻止雙擊事件冒泡
-    console.log("ResizeHandle 雙擊事件觸發"); // Debug 日誌
     onDoubleClick(e);
   };
 
