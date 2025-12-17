@@ -7,9 +7,14 @@ import { AuthContext } from "../../context";
 interface AccountTableProps {
   accounts: UserData[];
   onDeleteAccount: (accountId: number) => void;
+  onEnableAccount: (accountId: number) => void;
 }
 
-const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
+const AccountTable = ({
+  accounts,
+  onDeleteAccount,
+  onEnableAccount,
+}: AccountTableProps) => {
   const navigate = useNavigate();
   const { getPayload } = useContext(AuthContext);
   const { permissions = [] } = getPayload();
@@ -37,17 +42,31 @@ const AccountTable = ({ accounts, onDeleteAccount }: AccountTableProps) => {
               <td>{account.role}</td>
               <td>{account.userName}</td>
               <td>
-                <Button
-                  {...{
-                    variant: deletable ? "danger" : "secondary",
-                    disabled: !deletable,
-                  }}
-                  size="sm"
-                  className="mx-1"
-                  onClick={() => onDeleteAccount(account.id)}
-                >
-                  刪除
-                </Button>
+                {account.isDisabled ? (
+                  <Button
+                    {...{
+                      variant: deletable ? "success" : "secondary",
+                      disabled: !deletable,
+                    }}
+                    size="sm"
+                    className="mx-1"
+                    onClick={() => onEnableAccount(account.id)}
+                  >
+                    啟用
+                  </Button>
+                ) : (
+                  <Button
+                    {...{
+                      variant: deletable ? "danger" : "secondary",
+                      disabled: !deletable,
+                    }}
+                    size="sm"
+                    className="mx-1"
+                    onClick={() => onDeleteAccount(account.id)}
+                  >
+                    停用
+                  </Button>
+                )}
                 <Button
                   {...{
                     variant: editable ? "primary" : "secondary",
