@@ -11,6 +11,7 @@ export interface UserData {
   id: number;
   role: string;
   userName: string;
+  isDisabled?: boolean;
 }
 
 export interface OneUserData {

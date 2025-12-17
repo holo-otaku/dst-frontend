@@ -14,11 +14,15 @@ export const Search = () => {
     useAxios<AccountResponse>({
       url: "/user",
       method: "GET",
+      params: {
+        limit: 100,
+        all: true,
+      },
     });
 
-  const [{ loading: deleteLoading }, deleteUser] = useAxios<void>(
+  const [{ loading: updateLoading }, updateUser] = useAxios<void>(
     {
-      method: "DELETE",
+      method: "PATCH",
     },
     {
       manual: true,
@@ -37,6 +41,7 @@ export const Search = () => {
       params: {
         page: currentPage,
         limit: 10,
+        all: true,
       },
     });
     return () => {};
@@ -51,23 +56,55 @@ export const Search = () => {
   const pageLoading = accountLoading;
 
   const handleDeleteAccount = (accountId: number) => {
-    if (!window.confirm("確定要刪除此帳號嗎？")) {
+    if (!window.confirm("確定要停用此帳號嗎？")) {
       return;
     }
-    void deleteUser({
+    void updateUser({
       url: `/user/${accountId}`,
-    }).then(() => refetchAccounts());
+      data: {
+        isDisabled: true,
+      },
+    }).then(() =>
+      refetchAccounts({
+        params: {
+          page: currentPage,
+          limit: 10,
+          all: true,
+        },
+      })
+    );
+  };
+
+  const handleEnableAccount = (accountId: number) => {
+    if (!window.confirm("確定要啟用此帳號嗎？")) {
+      return;
+    }
+    void updateUser({
+      url: `/user/${accountId}`,
+      data: {
+        isDisabled: false,
+      },
+    }).then(() =>
+      refetchAccounts({
+        params: {
+          page: currentPage,
+          limit: 10,
+          all: true,
+        },
+      })
+    );
   };
 
   return (
     <Stack>
-      <Backdrop show={pageLoading || deleteLoading}>
+      <Backdrop show={pageLoading || updateLoading}>
         <RingLoader color="#36d7b7" />
       </Backdrop>
       {accountResponse && (
         <AccountTable
           accounts={accountResponse.data}
           onDeleteAccount={handleDeleteAccount}
+          onEnableAccount={handleEnableAccount}
         />
       )}
       <Stack direction="horizontal" className="justify-content-center">
