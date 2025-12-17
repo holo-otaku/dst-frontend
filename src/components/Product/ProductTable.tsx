@@ -34,26 +34,6 @@ const ProductTable = ({
   const userResizedColumnsRef = useRef<Set<string>>(new Set());
   const navigate = useNavigate();
 
-  const getDisplayText = (
-    dataType: string,
-    value: string | number | boolean | null | undefined
-  ): string => {
-    if (value === null || value === undefined) return "";
-
-    switch (dataType) {
-      case "boolean":
-        return value ? "True" : "False";
-      case "picture":
-      case "image":
-        // 圖片欄位視覺上有固定寬度，這裡用文字占位做估算
-        return "Image";
-      case "number":
-        return typeof value === "number" ? value.toString() : String(value);
-      default:
-        return String(value);
-    }
-  };
-
   const measureTextPx = (() => {
     let canvas: HTMLCanvasElement | null = null;
     let ctx: CanvasRenderingContext2D | null = null;
@@ -178,31 +158,17 @@ const ProductTable = ({
 
         if (columnKey.startsWith("attr-")) {
           const fieldId = Number(columnKey.split("-")[1]);
-          const headerName =
-            attributes.find((a) => a.fieldId === fieldId)?.fieldName || "";
+          const attributeDef = attributes.find((a) => a.fieldId === fieldId);
+          const headerName = attributeDef?.fieldName || "";
           const headerW = measureTextPx(headerName, font) + headerExtra;
 
-          let contentW = 0;
-          products.forEach((product) => {
-            const attr = product.attributes.find((a) => a.fieldId == fieldId);
-            if (!attr) return;
+          let contentW = 150; // Default width for text columns allowing wrap
 
-            // 圖片欄位以視覺固定寬度估算
-            if (attr.dataType === "picture") {
-              contentW = Math.max(contentW, 120);
-              return;
-            }
-            if (attr.dataType === "image") {
-              contentW = Math.max(contentW, 110);
-              return;
-            }
-
-            const text = getDisplayText(attr.dataType, attr.value);
-            contentW = Math.max(
-              contentW,
-              measureTextPx(text, font) + cellExtra
-            );
-          });
+          if (attributeDef) {
+            if (attributeDef.dataType === "picture") contentW = 120;
+            if (attributeDef.dataType === "image") contentW = 110;
+            if (attributeDef.dataType === "boolean") contentW = 80;
+          }
 
           return clampWidth(Math.max(headerW, contentW), minWidth, maxWidth);
         }
@@ -210,19 +176,7 @@ const ProductTable = ({
         if (columnKey.startsWith("erp-")) {
           const erpKey = columnKey.split("-").slice(1).join("-");
           const headerW = measureTextPx(erpKey, font) + headerExtra;
-          let contentW = 0;
-
-          products.forEach((product) => {
-            const erpData = product.erp.find((e) => e.key === erpKey);
-            if (!erpData) return;
-            const text = String(erpData.value ?? "");
-            contentW = Math.max(
-              contentW,
-              measureTextPx(text, font) + cellExtra
-            );
-          });
-
-          return clampWidth(Math.max(headerW, contentW), 100, maxWidth);
+          return clampWidth(Math.max(headerW, 150), 100, maxWidth);
         }
 
         return 120;
@@ -464,27 +418,17 @@ const ProductTable = ({
 
       if (columnKey.startsWith("attr-")) {
         const fieldId = Number(columnKey.split("-")[1]);
-        const headerName =
-          attributes.find((a) => a.fieldId === fieldId)?.fieldName || "";
+        const attributeDef = attributes.find((a) => a.fieldId === fieldId);
+        const headerName = attributeDef?.fieldName || "";
         const headerW = measureTextPx(headerName, font) + headerExtra;
-        let contentW = 0;
 
-        products.forEach((product) => {
-          const attr = product.attributes.find((a) => a.fieldId == fieldId);
-          if (!attr) return;
+        let contentW = 150;
 
-          if (attr.dataType === "picture") {
-            contentW = Math.max(contentW, 120);
-            return;
-          }
-          if (attr.dataType === "image") {
-            contentW = Math.max(contentW, 110);
-            return;
-          }
-
-          const text = getDisplayText(attr.dataType, attr.value);
-          contentW = Math.max(contentW, measureTextPx(text, font) + cellExtra);
-        });
+        if (attributeDef) {
+          if (attributeDef.dataType === "picture") contentW = 120;
+          if (attributeDef.dataType === "image") contentW = 110;
+          if (attributeDef.dataType === "boolean") contentW = 80;
+        }
 
         return clampWidth(Math.max(headerW, contentW), 100, maxWidth);
       }
@@ -492,16 +436,7 @@ const ProductTable = ({
       if (columnKey.startsWith("erp-")) {
         const erpKey = columnKey.split("-").slice(1).join("-");
         const headerW = measureTextPx(erpKey, font) + headerExtra;
-        let contentW = 0;
-
-        products.forEach((product) => {
-          const erpData = product.erp.find((e) => e.key === erpKey);
-          if (!erpData) return;
-          const text = String(erpData.value ?? "");
-          contentW = Math.max(contentW, measureTextPx(text, font) + cellExtra);
-        });
-
-        return clampWidth(Math.max(headerW, contentW), 100, maxWidth);
+        return clampWidth(Math.max(headerW, 150), 100, maxWidth);
       }
 
       return 120;
@@ -759,7 +694,7 @@ const ProductTable = ({
                       }
                     >
                       <div
-                        className="truncate w-full"
+                        className="w-full break-words whitespace-normal"
                         style={{ minWidth: "0" }}
                       >
                         {getDisplayValue(attribute.dataType, attribute.value)}
@@ -784,7 +719,7 @@ const ProductTable = ({
                       }
                     >
                       <div
-                        className="truncate w-full"
+                        className="w-full break-words whitespace-normal"
                         style={{ minWidth: "0" }}
                       >
                         {getDisplayValue(attribute.dataType, attribute.value)}
@@ -809,7 +744,7 @@ const ProductTable = ({
                       }
                     >
                       <div
-                        className="truncate w-full"
+                        className="w-full break-words whitespace-normal"
                         style={{ minWidth: "0" }}
                       >
                         {erpData.value}
