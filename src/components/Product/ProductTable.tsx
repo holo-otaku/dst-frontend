@@ -34,6 +34,47 @@ const ProductTable = ({
   const userResizedColumnsRef = useRef<Set<string>>(new Set());
   const navigate = useNavigate();
 
+  const STORAGE_KEY_PREFIX = "productTable_columnWidths_";
+
+  // 取得當前 seriesId
+  const getCurrentSeriesId = (): number | null => {
+    return products.length > 0 ? products[0].seriesId : null;
+  };
+
+  // 取得包含 seriesId 的 storage key
+  const getStorageKey = (seriesId: number | null): string => {
+    return seriesId !== null
+      ? `${STORAGE_KEY_PREFIX}${seriesId}`
+      : `${STORAGE_KEY_PREFIX}default`;
+  };
+
+  // 從 localStorage 讀取已保存的欄寬
+  const loadSavedWidths = (
+    seriesId: number | null
+  ): { [key: string]: number } => {
+    try {
+      const saved = localStorage.getItem(getStorageKey(seriesId));
+      return saved ? (JSON.parse(saved) as { [key: string]: number }) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  // 保存欄寬到 localStorage
+  const saveWidthToStorage = (
+    seriesId: number | null,
+    columnKey: string,
+    width: number
+  ) => {
+    try {
+      const saved = loadSavedWidths(seriesId);
+      saved[columnKey] = width;
+      localStorage.setItem(getStorageKey(seriesId), JSON.stringify(saved));
+    } catch {
+      // 忽略存儲錯誤
+    }
+  };
+
   const measureTextPx = (() => {
     let canvas: HTMLCanvasElement | null = null;
     let ctx: CanvasRenderingContext2D | null = null;
@@ -62,6 +103,21 @@ const ProductTable = ({
   const clampWidth = (width: number, min: number, max: number) => {
     return Math.max(min, Math.min(max, width));
   };
+
+  // 初始化：讀取已保存的欄寬（當 seriesId 改變時重新讀取）
+  useEffect(() => {
+    const seriesId = getCurrentSeriesId();
+    if (seriesId === null) return;
+
+    const savedWidths = loadSavedWidths(seriesId);
+    if (Object.keys(savedWidths).length > 0) {
+      setColumnWidths((prev) => ({ ...prev, ...savedWidths }));
+      // 標記所有已保存的欄位為「用戶已調整」
+      Object.keys(savedWidths).forEach((key) => {
+        userResizedColumnsRef.current.add(key);
+      });
+    }
+  }, [products]);
 
   useEffect(() => {
     const calculateMaxHeight = () => {
@@ -184,8 +240,22 @@ const ProductTable = ({
 
       setColumnWidths((prev) => {
         const next = { ...prev };
+        // 從 localStorage 讀取已保存的寬度（用戶手動調整過的）
+        const seriesId = getCurrentSeriesId();
+        const savedWidths = loadSavedWidths(seriesId);
+
         allColumnKeys.forEach((key) => {
-          if (userResizedColumnsRef.current.has(key)) return;
+          // 1. 如果 localStorage 中有保存的寬度，優先使用（用戶手動調整過）
+          if (savedWidths[key] !== undefined) {
+            next[key] = savedWidths[key];
+            userResizedColumnsRef.current.add(key);
+            return;
+          }
+          // 2. 如果當前 state 已經有這個欄位的寬度，保留它
+          if (prev[key] !== undefined) {
+            return;
+          }
+          // 3. 否則自動計算寬度
           next[key] = computeColumnWidthPx(key);
         });
         return next;
@@ -366,10 +436,12 @@ const ProductTable = ({
 
     const startX = e.clientX;
     const startWidth = getColumnWidth(columnKey);
+    let currentWidth = startWidth; // 追蹤當前寬度
 
     const handleMouseMove = (e: MouseEvent) => {
       const diff = e.clientX - startX;
       const newWidth = Math.max(50, startWidth + diff);
+      currentWidth = newWidth; // 更新追蹤的寬度
       setColumnWidths((prev) => ({
         ...prev,
         [columnKey]: newWidth,
@@ -380,6 +452,9 @@ const ProductTable = ({
       setIsResizing(null);
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      // 直接用追蹤的寬度值保存到 localStorage，避免 state 異步問題
+      const seriesId = getCurrentSeriesId();
+      saveWidthToStorage(seriesId, columnKey, currentWidth);
     };
 
     document.addEventListener("mousemove", handleMouseMove);
