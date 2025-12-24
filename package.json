@@ -20,7 +20,7 @@
     "version:patch": "npm version patch --no-git-tag-version"
   },
   "dependencies": {
-    "axios": "^1.11.0",
+    "axios": "^1.13.2",
     "axios-hooks": "^5.1.1",
     "bootstrap": "^5.3.8",
     "lodash": "^4.17.21",
