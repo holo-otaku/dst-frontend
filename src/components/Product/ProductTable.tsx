@@ -697,7 +697,11 @@ const ProductTable = ({
           {/* Data Rows */}
           {products.map((product) => {
             // 計算行的樣式類別
-            const rowBgClass = product.hasArchive ? "bg-red-100" : "bg-white";
+            const rowStyle = product.isDeleted
+              ? { backgroundColor: "#9ca3af" } // gray-400
+              : product.hasArchive
+                ? { backgroundColor: "#fee2e2" } // red-100
+                : { backgroundColor: "#ffffff" };
 
             return (
               <React.Fragment key={product.itemId}>
@@ -705,13 +709,14 @@ const ProductTable = ({
                 {showCheckbox && (
                   <div
                     key={`checkbox-${product.itemId}`}
-                    className={`sticky-cell sticky border-b border-black p-2 flex items-center justify-center hover:bg-gray-50 z-40 ${rowBgClass}`}
+                    className={`sticky-cell sticky border-b border-black p-2 flex items-center justify-center hover:bg-gray-50 z-40`}
                     style={{
                       left: "0px",
                       position: "sticky",
                       boxShadow: "2px 0 4px rgba(0,0,0,0.05)",
                       width: `${getColumnWidth("checkbox")}px`,
                       borderRight: "1px solid black",
+                      ...rowStyle,
                     }}
                   >
                     <input
@@ -726,7 +731,7 @@ const ProductTable = ({
                 {/* ID Cell */}
                 <div
                   key={`id-${product.itemId}`}
-                  className={`sticky-cell sticky border-b border-black p-2 flex items-center hover:bg-blue-50 z-40 cursor-pointer ${rowBgClass}`}
+                  className={`sticky-cell sticky border-b border-black p-2 flex items-center hover:bg-blue-50 z-40 cursor-pointer`}
                   style={{
                     left: showCheckbox
                       ? `${getColumnWidth("checkbox") + 1}px`
@@ -735,6 +740,7 @@ const ProductTable = ({
                     boxShadow: "2px 0 4px rgba(0,0,0,0.05)",
                     width: `${getColumnWidth("id")}px`,
                     borderRight: "1px solid black",
+                    ...rowStyle,
                   }}
                   onDoubleClick={() =>
                     navigate(`/products/${product.itemId}/edit`)
@@ -755,7 +761,7 @@ const ProductTable = ({
                   return (
                     <div
                       key={`${product.itemId}-fixed-${index}`}
-                      className={`sticky-cell sticky border-b border-black p-2 flex items-center hover:bg-blue-50 text-black z-40 cursor-pointer ${rowBgClass}`}
+                      className={`sticky-cell sticky border-b border-black p-2 flex items-center hover:bg-blue-50 text-black z-40 cursor-pointer`}
                       style={{
                         left: `${leftPosition}px`,
                         position: "sticky",
@@ -763,6 +769,7 @@ const ProductTable = ({
                           index === 4 ? "2px 0 4px rgba(0,0,0,0.05)" : "none",
                         width: `${getColumnWidth(columnKey)}px`,
                         borderRight: "1px solid black",
+                        ...rowStyle,
                       }}
                       onDoubleClick={() =>
                         navigate(`/products/${product.itemId}/edit`)
@@ -785,9 +792,10 @@ const ProductTable = ({
                   return (
                     <div
                       key={`${product.itemId}-scroll-${index}`}
-                      className={`border-r border-b border-black p-2 flex items-center hover:bg-blue-50 text-black cursor-pointer ${rowBgClass}`}
+                      className={`border-r border-b border-black p-2 flex items-center hover:bg-blue-50 text-black cursor-pointer`}
                       style={{
                         width: `${getColumnWidth(columnKey)}px`,
+                        ...rowStyle,
                       }}
                       onDoubleClick={() =>
                         navigate(`/products/${product.itemId}/edit`)
@@ -806,13 +814,18 @@ const ProductTable = ({
                 {/* ERP 數據 */}
                 {product.erp.map((erpData, erpIndex) => {
                   const columnKey = `erp-${erpData.key}`;
+                  const erpStyle =
+                    product.isDeleted || product.hasArchive
+                      ? rowStyle
+                      : { backgroundColor: "#eff6ff" }; // blue-50
 
                   return (
                     <div
                       key={`${product.itemId}-erp-${erpIndex}`}
-                      className="bg-blue-50 border-r border-b border-black p-2 flex items-center hover:bg-blue-100 text-black cursor-pointer"
+                      className={`border-r border-b border-black p-2 flex items-center hover:bg-blue-100 text-black cursor-pointer`}
                       style={{
                         width: `${getColumnWidth(columnKey)}px`,
+                        ...erpStyle,
                       }}
                       onDoubleClick={() =>
                         navigate(`/products/${product.itemId}/edit`)

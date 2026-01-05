@@ -81,9 +81,9 @@ export const Search = () => {
   const [searchFields, setSearchFields] = useState<ProductSearchFilters[]>([]);
   const [showCheckbox, setShowCheckbox] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [status, setStatus] = useState<"deleted" | "archived" | undefined>(
-    undefined
-  );
+  const [status, setStatus] = useState<
+    "deleted" | "archived" | "both" | undefined
+  >(undefined);
 
   const { currentPage, availablePages, limit } = PaginateState;
 
@@ -442,8 +442,8 @@ interface BarProps {
       sort?: string;
     };
   };
-  status?: "deleted" | "archived";
-  setStatus: (status?: "deleted" | "archived") => void;
+  status?: "deleted" | "archived" | "both";
+  setStatus: (status?: "deleted" | "archived" | "both") => void;
 }
 
 const Bar = ({
@@ -492,6 +492,7 @@ const Bar = ({
           filters: finalFilters,
           ...(status === "deleted" && { isDeleted: true }),
           ...(status === "archived" && { isArchived: true }),
+          ...(status === "both" && { isDeleted: 2, isArchived: 2 }),
         },
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -574,6 +575,7 @@ const Bar = ({
         filters: finalFilters,
         ...(status === "deleted" && { isDeleted: true }),
         ...(status === "archived" && { isArchived: true }),
+        ...(status === "both" && { isDeleted: 2, isArchived: 2 }),
       },
       params,
     });
@@ -610,13 +612,14 @@ const Bar = ({
               if (value === "all") {
                 setStatus(undefined);
               } else {
-                setStatus(value as "deleted" | "archived");
+                setStatus(value as "deleted" | "archived" | "both");
               }
             }}
           >
             <option value="all">正常產品</option>
             <option value="deleted">已刪除</option>
             <option value="archived">已封存</option>
+            <option value="both">全部(含封存/刪除)</option>
           </Form.Select>
         </Col>
         <Col xs="auto">
@@ -681,7 +684,7 @@ const useHistorySearch = () => {
     searchFields: ProductSearchFilters[];
     page: number;
     limit: number;
-    status?: "deleted" | "archived";
+    status?: "deleted" | "archived" | "both";
   }
 
   const snapshot = ({
