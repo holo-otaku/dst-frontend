@@ -40,8 +40,8 @@ export interface ProductEditPayload {
 export interface ProductSearchPayloadField {
   seriesId: number;
   filters: ProductSearchFilters[];
-  isDeleted?: boolean;
-  isArchived?: boolean;
+  isDeleted?: boolean | number;
+  isArchived?: boolean | number;
 }
 
 export interface ProductSearchFilters {
