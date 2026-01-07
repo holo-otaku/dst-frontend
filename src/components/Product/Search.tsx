@@ -83,7 +83,7 @@ export const Search = () => {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [status, setStatus] = useState<
     "deleted" | "archived" | "both" | undefined
-  >(undefined);
+  >("both");
 
   const { currentPage, availablePages, limit } = PaginateState;
 
@@ -616,10 +616,10 @@ const Bar = ({
               }
             }}
           >
+            <option value="both">全部(含封存/刪除)</option>
             <option value="all">正常產品</option>
             <option value="deleted">已刪除</option>
             <option value="archived">已封存</option>
-            <option value="both">全部(含封存/刪除)</option>
           </Form.Select>
         </Col>
         <Col xs="auto">
