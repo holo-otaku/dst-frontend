@@ -187,7 +187,7 @@ const PictureFormControl = ({
           setPicture(fieldValue); // fallback
         });
     } else {
-      setPicture(fieldValue);
+      queueMicrotask(() => setPicture(fieldValue));
     }
   }, [fieldValue, fetchImage]);
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

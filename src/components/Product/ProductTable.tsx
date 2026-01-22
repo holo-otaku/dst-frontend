@@ -6,6 +6,28 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import useAxios from "axios-hooks";
 
+// 模組級別的文字測量函式
+const createTextMeasurer = () => {
+  const canvasRef = { current: null as HTMLCanvasElement | null };
+  const ctxRef = { current: null as CanvasRenderingContext2D | null };
+  const lastFontRef = { current: "" };
+
+  return (text: string, font: string): number => {
+    if (!canvasRef.current) {
+      canvasRef.current = document.createElement("canvas");
+      ctxRef.current = canvasRef.current.getContext("2d");
+    }
+    if (!ctxRef.current) return text.length * 8;
+    if (lastFontRef.current !== font) {
+      ctxRef.current.font = font;
+      lastFontRef.current = font;
+    }
+    return ctxRef.current.measureText(text).width;
+  };
+};
+
+const measureTextPx = createTextMeasurer();
+
 interface ProductTableProps {
   products: ProductData[];
   sortState: { fieldId: number; order: "asc" | "desc" };
@@ -75,25 +97,6 @@ const ProductTable = ({
     }
   };
 
-  const measureTextPx = (() => {
-    let canvas: HTMLCanvasElement | null = null;
-    let ctx: CanvasRenderingContext2D | null = null;
-    let lastFont = "";
-
-    return (text: string, font: string): number => {
-      if (!canvas) {
-        canvas = document.createElement("canvas");
-        ctx = canvas.getContext("2d");
-      }
-      if (!ctx) return text.length * 8;
-      if (lastFont !== font) {
-        ctx.font = font;
-        lastFont = font;
-      }
-      return ctx.measureText(text).width;
-    };
-  })();
-
   const getGridFont = (): string => {
     if (!gridRef.current) return "14px system-ui";
     const style = window.getComputedStyle(gridRef.current);
@@ -111,10 +114,12 @@ const ProductTable = ({
 
     const savedWidths = loadSavedWidths(seriesId);
     if (Object.keys(savedWidths).length > 0) {
-      setColumnWidths((prev) => ({ ...prev, ...savedWidths }));
-      // 標記所有已保存的欄位為「用戶已調整」
-      Object.keys(savedWidths).forEach((key) => {
-        userResizedColumnsRef.current.add(key);
+      queueMicrotask(() => {
+        setColumnWidths((prev) => ({ ...prev, ...savedWidths }));
+        // 標記所有已保存的欄位為「用戶已調整」
+        Object.keys(savedWidths).forEach((key) => {
+          userResizedColumnsRef.current.add(key);
+        });
       });
     }
   }, [products]);
@@ -161,7 +166,9 @@ const ProductTable = ({
         initialWidths[`erp-${erp.key}`] = 120;
       });
 
-      setColumnWidths((prev) => ({ ...initialWidths, ...prev }));
+      queueMicrotask(() => {
+        setColumnWidths((prev) => ({ ...initialWidths, ...prev }));
+      });
     }
   }, [products, showCheckbox]);
 
@@ -863,8 +870,10 @@ const ProductImage = ({
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    setImageSrc(src);
-    setHasError(false);
+    queueMicrotask(() => {
+      setImageSrc(src);
+      setHasError(false);
+    });
   }, [src]);
 
   const handleImageError = () => {

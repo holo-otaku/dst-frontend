@@ -63,11 +63,13 @@ export const Edit = () => {
       isFiltered: false,
       isRequired: false,
       isErp: false,
-      searchErp: false, // 新增預設值
+      searchErp: false,
       isLimitField: false,
     },
   ]);
   const [name, setName] = useState("");
+  const [isInitialized, setIsInitialized] = useState(false);
+
   const [
     { data: editResponse, loading: editLoading, error: editError },
     editSeries,
@@ -100,13 +102,12 @@ export const Edit = () => {
     });
   }, [id, getDetail]);
 
-  useEffect(() => {
-    if (!detailResponse) return;
-
+  if (detailResponse && !isInitialized) {
     const { name, fields } = detailResponse.data;
     setName(name);
     setFields(fields);
-  }, [detailResponse]);
+    setIsInitialized(true);
+  }
 
   useEffect(() => {
     if (!editResponse) return;

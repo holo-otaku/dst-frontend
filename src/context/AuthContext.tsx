@@ -60,6 +60,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     { manual: true }
   );
 
+  const jwtDecode = (accessToken: string) => {
+    const [, encryPayload] = accessToken.split(".");
+    const payload = JSON.parse(atob(encryPayload)) as Payload;
+
+    return payload;
+  };
+
+  const login = useCallback((jwt: string) => {
+    setAccessToken(jwt);
+    localStorage.setItem("accessToken", jwt);
+    localStorage.setItem(
+      "accessTokenExpiration",
+      jwtDecode(jwt).exp.toString()
+    );
+  }, []);
+
+  const logout = useCallback(() => {
+    setAccessToken("");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("accessTokenExpiration");
+  }, []);
+
   const detectIsNeedToRefresh = useCallback(async () => {
     if (accessToken === "") return;
     if (refreshLoading) return;
@@ -95,41 +117,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error("An error occurred while refreshing the token", error);
     }
-  }, []);
-
-  const jwtDecode = (accessToken: string) => {
-    const [, encryPayload] = accessToken.split(".");
-    const payload = JSON.parse(atob(encryPayload)) as Payload;
-
-    return payload;
-  };
+  }, [accessToken, refreshLoading, refresh, login, logout]);
 
   useEffect(() => {
-    if (accessToken === "") {
-      return;
-    }
+    if (!accessToken) return;
 
     const payload = jwtDecode(accessToken);
-
     if (payload.exp < Date.now() / 1000) {
-      logout();
+      queueMicrotask(() => logout());
     }
-  }, [accessToken]);
-
-  const login = (jwt: string) => {
-    setAccessToken(jwt);
-    localStorage.setItem("accessToken", jwt);
-    localStorage.setItem(
-      "accessTokenExpiration",
-      jwtDecode(jwt).exp.toString()
-    );
-  };
-
-  const logout = () => {
-    setAccessToken("");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("accessTokenExpiration");
-  };
+  }, [accessToken, logout]);
 
   const isAuthenticated = () => {
     return !!accessToken;
@@ -162,11 +159,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => {
       axios.interceptors.response.eject(responseInterceptor);
     };
-  }, []);
+  }, [logout]);
 
-  if (isAuthenticated() === true) {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-  }
+  // 設定 axios authorization header
+  useEffect(() => {
+    if (isAuthenticated()) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
+    }
+  }, [accessToken]);
 
   return (
     <AuthContext.Provider

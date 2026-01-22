@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Stack, Button, Form, InputGroup } from "react-bootstrap";
 import useAxios from "axios-hooks";
 import { ScaleLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
 import Backdrop from "../Backdrop/Backdrop";
-import { RoleResponse, Role } from "./Interfaces";
+import { RoleResponse } from "./Interfaces";
 import { AxiosError } from "axios";
 
 interface CreateUserPayload {
@@ -18,7 +18,6 @@ export const Create = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState("");
-  const [roles, setRoles] = useState<Role[]>([]);
 
   const [{ data: createResponse, loading: createLoading }, createUser] =
     useAxios<APIResponse, CreateUserPayload>(
@@ -45,11 +44,7 @@ export const Create = () => {
       }
     );
 
-  // Populate the roles state when the roleResponse is available
-  useEffect(() => {
-    if (!roleResponse) return;
-    setRoles(roleResponse.data);
-  }, [roleResponse]);
+  const roles = useMemo(() => roleResponse?.data ?? [], [roleResponse]);
 
   useEffect(() => {
     void refetchRoles();
