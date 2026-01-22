@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Stack, Button, Form, InputGroup } from "react-bootstrap";
 import useAxios from "axios-hooks";
 import { ScaleLoader } from "react-spinners";
@@ -8,7 +8,6 @@ import {
   RoleResponse,
   PermissionResponse,
   CreateRolePayload,
-  PermissionData,
 } from "./Interfaces";
 import PermissionTable from "./PermissionTable";
 import { AxiosError } from "axios";
@@ -17,7 +16,6 @@ export const Create = () => {
   const navigate = useNavigate();
   const [rolename, setRolename] = useState<string>("");
   const [rolePermissionIds, setRolePermissionIds] = useState<number[]>([]);
-  const [permissions, setPermissions] = useState<PermissionData[]>([]);
 
   const [{ loading: addLoading }, addRole] = useAxios<RoleResponse>(
     {
@@ -47,12 +45,10 @@ export const Create = () => {
     void refetchPermission();
   }, [refetchPermission]);
 
-  // Populate the permissions state when the permissionResponse is available
-  useEffect(() => {
-    if (permissionResponse && permissionResponse.data) {
-      setPermissions(permissionResponse.data);
-    }
-  }, [permissionResponse]);
+  const permissions = useMemo(
+    () => permissionResponse?.data ?? [],
+    [permissionResponse]
+  );
 
   const handleSubmit = () => {
     const payload: CreateRolePayload = {

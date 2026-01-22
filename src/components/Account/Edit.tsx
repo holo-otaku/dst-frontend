@@ -1,19 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Stack, Button, Form, InputGroup } from "react-bootstrap";
 import useAxios from "axios-hooks";
 import { ScaleLoader } from "react-spinners";
 import { useNavigate, useParams } from "react-router-dom";
 import Backdrop from "../Backdrop/Backdrop";
-import { RoleResponse, Role } from "./Interfaces";
+import { RoleResponse } from "./Interfaces";
 import { UserResponse, CreateUserPayload } from "./Interfaces";
 import { AxiosError } from "axios";
 
 export const Edit = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [roleId, setRoleId] = useState("");
-  const [roles, setRoles] = useState<Role[]>([]);
   const { id } = useParams();
 
   const [{ data: userResponse, loading: userLoading }] = useAxios<UserResponse>(
@@ -22,6 +18,17 @@ export const Edit = () => {
       method: "GET",
     }
   );
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [roleId, setRoleId] = useState("");
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  if (userResponse && !isInitialized) {
+    setUsername(userResponse.data.userName);
+    setRoleId(userResponse.data.roleId.toString());
+    setIsInitialized(true);
+  }
 
   const [{ loading: editLoading }, editUser] = useAxios<UserResponse>(
     {
@@ -33,13 +40,6 @@ export const Edit = () => {
     }
   );
 
-  useEffect(() => {
-    if (!userResponse) return;
-
-    setUsername(userResponse.data.userName);
-    setRoleId(userResponse.data.roleId.toString());
-  }, [userResponse]);
-
   const [{ data: roleResponse, loading: roleLoading }] = useAxios<RoleResponse>(
     {
       url: "/role",
@@ -50,10 +50,7 @@ export const Edit = () => {
     }
   );
 
-  useEffect(() => {
-    if (!roleResponse) return;
-    setRoles(roleResponse.data);
-  }, [roleResponse]);
+  const roles = useMemo(() => roleResponse?.data ?? [], [roleResponse]);
 
   const handleSubmit = () => {
     const payload: CreateUserPayload = {

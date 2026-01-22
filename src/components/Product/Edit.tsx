@@ -53,6 +53,7 @@ export const Edit = () => {
   const [editAttributes, setEditAttributes] = useState<
     ProductAttributePayload[]
   >([]);
+  const [isProductInitialized, setIsProductInitialized] = useState(false);
   const [{ data: seriesDetailResponse, loading: seriesDetailLoading }] =
     useAxios<SeriesDetailResponse>({
       method: "GET",
@@ -73,6 +74,22 @@ export const Edit = () => {
     { manual: true }
   );
   const { loading: copyProductLoading, copyProduct } = useCopyProduct();
+
+  if (productResponse && !isProductInitialized) {
+    const product = productResponse.data;
+    setSelectedSeries(product.seriesId);
+    const parsedAttributes = product.attributes.map((attribute) => {
+      if (/^\d{4}\/\d{2}\/\d{2}$/.test(attribute.value as string)) {
+        return {
+          ...attribute,
+          value: moment(attribute.value as string).format("YYYY-MM-DD"),
+        };
+      }
+      return attribute;
+    });
+    setAttributes(parsedAttributes);
+    setIsProductInitialized(true);
+  }
 
   const handleCopy = async () => {
     if (!window.confirm("確定要複製這個商品嗎？")) {
@@ -113,10 +130,9 @@ export const Edit = () => {
         return;
       }
 
-      // 呼叫 /product/edit API 來更新 isDeleted 狀態
       const payload: ProductEditPayload = {
         itemId: parseInt(id!),
-        attributes: [], // 不更新任何屬性，只更新刪除狀態
+        attributes: [],
         isDeleted: newDeletedStatus,
       };
 
@@ -125,8 +141,6 @@ export const Edit = () => {
       });
 
       alert(isDeleted ? "商品已還原" : "商品已刪除");
-
-      // 導航回產品搜尋頁面
       navigate("/products");
     } catch (err) {
       console.error(err);
@@ -140,24 +154,6 @@ export const Edit = () => {
   const canArchive =
     permissions.includes("archive.create") &&
     get(productResponse, "data.hasArchive", false) === false;
-
-  useEffect(() => {
-    if (!productResponse) return;
-    const product = productResponse.data;
-
-    setSelectedSeries(product.seriesId);
-    // 因為日期格式是 yyyy/MM/dd，所以這邊要轉換成這樣的格式 yyyy-MM-dd
-    const parsedAttributes = product.attributes.map((attribute) => {
-      if (/^\d{4}\/\d{2}\/\d{2}$/.test(attribute.value as string)) {
-        return {
-          ...attribute,
-          value: moment(attribute.value as string).format("YYYY-MM-DD"),
-        };
-      }
-      return attribute;
-    });
-    setAttributes(parsedAttributes);
-  }, [productResponse]);
 
   useEffect(() => {
     if (id) {
