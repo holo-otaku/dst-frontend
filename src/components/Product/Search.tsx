@@ -98,8 +98,10 @@ export const Search = () => {
   }, [productSearchResponse]);
 
   useEffect(() => {
-    setShowCheckbox(false);
-    setSelectedIds(new Set());
+    queueMicrotask(() => {
+      setShowCheckbox(false);
+      setSelectedIds(new Set());
+    });
   }, [selectedSeries]);
 
   const buildSearchPayload = (fields: SeriesResponse["data"][0]["fields"]) => {
@@ -521,6 +523,30 @@ const Bar = ({
     }
   };
 
+  const handleSearch = () => {
+    const { filters, finalFilters, params } = buildSearchPayload(fields);
+
+    updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
+    snapshot({
+      selectedSeries,
+      searchFields: filters,
+      page,
+      limit,
+      status,
+    });
+
+    searchProduct({
+      data: {
+        seriesId: selectedSeries,
+        filters: finalFilters,
+        ...(status === "deleted" && { isDeleted: true }),
+        ...(status === "archived" && { isArchived: true }),
+        ...(status === "both" && { isDeleted: 2, isArchived: 2 }),
+      },
+      params,
+    });
+  };
+
   useEffect(() => {
     if (!series.length) return;
     if (!targetSeries) {
@@ -556,29 +582,6 @@ const Bar = ({
       );
     }
     setSearchFields(newSearchFields);
-  };
-  const handleSearch = () => {
-    const { filters, finalFilters, params } = buildSearchPayload(fields);
-
-    updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
-    snapshot({
-      selectedSeries,
-      searchFields: filters,
-      page,
-      limit,
-      status,
-    });
-
-    searchProduct({
-      data: {
-        seriesId: selectedSeries,
-        filters: finalFilters,
-        ...(status === "deleted" && { isDeleted: true }),
-        ...(status === "archived" && { isArchived: true }),
-        ...(status === "both" && { isDeleted: 2, isArchived: 2 }),
-      },
-      params,
-    });
   };
 
   const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {

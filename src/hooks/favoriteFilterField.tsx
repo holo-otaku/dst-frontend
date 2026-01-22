@@ -27,13 +27,14 @@ export const useFavoriteFilterField = (
       return JSON.parse(storageFields) as FavoriteFilterField;
     }
   );
+  const [isFilterInitialized, setIsFilterInitialized] = useState(false);
 
   // 將favoriteFields保存到localStorage
   useEffect(() => {
     localStorage.setItem(FAVORITE_FILTER_FIELD, JSON.stringify(favoriteFields));
-  }, [favoriteFields]);
+  }, [favoriteFields, localStorage]);
 
-  useEffect(() => {
+  if (!isFilterInitialized && currentFields.length > 0) {
     // 初次載入時，檢查該欄位是否已被刪除
     const currentIds = currentFields.map((field) => field.id);
     const seriesFavoriteRecord = get(
@@ -46,11 +47,14 @@ export const useFavoriteFilterField = (
       currentIds.includes(item.id)
     );
 
-    setFavoriteFields({
-      ...favoriteFields,
-      [seriesId]: updatedFavorites,
-    });
-  }, [seriesId, currentFields]);
+    if (updatedFavorites.length !== seriesFavoriteRecord.length) {
+      setFavoriteFields({
+        ...favoriteFields,
+        [seriesId]: updatedFavorites,
+      });
+    }
+    setIsFilterInitialized(true);
+  }
 
   const seriesFavoriteRecord = get(
     favoriteFields,

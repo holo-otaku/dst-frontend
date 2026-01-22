@@ -23,7 +23,7 @@ import Role, {
 } from "../components/Role";
 import { Container } from "react-bootstrap";
 import { Outlet, RouteObject, useNavigate } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { AuthContext } from "../context";
 import axios from "axios";
 import ActivityLog from "../components/ActivtyLog";
@@ -34,24 +34,21 @@ const DETECT_REFRESH_INTERVAL = 10 * 60 * 1000;
 const Layout = () => {
   const { accessToken, isAuthenticated, detectIsNeedToRefresh } =
     useContext(AuthContext);
-  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isAuthenticated()) {
       axios.defaults.headers.common["Authorization"] = null;
-      intervalId && clearInterval(intervalId);
       navigate("/login");
     }
   }, [accessToken, isAuthenticated, navigate]);
 
   useEffect(() => {
     const id = setInterval(detectIsNeedToRefresh, DETECT_REFRESH_INTERVAL);
-    setIntervalId(id);
     return () => {
       clearInterval(id);
     };
-  }, []);
+  }, [detectIsNeedToRefresh]);
 
   return (
     <>

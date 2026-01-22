@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { get } from "lodash";
 import { InputGroup, Form } from "react-bootstrap";
 import { IFilterProps } from "./types";
@@ -11,13 +11,22 @@ export const NumberFilter = ({
   handleChange,
   searchData,
 }: IFilterProps) => {
-  const [range, setRange] = useState({ min: "0", max: "0" });
   const operator = get(
     searchData,
     "operation",
     ProductSearchPayloadOperation.EQUAL
   );
   const value = get(searchData, "value", "") as string;
+
+  const initialRange = useMemo(() => {
+    if (`${value}`.includes(",")) {
+      const [min, max] = value.split(",");
+      return { min, max };
+    }
+    return { min: "0", max: "0" };
+  }, [value]);
+
+  const [range, setRange] = useState(initialRange);
 
   const { autoCompleteValues, onFocus } = useFieldAutoComplete({
     fieldId: id,
@@ -29,20 +38,13 @@ export const NumberFilter = ({
   });
 
   useEffect(() => {
-    if (`${value}`.includes(",")) {
-      const [min, max] = value.split(",");
-      setRange({ min: min, max: max });
-    }
-  }, [value]);
-
-  useEffect(() => {
     if (range.min && range.max && range.min !== range.max) {
       handleChange(
         `${range.min},${range.max}`,
         ProductSearchPayloadOperation.RANGE
       );
     }
-  }, [range]);
+  }, [range, handleChange]);
 
   const handleOperatorChange = (
     event: React.ChangeEvent<HTMLSelectElement>

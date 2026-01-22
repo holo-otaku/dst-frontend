@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Stack, Button, Form, InputGroup } from "react-bootstrap";
 import useAxios from "axios-hooks";
 import { ScaleLoader } from "react-spinners";
@@ -8,7 +8,6 @@ import {
   RoleResponse,
   PermissionResponse,
   CreateRolePayload,
-  PermissionData,
   RoleDetailResponse,
 } from "./Interfaces";
 import PermissionTable from "./PermissionTable";
@@ -18,7 +17,7 @@ export const Edit = () => {
   const navigate = useNavigate();
   const [rolename, setRolename] = useState<string>("");
   const [rolePermissionIds, setRolePermissionIds] = useState<number[]>([]);
-  const [permissions, setPermissions] = useState<PermissionData[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { id } = useParams();
 
   const [{ data: detailResponse, loading: detailLoading }, getRole] =
@@ -55,26 +54,22 @@ export const Edit = () => {
     { manual: true }
   );
 
-  // Fetch role data when the component mounts
-  useEffect(() => {
-    if (detailResponse?.data) {
-      setRolename(detailResponse.data.name);
-      setRolePermissionIds(
-        detailResponse.data.permissions.map((perm) => perm.id)
-      );
-    }
-  }, [detailResponse]);
+  if (detailResponse?.data && !isInitialized) {
+    setRolename(detailResponse.data.name);
+    setRolePermissionIds(
+      detailResponse.data.permissions.map((perm) => perm.id)
+    );
+    setIsInitialized(true);
+  }
 
   useEffect(() => {
     void refetchPermission();
   }, [refetchPermission]);
 
-  // Populate the permissions state when the permissionResponse is available
-  useEffect(() => {
-    if (permissionResponse && permissionResponse.data) {
-      setPermissions(permissionResponse.data);
-    }
-  }, [permissionResponse]);
+  const permissions = useMemo(
+    () => permissionResponse?.data ?? [],
+    [permissionResponse]
+  );
 
   // Fetch role data when the component mounts
   useEffect(() => {
