@@ -25,7 +25,6 @@ import { Container } from "react-bootstrap";
 import { Outlet, RouteObject, useNavigate } from "react-router-dom";
 import { useContext, useEffect } from "react";
 import { AuthContext } from "../context";
-import axios from "axios";
 import ActivityLog from "../components/ActivtyLog";
 import MyBreadcrumb from "../components/Breadcrumb";
 
@@ -38,7 +37,6 @@ const Layout = () => {
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      axios.defaults.headers.common["Authorization"] = null;
       navigate("/login");
     }
   }, [accessToken, isAuthenticated, navigate]);
