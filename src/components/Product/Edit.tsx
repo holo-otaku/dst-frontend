@@ -9,7 +9,7 @@ import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { get } from "lodash";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import {
   ProductAttributePayload,
   ProductDetailResponse,
@@ -48,17 +48,19 @@ export const Edit = () => {
     },
     { manual: true }
   );
-  const [selectedSeries, setSelectedSeries] = useState<number>(0);
-  const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
-  const [editAttributes, setEditAttributes] = useState<
-    ProductAttributePayload[]
-  >([]);
-  const [isProductInitialized, setIsProductInitialized] = useState(false);
-  const [{ data: seriesDetailResponse, loading: seriesDetailLoading }] =
-    useAxios<SeriesDetailResponse>({
+  const [editAttributesMap, setEditAttributesMap] = useState<
+    Record<number, ProductAttributePayload[]>
+  >({});
+  const [
+    { data: seriesDetailResponse, loading: seriesDetailLoading },
+    fetchSeriesDetail,
+  ] = useAxios<SeriesDetailResponse>(
+    {
       method: "GET",
-      url: `/series/${selectedSeries}`,
-    });
+      url: "",
+    },
+    { manual: true }
+  );
   const [{ loading: archiveLoading }, archiveProduct] = useAxios(
     {
       method: "POST",
@@ -75,17 +77,14 @@ export const Edit = () => {
   );
   const { loading: copyProductLoading, copyProduct } = useCopyProduct();
 
-  useEffect(() => {
-    if (!productResponse || isProductInitialized) return;
+  const currentId = useMemo(() => (id ? parseInt(id) : undefined), [id]);
 
-    const product = productResponse.data;
-    const productId = product?.itemId;
-    const currentId = id ? parseInt(id) : undefined;
+  const product = productResponse?.data;
+  const selectedSeriesId = product?.seriesId ?? 0;
 
-    if (!productId || productId !== currentId) return;
-
-    setSelectedSeries(product.seriesId);
-    const parsedAttributes = product.attributes.map((attribute) => {
+  const baseAttributes = useMemo(() => {
+    if (!product) return [] as ProductAttributePayload[];
+    return product.attributes.map((attribute) => {
       if (/^\d{4}\/\d{2}\/\d{2}$/.test(attribute.value as string)) {
         return {
           ...attribute,
@@ -94,9 +93,22 @@ export const Edit = () => {
       }
       return attribute;
     });
-    setAttributes(parsedAttributes);
-    setIsProductInitialized(true);
-  }, [id, isProductInitialized, productResponse]);
+  }, [product]);
+
+  const editAttributes = useMemo(() => {
+    if (!currentId) return [] as ProductAttributePayload[];
+    return editAttributesMap[currentId] || [];
+  }, [currentId, editAttributesMap]);
+
+  const displayAttributes = useMemo(() => {
+    if (!editAttributes.length) return baseAttributes;
+    const override = new Map<number, ProductAttributePayload>();
+    editAttributes.forEach((attr) => override.set(attr.fieldId, attr));
+    return baseAttributes.map((attr) => {
+      const overridden = override.get(attr.fieldId);
+      return overridden ? { ...attr, value: overridden.value } : attr;
+    });
+  }, [baseAttributes, editAttributes]);
 
   const handleCopy = async () => {
     if (!window.confirm("確定要複製這個商品嗎？")) {
@@ -169,12 +181,13 @@ export const Edit = () => {
   }, [id, loadProduct]);
 
   useEffect(() => {
-    setIsProductInitialized(false);
-    setAttributes([]);
-    setEditAttributes([]);
-  }, [id]);
+    if (!selectedSeriesId) return;
+    fetchSeriesDetail({ url: `/series/${selectedSeriesId}` });
+  }, [fetchSeriesDetail, selectedSeriesId]);
 
   const handleInputChange = (fieldId: number, value: string) => {
+    if (!currentId) return;
+
     // 這邊整理出要送出的資料格式
     const index = editAttributes.findIndex(
       (attribute) => attribute.fieldId === fieldId
@@ -189,41 +202,34 @@ export const Edit = () => {
         break;
     }
 
-    if (index === -1) {
-      setEditAttributes([
-        ...editAttributes,
-        {
-          fieldId,
-          value: parsedValue,
-        },
-      ]);
-    } else {
-      const newAttributes = [...editAttributes];
-      newAttributes[index].value = parsedValue;
-      setEditAttributes(newAttributes);
-    }
-
-    // 這邊整理出要顯示的資料格式
-    const attributeIndex = attributes.findIndex(
-      (attribute) => attribute.fieldId === fieldId
-    );
-    if (attributeIndex === -1) {
-      setAttributes([
-        ...attributes,
-        {
-          fieldId,
-          value,
-        },
-      ]);
-    } else {
-      const newAttributes = [...attributes];
-      newAttributes[attributeIndex].value = value;
-      setAttributes(newAttributes);
-    }
+    setEditAttributesMap((prev) => {
+      const existing = prev[currentId] || [];
+      if (index === -1) {
+        return {
+          ...prev,
+          [currentId]: [
+            ...existing,
+            {
+              fieldId,
+              value: parsedValue,
+            },
+          ],
+        };
+      }
+      const updated = existing.map((attribute, idx) =>
+        idx === index ? { ...attribute, value: parsedValue } : attribute
+      );
+      return {
+        ...prev,
+        [currentId]: updated,
+      };
+    });
   };
 
   const series = get(seriesResponse, "data", []) as SeriesResponse["data"];
-  const fields = series.find((series) => series.id === selectedSeries)?.fields;
+  const fields = series.find(
+    (series) => series.id === selectedSeriesId
+  )?.fields;
 
   const handleSubmit = () => {
     const parsedAttributes = parseAttributes(editAttributes);
@@ -315,13 +321,13 @@ export const Edit = () => {
         <Col>
           <Form.Select disabled={true}>
             <option>
-              {series.find((series) => series.id === selectedSeries)?.name}
+              {series.find((series) => series.id === selectedSeriesId)?.name}
             </option>
           </Form.Select>
         </Col>
       </Row>
       <FormTable
-        attributes={attributes}
+        attributes={displayAttributes}
         fields={fields || []}
         handleInputChange={handleInputChange}
         seriesDetail={seriesDetailResponse?.data}
