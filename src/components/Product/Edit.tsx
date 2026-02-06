@@ -75,8 +75,15 @@ export const Edit = () => {
   );
   const { loading: copyProductLoading, copyProduct } = useCopyProduct();
 
-  if (productResponse && !isProductInitialized) {
+  useEffect(() => {
+    if (!productResponse || isProductInitialized) return;
+
     const product = productResponse.data;
+    const productId = product?.itemId;
+    const currentId = id ? parseInt(id) : undefined;
+
+    if (!productId || productId !== currentId) return;
+
     setSelectedSeries(product.seriesId);
     const parsedAttributes = product.attributes.map((attribute) => {
       if (/^\d{4}\/\d{2}\/\d{2}$/.test(attribute.value as string)) {
@@ -89,7 +96,7 @@ export const Edit = () => {
     });
     setAttributes(parsedAttributes);
     setIsProductInitialized(true);
-  }
+  }, [id, isProductInitialized, productResponse]);
 
   const handleCopy = async () => {
     if (!window.confirm("確定要複製這個商品嗎？")) {
@@ -159,7 +166,13 @@ export const Edit = () => {
     if (id) {
       loadProduct();
     }
-  }, [loadProduct]);
+  }, [id, loadProduct]);
+
+  useEffect(() => {
+    setIsProductInitialized(false);
+    setAttributes([]);
+    setEditAttributes([]);
+  }, [id]);
 
   const handleInputChange = (fieldId: number, value: string) => {
     // 這邊整理出要送出的資料格式
