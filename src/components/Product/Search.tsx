@@ -84,6 +84,7 @@ export const Search = () => {
   const [status, setStatus] = useState<
     "deleted" | "archived" | "both" | undefined
   >("both");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const { currentPage, availablePages, limit } = PaginateState;
 
@@ -163,9 +164,8 @@ export const Search = () => {
     return { filters, finalFilters, params };
   };
 
-  const reloadProducts = () => {
-    // 重新載入將由 Bar 組件處理
-    window.location.reload();
+  const refreshProducts = () => {
+    setRefreshKey((prev) => prev + 1);
   };
 
   const toggleCheckbox = (id: number) => {
@@ -212,7 +212,7 @@ export const Search = () => {
       await deleteProduct({
         data: { itemId: itemIds },
       });
-      reloadProducts();
+      refreshProducts();
       setShowCheckbox(false);
       setSelectedIds(new Set());
       return true;
@@ -230,7 +230,7 @@ export const Search = () => {
       await copyProduct({
         data: { itemIds: itemIds },
       });
-      reloadProducts();
+      refreshProducts();
       setShowCheckbox(false);
       setSelectedIds(new Set());
       return true;
@@ -245,7 +245,7 @@ export const Search = () => {
       await archiveProduct({
         data: { itemIds: itemIds },
       });
-      reloadProducts();
+      refreshProducts();
       setShowCheckbox(false);
       setSelectedIds(new Set());
       return true;
@@ -291,6 +291,8 @@ export const Search = () => {
           buildSearchPayload,
           status,
           setStatus,
+          refreshKey,
+          refreshProducts,
         }}
       />
       <hr />
@@ -446,6 +448,8 @@ interface BarProps {
   };
   status?: "deleted" | "archived" | "both";
   setStatus: (status?: "deleted" | "archived" | "both") => void;
+  refreshKey: number;
+  refreshProducts: () => void;
 }
 
 const Bar = ({
@@ -465,8 +469,9 @@ const Bar = ({
   buildSearchPayload,
   status,
   setStatus,
+  refreshKey,
+  refreshProducts,
 }: BarProps) => {
-  const [forceRefresh, setForceRefresh] = useState<number>(1);
   const { seriesFavoriteRecord, updateFavoritesWithIds } =
     useFavoriteFilterField(selectedSeries, get(series, "[0].fields", []));
   const targetSeries = series.find((series) => series.id === selectedSeries);
@@ -555,7 +560,7 @@ const Bar = ({
     }
     if (!fields.length) return;
     handleSearch();
-  }, [series, selectedSeries, page, forceRefresh, limit, sortState, status]);
+  }, [series, selectedSeries, page, refreshKey, limit, sortState, status]);
 
   useEffect(() => {
     const { selectedSeries, limit, page, searchFields, status } = restore();
@@ -594,7 +599,7 @@ const Bar = ({
   const handleClear = () => {
     setSearchFields([]);
     setStatus(undefined);
-    setForceRefresh((prev) => prev + 1);
+    refreshProducts();
   };
 
   return (
