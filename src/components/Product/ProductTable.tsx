@@ -201,7 +201,7 @@ const ProductTable = ({
         if (columnKey === "checkbox") return 50;
 
         const minWidth = columnKey === "id" ? 80 : 100;
-        const maxWidth = 400;
+        const maxWidth = 600;
 
         // Tailwind p-2 => 8px 左右 padding，另外 header 有 sort icon / resize handle
         const headerExtra = 56;
@@ -225,12 +225,31 @@ const ProductTable = ({
           const headerName = attributeDef?.fieldName || "";
           const headerW = measureTextPx(headerName, font) + headerExtra;
 
-          let contentW = 150; // Default width for text columns allowing wrap
+          let contentW = 0;
 
           if (attributeDef) {
-            if (attributeDef.dataType === "picture") contentW = 120;
-            if (attributeDef.dataType === "image") contentW = 110;
-            if (attributeDef.dataType === "boolean") contentW = 80;
+            // Special handling for non-text data types
+            if (attributeDef.dataType === "picture") {
+              contentW = 120;
+            } else if (attributeDef.dataType === "image") {
+              contentW = 110;
+            } else if (attributeDef.dataType === "boolean") {
+              contentW = 80;
+            } else {
+              // Measure actual text content width for all text-based columns
+              products.forEach((p) => {
+                const attr = p.attributes.find((a) => a.fieldId === fieldId);
+                if (attr && attr.value != null) {
+                  const textValue = String(attr.value);
+                  contentW = Math.max(
+                    contentW,
+                    measureTextPx(textValue, font) + cellExtra
+                  );
+                }
+              });
+              // Use minimum of 150px for text columns even if content is shorter
+              contentW = Math.max(contentW, 150);
+            }
           }
 
           return clampWidth(Math.max(headerW, contentW), minWidth, maxWidth);
@@ -239,7 +258,23 @@ const ProductTable = ({
         if (columnKey.startsWith("erp-")) {
           const erpKey = columnKey.split("-").slice(1).join("-");
           const headerW = measureTextPx(erpKey, font) + headerExtra;
-          return clampWidth(Math.max(headerW, 150), 100, maxWidth);
+
+          // Measure actual ERP content width
+          let contentW = 0;
+          products.forEach((p) => {
+            const erpData = p.erp.find((e) => e.key === erpKey);
+            if (erpData && erpData.value != null) {
+              const textValue = String(erpData.value);
+              contentW = Math.max(
+                contentW,
+                measureTextPx(textValue, font) + cellExtra
+              );
+            }
+          });
+          // Use minimum of 150px for ERP columns
+          contentW = Math.max(contentW, 150);
+
+          return clampWidth(Math.max(headerW, contentW), 100, maxWidth);
         }
 
         return 120;
