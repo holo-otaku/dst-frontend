@@ -783,8 +783,9 @@ const ProductTable = ({
                       }
                     >
                       <div
-                        className="w-full break-words whitespace-normal"
+                        className="w-full truncate"
                         style={{ minWidth: "0" }}
+                        title={String(attribute.value ?? "")}
                       >
                         {getDisplayValue(attribute.dataType, attribute.value)}
                       </div>
@@ -809,8 +810,9 @@ const ProductTable = ({
                       }
                     >
                       <div
-                        className="w-full break-words whitespace-normal"
+                        className="w-full truncate"
                         style={{ minWidth: "0" }}
+                        title={String(attribute.value ?? "")}
                       >
                         {getDisplayValue(attribute.dataType, attribute.value)}
                       </div>
@@ -839,8 +841,9 @@ const ProductTable = ({
                       }
                     >
                       <div
-                        className="w-full break-words whitespace-normal"
+                        className="w-full truncate"
                         style={{ minWidth: "0" }}
+                        title={String(erpData.value ?? "")}
                       >
                         {erpData.value}
                       </div>
