@@ -8,7 +8,8 @@ import {
 import useAxios from "axios-hooks";
 import { get } from "lodash";
 import moment from "moment";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import { axios } from "../lib/axios";
 
 export interface AuthContextProps {
   accessToken: string;
@@ -160,15 +161,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       axios.interceptors.response.eject(responseInterceptor);
     };
   }, [logout]);
-
-  // 設定 axios authorization header
-  useEffect(() => {
-    if (isAuthenticated()) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      delete axios.defaults.headers.common["Authorization"];
-    }
-  }, [accessToken]);
 
   return (
     <AuthContext.Provider
