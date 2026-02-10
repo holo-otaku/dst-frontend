@@ -558,7 +558,7 @@ const ProductTable = ({
               );
               if (attr && attr.value != null) {
                 const text = String(attr.value);
-                const measured = measureTextPx(text, font);
+                const measured = measureTextPx(text, font) + cellExtra;
                 if (measured > measuredW) measuredW = measured;
               }
             }
@@ -577,8 +577,8 @@ const ProductTable = ({
         let contentW = 150; // minimum width
         for (const product of products) {
           const erpEntry = product.erp?.find((e) => e.key === erpKey);
-          if (erpEntry?.value) {
-            const measured = measureTextPx(erpEntry.value, font);
+          if (erpEntry && erpEntry.value != null) {
+            const measured = measureTextPx(erpEntry.value, font) + cellExtra;
             if (measured > contentW) contentW = measured;
           }
         }
