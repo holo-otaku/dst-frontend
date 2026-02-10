@@ -516,7 +516,7 @@ const ProductTable = ({
 
     const headerExtra = 56;
     const cellExtra = 24;
-    const maxWidth = 400;
+    const maxWidth = 600;
 
     const computeOne = (): number => {
       if (columnKey === "checkbox") return 50;
@@ -539,12 +539,31 @@ const ProductTable = ({
         const headerName = attributeDef?.fieldName || "";
         const headerW = measureTextPx(headerName, font) + headerExtra;
 
-        let contentW = 150;
+        let contentW = 0;
 
         if (attributeDef) {
-          if (attributeDef.dataType === "picture") contentW = 120;
-          if (attributeDef.dataType === "image") contentW = 110;
-          if (attributeDef.dataType === "boolean") contentW = 80;
+          // Special handling for non-text data types
+          if (attributeDef.dataType === "picture") {
+            contentW = 120;
+          } else if (attributeDef.dataType === "image") {
+            contentW = 110;
+          } else if (attributeDef.dataType === "boolean") {
+            contentW = 80;
+          } else {
+            // Measure actual content width for this attribute column
+            let measuredW = 150; // minimum width
+            for (const product of products) {
+              const attr = product.attributes.find(
+                (a) => a.fieldId === fieldId
+              );
+              if (attr && attr.value != null) {
+                const text = String(attr.value);
+                const measured = measureTextPx(text, font);
+                if (measured > measuredW) measuredW = measured;
+              }
+            }
+            contentW = measuredW;
+          }
         }
 
         return clampWidth(Math.max(headerW, contentW), 100, maxWidth);
@@ -553,7 +572,18 @@ const ProductTable = ({
       if (columnKey.startsWith("erp-")) {
         const erpKey = columnKey.split("-").slice(1).join("-");
         const headerW = measureTextPx(erpKey, font) + headerExtra;
-        return clampWidth(Math.max(headerW, 150), 100, maxWidth);
+
+        // Measure actual content width for ERP
+        let contentW = 150; // minimum width
+        for (const product of products) {
+          const erpEntry = product.erp?.find((e) => e.key === erpKey);
+          if (erpEntry?.value) {
+            const measured = measureTextPx(erpEntry.value, font);
+            if (measured > contentW) contentW = measured;
+          }
+        }
+
+        return clampWidth(Math.max(headerW, contentW), 100, maxWidth);
       }
 
       return 120;
