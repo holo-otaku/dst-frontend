@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # Github prompt files
-.github/prompts
+.github/prompts.worktrees/
