@@ -6,9 +6,8 @@ import "./global.scss";
 import "./tailwind.css";
 import "./global.css";
 import routes from "./routes/index.js";
-import axios from "axios";
+import "./lib/axios";
 
-axios.defaults.baseURL = import.meta.env.VITE_API_HOST;
 const router = createBrowserRouter(routes);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
