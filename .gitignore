@@ -25,3 +25,7 @@ dist-ssr
 
 # Github prompt files
 .github/prompts.worktrees/
+.github/prompts.opencode/
+
+# Opencode
+.opencode/
