@@ -22,7 +22,7 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-quartz.css";
+import "./ProductTable.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -132,6 +132,7 @@ const ProductTable = ({
       lockPinned: true,
       suppressMovable: true,
       resizable: true,
+      cellClass: "monospace-cell",
       cellStyle: { color: "#2563eb", fontWeight: "500" },
     });
 
@@ -206,7 +207,7 @@ const ProductTable = ({
           if (data?.isDeleted || data?.hasArchive) {
             return undefined;
           }
-          return { backgroundColor: "#eff6ff" };
+          return { backgroundColor: "#DBEAFE" };
         },
       });
     });
@@ -328,7 +329,7 @@ const ProductTable = ({
 
   return (
     <div
-      className="ag-theme-quartz"
+      className="ag-theme-custom product-table-container"
       style={{ height: maxHeight, width: "100%" }}
     >
       <AgGridReact
@@ -336,11 +337,18 @@ const ProductTable = ({
         rowData={products}
         columnDefs={columnDefs}
         rowSelection={rowSelection}
+        rowHeight={48}
+        headerHeight={48}
         onSelectionChanged={onSelectionChanged}
         onSortChanged={onSortChanged}
         onRowDoubleClicked={onRowDoubleClicked}
         onGridReady={onGridReady}
         getRowStyle={getRowStyle}
+        rowClassRules={{
+          "row-deleted": (params) => !!params.data?.isDeleted,
+          "row-archived": (params) =>
+            !!params.data?.hasArchive && !params.data?.isDeleted,
+        }}
         suppressRowClickSelection={true}
         domLayout="normal"
       />

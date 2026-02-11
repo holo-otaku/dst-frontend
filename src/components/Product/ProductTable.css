@@ -1,0 +1,174 @@
+/* ProductTable Design System - Data-Dense Dashboard Style */
+
+:root {
+  /* Color Tokens */
+  --pt-primary: #1e40af;
+  --pt-secondary: #3b82f6;
+  --pt-cta: #f59e0b;
+  --pt-bg: #f8fafc;
+  --pt-text: #1e3a8a;
+  --pt-border: #e2e8f0;
+  --pt-hover: #f1f5f9;
+  --pt-selected: #dbeafe;
+
+  /* Typography */
+  --pt-font: "Fira Sans", sans-serif;
+  --pt-mono: "Fira Code", monospace;
+
+  /* Layout */
+  --pt-row-height: 48px;
+  --pt-header-height: 48px;
+  --pt-radius: 8px;
+  --pt-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --pt-transition: 200ms ease;
+}
+
+/* Container Styling */
+.ag-theme-custom.product-table-container {
+  border-radius: var(--pt-radius);
+  box-shadow: var(--pt-shadow);
+  overflow: hidden;
+  font-family: var(--pt-font);
+
+  /* AG Grid Variable Overrides */
+  /* Colors */
+  --ag-background-color: var(--pt-bg);
+  --ag-foreground-color: var(--pt-text);
+  --ag-border-color: var(--pt-border);
+  --ag-header-background-color: #ffffff;
+  --ag-odd-row-background-color: #f8fafc;
+  --ag-row-hover-color: var(--pt-hover);
+  --ag-selected-row-background-color: var(--pt-selected);
+
+  /* Typography */
+  --ag-font-family: var(--pt-font);
+  --ag-font-size: 14px;
+
+  /* Layout */
+  --ag-row-height: var(--pt-row-height);
+  --ag-header-height: var(--pt-header-height);
+  --ag-cell-horizontal-padding: 16px;
+
+  /* Borders */
+  --ag-borders: solid 1px;
+  --ag-row-border-color: var(--pt-border);
+  --ag-border-radius: var(--pt-radius);
+}
+
+/* Header Styling */
+.ag-theme-custom.product-table-container .ag-header {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 2px solid var(--pt-primary);
+  font-weight: 600;
+  color: var(--pt-primary);
+}
+
+.ag-theme-custom.product-table-container .ag-header-cell {
+  transition: background-color var(--pt-transition);
+}
+
+.ag-theme-custom.product-table-container .ag-header-cell:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Header Sort Indicators */
+.ag-theme-custom.product-table-container .ag-header-cell-sorted-asc,
+.ag-theme-custom.product-table-container .ag-header-cell-sorted-desc {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.ag-theme-custom.product-table-container .ag-icon-asc,
+.ag-theme-custom.product-table-container .ag-icon-desc {
+  color: var(--pt-secondary);
+}
+
+/* Cell Styling */
+.ag-theme-custom.product-table-container .ag-cell {
+  display: flex;
+  align-items: center;
+  line-height: 1.5;
+  transition: background-color var(--pt-transition);
+}
+
+/* Monospace Cells (ID column) */
+.ag-theme-custom.product-table-container .monospace-cell {
+  font-family: var(--pt-mono);
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Row Styling */
+.ag-theme-custom.product-table-container .ag-row {
+  transition: background-color var(--pt-transition), box-shadow var(--pt-transition);
+}
+
+.ag-theme-custom.product-table-container .ag-row:hover {
+  box-shadow: inset 0 0 0 1px var(--pt-secondary);
+}
+
+/* Zebra Striping */
+.ag-theme-custom.product-table-container .ag-row-even {
+  background-color: #ffffff !important;
+}
+
+.ag-theme-custom.product-table-container .ag-row-odd {
+  background-color: #f8fafc !important;
+}
+
+/* Row State Classes */
+.ag-theme-custom.product-table-container .row-deleted {
+  background-color: #fee2e2 !important;
+  border-left: 4px solid #ef4444;
+  opacity: 0.7;
+}
+
+.ag-theme-custom.product-table-container .row-archived {
+  background-color: #fef3c7 !important;
+  border-left: 4px solid var(--pt-cta);
+}
+
+.ag-theme-custom.product-table-container .ag-row-selected {
+  background-color: var(--pt-selected) !important;
+  border-left: 4px solid var(--pt-secondary);
+}
+
+/* Focus States */
+.ag-theme-custom.product-table-container .ag-cell-focus,
+.ag-theme-custom.product-table-container .ag-cell-inline-editing {
+  outline: 2px solid var(--pt-secondary);
+  outline-offset: -2px;
+  border: none !important;
+}
+
+/* Scrollbar Styling */
+.ag-theme-custom.product-table-container .ag-body-horizontal-scroll-viewport::-webkit-scrollbar,
+.ag-theme-custom.product-table-container .ag-body-viewport::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.ag-theme-custom.product-table-container .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-track,
+.ag-theme-custom.product-table-container .ag-body-viewport::-webkit-scrollbar-track {
+  background: var(--pt-bg);
+  border-radius: 6px;
+}
+
+.ag-theme-custom.product-table-container .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb,
+.ag-theme-custom.product-table-container .ag-body-viewport::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+  border: 2px solid var(--pt-bg);
+}
+
+.ag-theme-custom.product-table-container .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb:hover,
+.ag-theme-custom.product-table-container .ag-body-viewport::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .ag-theme-custom.product-table-container * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
