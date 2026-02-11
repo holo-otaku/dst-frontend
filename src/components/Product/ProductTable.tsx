@@ -21,6 +21,7 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 import "./ProductTable.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -31,7 +32,7 @@ interface ProductTableProps {
   setSortState: (sortState: { fieldId: number; order: "asc" | "desc" }) => void;
   showCheckbox: boolean;
   selectedIds: Set<number>;
-  toggleCheckbox: (id: number) => void;
+  setSelectedIds: React.Dispatch<React.SetStateAction<Set<number>>>;
 }
 
 const ProductTable = ({
@@ -40,7 +41,7 @@ const ProductTable = ({
   setSortState,
   showCheckbox,
   selectedIds,
-  toggleCheckbox,
+  setSelectedIds,
 }: ProductTableProps) => {
   const navigate = useNavigate();
   const [maxHeight, setMaxHeight] = useState("400px");
@@ -242,23 +243,9 @@ const ProductTable = ({
       const newSelectedIds = new Set(
         selectedNodes.map((node) => (node.data as ProductData).itemId)
       );
-
-      const currentIds = Array.from(selectedIds);
-      const newIds = Array.from(newSelectedIds);
-
-      currentIds.forEach((id) => {
-        if (!newSelectedIds.has(id)) {
-          toggleCheckbox(id);
-        }
-      });
-
-      newIds.forEach((id) => {
-        if (!selectedIds.has(id)) {
-          toggleCheckbox(id);
-        }
-      });
+      setSelectedIds(newSelectedIds);
     },
-    [selectedIds, toggleCheckbox]
+    [setSelectedIds]
   );
 
   const onSortChanged = useCallback(
@@ -307,6 +294,27 @@ const ProductTable = ({
     },
     [sortState]
   );
+
+  useEffect(() => {
+    if (!gridRef.current?.api) return;
+
+    gridRef.current.api.autoSizeAllColumns();
+  }, [products, columnDefs]);
+
+  useEffect(() => {
+    if (!gridRef.current?.api || sortState.fieldId === -1) return;
+
+    const colId = `attr_${sortState.fieldId}`;
+    gridRef.current.api.applyColumnState({
+      state: [
+        {
+          colId,
+          sort: sortState.order,
+        },
+      ],
+      defaultState: { sort: null },
+    });
+  }, [sortState]);
 
   if (products.length === 0) {
     return <Alert variant="info">查不到任何符合條件的產品!</Alert>;

@@ -167,16 +167,6 @@ export const Search = () => {
     setRefreshKey((prev) => prev + 1);
   };
 
-  const toggleCheckbox = (id: number) => {
-    const newSet = new Set(selectedIds);
-    if (selectedIds.has(id)) {
-      newSet.delete(id);
-    } else {
-      newSet.add(id);
-    }
-    setSelectedIds(newSet);
-  };
-
   const handleBatchSelect = () => {
     setShowCheckbox(true);
     setSelectedIds(new Set());
@@ -387,7 +377,7 @@ export const Search = () => {
         setSortState={setSortState}
         showCheckbox={showCheckbox}
         selectedIds={selectedIds}
-        toggleCheckbox={toggleCheckbox}
+        setSelectedIds={setSelectedIds}
       />
       <Stack direction="horizontal" className="justify-content-center">
         <Pagination
