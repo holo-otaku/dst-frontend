@@ -200,7 +200,6 @@ const ProductTable = ({
       const computeColumnWidthPx = (columnKey: string): number => {
         if (columnKey === "checkbox") return 50;
 
-        const minWidth = columnKey === "id" ? 80 : 100;
         const maxWidth = 600;
 
         // Tailwind p-2 => 8px 左右 padding，另外 header 有 sort icon / resize handle
@@ -208,6 +207,7 @@ const ProductTable = ({
         const cellExtra = 24;
 
         if (columnKey === "id") {
+          const minWidth = 80;
           const headerW = measureTextPx("#", font) + headerExtra;
           let contentW = 0;
           products.forEach((p) => {
@@ -226,6 +226,7 @@ const ProductTable = ({
           const headerW = measureTextPx(headerName, font) + headerExtra;
 
           let contentW = 0;
+          let minWidth = 100; // Default minimum width for attribute columns
 
           if (attributeDef) {
             // Special handling for non-text data types
@@ -235,6 +236,7 @@ const ProductTable = ({
               contentW = 110;
             } else if (attributeDef.dataType === "boolean") {
               contentW = 80;
+              minWidth = 80; // Boolean columns can be narrower
             } else {
               // Measure actual text content width for all text-based columns
               products.forEach((p) => {
@@ -383,9 +385,9 @@ const ProductTable = ({
       case "number":
         return typeof value === "number"
           ? value.toString()
-          : String(value || "");
+          : String(value ?? "");
       default:
-        return String(value || "");
+        return String(value ?? "");
     }
   };
 
@@ -540,6 +542,7 @@ const ProductTable = ({
         const headerW = measureTextPx(headerName, font) + headerExtra;
 
         let contentW = 0;
+        let minWidth = 100; // Default minimum width for attribute columns
 
         if (attributeDef) {
           // Special handling for non-text data types
@@ -549,6 +552,7 @@ const ProductTable = ({
             contentW = 110;
           } else if (attributeDef.dataType === "boolean") {
             contentW = 80;
+            minWidth = 80; // Boolean columns can be narrower
           } else {
             // Measure actual content width for this attribute column
             let measuredW = 150; // minimum width
@@ -566,7 +570,7 @@ const ProductTable = ({
           }
         }
 
-        return clampWidth(Math.max(headerW, contentW), 100, maxWidth);
+        return clampWidth(Math.max(headerW, contentW), minWidth, maxWidth);
       }
 
       if (columnKey.startsWith("erp-")) {
