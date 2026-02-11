@@ -20,6 +20,8 @@
     "version:patch": "npm version patch --no-git-tag-version"
   },
   "dependencies": {
+    "ag-grid-community": "^35.0.1",
+    "ag-grid-react": "^35.0.1",
     "axios": "^1.13.2",
     "axios-hooks": "^5.1.1",
     "bootstrap": "^5.3.8",
@@ -48,6 +50,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.26",
     "globals": "^17.0.0",
+    "playwright": "^1.58.2",
     "prettier": "^3.8.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
