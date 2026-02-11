@@ -400,6 +400,7 @@ const AuthorizedImage = ({
   style: React.CSSProperties;
 }) => {
   const [imageSrc, setImageSrc] = useState<string>("");
+  const blobUrlRef = useRef<string>("");
 
   const [{ loading }, fetchImage] = useAxios<Blob>(
     {
@@ -417,7 +418,13 @@ const AuthorizedImage = ({
         url: `/image/${imageId}`,
       })
         .then((response) => {
+          // Revoke previous blob URL before creating new one
+          if (blobUrlRef.current && blobUrlRef.current.startsWith("blob:")) {
+            URL.revokeObjectURL(blobUrlRef.current);
+          }
+
           const blobUrl = URL.createObjectURL(response.data);
+          blobUrlRef.current = blobUrl;
           setImageSrc(blobUrl);
         })
         .catch((error) => {
@@ -426,8 +433,9 @@ const AuthorizedImage = ({
     }
 
     return () => {
-      if (imageSrc && imageSrc.startsWith("blob:")) {
-        URL.revokeObjectURL(imageSrc);
+      if (blobUrlRef.current && blobUrlRef.current.startsWith("blob:")) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = "";
       }
     };
   }, [src, fetchImage]);
