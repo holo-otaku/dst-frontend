@@ -17,7 +17,6 @@ import {
   RowDoubleClickedEvent,
   SelectionChangedEvent,
   SortChangedEvent,
-  RowStyle,
   ICellRendererParams,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
@@ -203,7 +202,7 @@ const ProductTable = ({
         maxWidth: 400,
         resizable: true,
         cellStyle: (params) => {
-          const data = params.data as ProductData;
+          const data = params.data as ProductData | undefined;
           if (data?.isDeleted || data?.hasArchive) {
             return undefined;
           }
@@ -309,20 +308,6 @@ const ProductTable = ({
     [sortState]
   );
 
-  const getRowStyle = useCallback(
-    (params: { data: ProductData | undefined }): RowStyle | undefined => {
-      if (!params.data) return undefined;
-      if (params.data.isDeleted) {
-        return { backgroundColor: "#9ca3af" };
-      }
-      if (params.data.hasArchive) {
-        return { backgroundColor: "#fee2e2" };
-      }
-      return { backgroundColor: "#ffffff" };
-    },
-    []
-  );
-
   if (products.length === 0) {
     return <Alert variant="info">查不到任何符合條件的產品!</Alert>;
   }
@@ -343,11 +328,15 @@ const ProductTable = ({
         onSortChanged={onSortChanged}
         onRowDoubleClicked={onRowDoubleClicked}
         onGridReady={onGridReady}
-        getRowStyle={getRowStyle}
         rowClassRules={{
-          "row-deleted": (params) => !!params.data?.isDeleted,
-          "row-archived": (params) =>
-            !!params.data?.hasArchive && !params.data?.isDeleted,
+          "row-deleted": (params) => {
+            const data = params.data as ProductData | undefined;
+            return !!data?.isDeleted;
+          },
+          "row-archived": (params) => {
+            const data = params.data as ProductData | undefined;
+            return !!data?.hasArchive && !data?.isDeleted;
+          },
         }}
         suppressRowClickSelection={true}
         domLayout="normal"
