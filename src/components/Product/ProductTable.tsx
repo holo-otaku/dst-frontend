@@ -31,7 +31,7 @@ const PREVIEW_WIDTH = 320;
 const PREVIEW_MAX_HEIGHT = 360;
 const PREVIEW_GUTTER = 12;
 const FONT_SIZE_STORAGE_KEY = "productTable.fontSize";
-const FONT_SIZE_DEFAULT = 14;
+const FONT_SIZE_DEFAULT = 16;
 const FONT_SIZE_MIN = 12;
 const FONT_SIZE_MAX = 18;
 type PreviewPosition = { top: number; left: number; maxHeight: number };
@@ -71,7 +71,16 @@ const ProductTable = ({
 }: ProductTableProps) => {
   const navigate = useNavigate();
   const [maxHeight, setMaxHeight] = useState("400px");
-  const [fontSize, setFontSize] = useState<number>(FONT_SIZE_DEFAULT);
+  const [fontSize, setFontSize] = useState<number>(() => {
+    const stored = localStorage.getItem(FONT_SIZE_STORAGE_KEY);
+    if (stored) {
+      const parsed = parseInt(stored, 10);
+      if (!Number.isNaN(parsed)) {
+        return Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, parsed));
+      }
+    }
+    return FONT_SIZE_DEFAULT;
+  });
   const gridRef = useRef<AgGridReact>(null);
 
   useEffect(() => {
@@ -88,16 +97,6 @@ const ProductTable = ({
     calculateMaxHeight();
     window.addEventListener("resize", calculateMaxHeight);
     return () => window.removeEventListener("resize", calculateMaxHeight);
-  }, []);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(FONT_SIZE_STORAGE_KEY);
-    if (stored) {
-      const parsed = parseInt(stored, 10);
-      if (!Number.isNaN(parsed)) {
-        setFontSize(Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, parsed)));
-      }
-    }
   }, []);
 
   useEffect(() => {
