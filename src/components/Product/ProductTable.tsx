@@ -206,6 +206,8 @@ const ProductTable = ({
         maxWidth: 800,
         resizable: true,
         sortable: true,
+        pinned: "left",
+        lockPinned: true,
         cellClass:
           attr.dataType === "image" || attr.dataType === "picture"
             ? "image-cell"
