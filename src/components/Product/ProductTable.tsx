@@ -8,6 +8,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
+import { createPortal } from "react-dom";
 import useAxios from "axios-hooks";
 import {
   ModuleRegistry,
@@ -25,6 +26,27 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import "./ProductTable.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
+
+const PREVIEW_WIDTH = 320;
+const PREVIEW_MAX_HEIGHT = 360;
+const PREVIEW_GUTTER = 12;
+type PreviewPosition = { top: number; left: number; maxHeight: number };
+
+const calculatePreviewPosition = (rect: DOMRect): PreviewPosition => {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const maxHeight = Math.min(PREVIEW_MAX_HEIGHT, viewportHeight - PREVIEW_GUTTER * 2);
+
+  let left = rect.left + rect.width / 2;
+  left = Math.min(viewportWidth - PREVIEW_GUTTER, Math.max(PREVIEW_GUTTER, left));
+
+  let top = rect.bottom + PREVIEW_GUTTER;
+  if (top + maxHeight > viewportHeight - PREVIEW_GUTTER) {
+    top = Math.max(PREVIEW_GUTTER, rect.top - maxHeight - PREVIEW_GUTTER);
+  }
+
+  return { top, left, maxHeight };
+};
 
 interface ProductTableProps {
   products: ProductData[];
@@ -160,6 +182,10 @@ const ProductTable = ({
         lockPinned: true,
         resizable: true,
         sortable: true,
+        cellClass:
+          attr.dataType === "image" || attr.dataType === "picture"
+            ? "image-cell"
+            : undefined,
       });
     });
 
@@ -185,6 +211,10 @@ const ProductTable = ({
         maxWidth: 400,
         resizable: true,
         sortable: true,
+        cellClass:
+          attr.dataType === "image" || attr.dataType === "picture"
+            ? "image-cell"
+            : undefined,
       });
     });
 
@@ -364,6 +394,13 @@ const ProductImage = ({
 }) => {
   const [imageSrc, setImageSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewPosition, setPreviewPosition] = useState<PreviewPosition>({
+    top: 0,
+    left: 0,
+    maxHeight: PREVIEW_MAX_HEIGHT,
+  });
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -376,25 +413,82 @@ const ProductImage = ({
     setHasError(true);
   };
 
+  const handleMouseEnter = () => {
+    if (!wrapperRef.current) return;
+    const rect = wrapperRef.current.getBoundingClientRect();
+    setPreviewPosition(calculatePreviewPosition(rect));
+    setShowPreview(true);
+  };
+
+  const handleMouseLeave = () => {
+    setShowPreview(false);
+  };
+
   if (hasError || !src) {
     return (
       <div
-        className="bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 text-xs"
-        style={style}
+        className="image-thumb-wrapper"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        ref={wrapperRef}
       >
-        No Image
+        <div
+          className="bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 text-xs rounded image-thumb"
+          style={style}
+        >
+          No Image
+        </div>
+        {showPreview &&
+          createPortal(
+            <div
+            className="bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 text-xs rounded image-preview"
+            style={{
+              top: previewPosition.top,
+              left: previewPosition.left,
+              width: PREVIEW_WIDTH,
+              maxHeight: previewPosition.maxHeight,
+              transform: "translate(-50%, 0)",
+            }}
+          >
+              No Image
+            </div>,
+            document.body
+          )}
       </div>
     );
   }
 
   return (
-    <Image
-      src={imageSrc}
-      alt={alt}
-      style={style}
-      onError={handleImageError}
-      className="object-cover rounded"
-    />
+    <div
+      className="image-thumb-wrapper"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      ref={wrapperRef}
+    >
+      <Image
+        src={imageSrc}
+        alt={alt}
+        style={style}
+        onError={handleImageError}
+        className="object-cover rounded image-thumb"
+      />
+      {showPreview &&
+        createPortal(
+          <Image
+            src={imageSrc}
+            alt={alt}
+            className="object-cover rounded image-preview"
+            style={{
+              top: previewPosition.top,
+              left: previewPosition.left,
+              width: PREVIEW_WIDTH,
+              maxHeight: previewPosition.maxHeight,
+              transform: "translate(-50%, 0)",
+            }}
+          />,
+          document.body
+        )}
+    </div>
   );
 };
 
@@ -409,6 +503,13 @@ const AuthorizedImage = ({
 }) => {
   const [imageSrc, setImageSrc] = useState<string>("");
   const blobUrlRef = useRef<string>("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewPosition, setPreviewPosition] = useState<PreviewPosition>({
+    top: 0,
+    left: 0,
+    maxHeight: PREVIEW_MAX_HEIGHT,
+  });
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const [{ loading }, fetchImage] = useAxios<Blob>(
     {
@@ -451,10 +552,38 @@ const AuthorizedImage = ({
   if (loading) {
     return (
       <div
-        className="bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 text-xs"
-        style={style}
+        className="image-thumb-wrapper"
+        onMouseEnter={() => {
+          if (!wrapperRef.current) return;
+          const rect = wrapperRef.current.getBoundingClientRect();
+          setPreviewPosition(calculatePreviewPosition(rect));
+          setShowPreview(true);
+        }}
+        onMouseLeave={() => setShowPreview(false)}
+        ref={wrapperRef}
       >
-        Loading...
+        <div
+          className="bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 text-xs rounded image-thumb"
+          style={style}
+        >
+          Loading...
+        </div>
+        {showPreview &&
+          createPortal(
+            <div
+              className="bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 text-xs rounded image-preview"
+              style={{
+                top: previewPosition.top,
+                left: previewPosition.left,
+                width: PREVIEW_WIDTH,
+                maxHeight: previewPosition.maxHeight,
+                transform: "translate(-50%, 0)",
+              }}
+            >
+              Loading...
+            </div>,
+            document.body
+          )}
       </div>
     );
   }
@@ -462,21 +591,77 @@ const AuthorizedImage = ({
   if (!imageSrc) {
     return (
       <div
-        className="bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 text-xs"
-        style={style}
+        className="image-thumb-wrapper"
+        onMouseEnter={() => {
+          if (!wrapperRef.current) return;
+          const rect = wrapperRef.current.getBoundingClientRect();
+          setPreviewPosition(calculatePreviewPosition(rect));
+          setShowPreview(true);
+        }}
+        onMouseLeave={() => setShowPreview(false)}
+        ref={wrapperRef}
       >
-        No Image
+        <div
+          className="bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 text-xs rounded image-thumb"
+          style={style}
+        >
+          No Image
+        </div>
+        {showPreview &&
+          createPortal(
+            <div
+              className="bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 text-xs rounded image-preview"
+              style={{
+                top: previewPosition.top,
+                left: previewPosition.left,
+                width: PREVIEW_WIDTH,
+                maxHeight: previewPosition.maxHeight,
+                transform: "translate(-50%, 0)",
+              }}
+            >
+              No Image
+            </div>,
+            document.body
+          )}
       </div>
     );
   }
 
   return (
-    <Image
-      src={imageSrc}
-      alt={alt}
-      style={style}
-      className="object-cover rounded"
-    />
+    <div
+      className="image-thumb-wrapper"
+      onMouseEnter={() => {
+        if (!wrapperRef.current) return;
+        const rect = wrapperRef.current.getBoundingClientRect();
+        setPreviewPosition(calculatePreviewPosition(rect));
+        setShowPreview(true);
+      }}
+      onMouseLeave={() => setShowPreview(false)}
+      ref={wrapperRef}
+    >
+      <Image
+        src={imageSrc}
+        alt={alt}
+        style={style}
+        className="object-cover rounded image-thumb"
+      />
+      {showPreview &&
+        createPortal(
+          <Image
+            src={imageSrc}
+            alt={alt}
+            className="object-cover rounded image-preview"
+            style={{
+              top: previewPosition.top,
+              left: previewPosition.left,
+              width: PREVIEW_WIDTH,
+              maxHeight: previewPosition.maxHeight,
+              transform: "translate(-50%, 0)",
+            }}
+          />, 
+          document.body
+        )}
+    </div>
   );
 };
 

@@ -21,6 +21,9 @@
   --pt-radius: 8px;
   --pt-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   --pt-transition: 200ms ease;
+  --pt-preview-width: 320px;
+  --pt-preview-radius: 14px;
+  --pt-preview-shadow: 0 18px 48px rgba(15, 23, 42, 0.3);
 }
 
 /* Container Styling */
@@ -149,6 +152,38 @@
 .ag-theme-custom.product-table-container .ag-row-selected {
   background-color: var(--pt-selected) !important;
   border-left: 4px solid var(--pt-secondary);
+}
+
+.ag-theme-custom.product-table-container .image-cell {
+  overflow: hidden !important;
+  position: relative;
+}
+
+.image-thumb-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.image-thumb {
+  transition: transform var(--pt-transition), box-shadow var(--pt-transition);
+}
+
+.image-preview {
+  position: fixed;
+  width: var(--pt-preview-width);
+  max-height: 360px;
+  max-width: calc(100vw - 48px);
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 60;
+  box-shadow: var(--pt-preview-shadow);
+  border-radius: var(--pt-preview-radius);
+  border: 1px solid var(--pt-border);
+  background: #ffffff;
 }
 
 /* Focus States */
