@@ -105,6 +105,7 @@ const ProductTable = ({
     if (!gridRef.current?.api) return;
     gridRef.current.api.resetRowHeights();
     gridRef.current.api.refreshCells({ force: true });
+    gridRef.current.api.autoSizeAllColumns();
   }, [fontSize]);
 
   const renderCellValue = useCallback(
@@ -199,7 +200,7 @@ const ProductTable = ({
           return renderCellValue(attribute.dataType, attribute.value);
         },
         minWidth: 100,
-        maxWidth: 400,
+        maxWidth: 800,
         pinned: "left",
         lockPinned: true,
         resizable: true,
@@ -230,7 +231,7 @@ const ProductTable = ({
           return renderCellValue(attribute.dataType, attribute.value);
         },
         minWidth: 100,
-        maxWidth: 400,
+        maxWidth: 800,
         resizable: true,
         sortable: true,
         cellClass:
@@ -252,7 +253,7 @@ const ProductTable = ({
           return erpData?.value || "";
         },
         minWidth: 100,
-        maxWidth: 400,
+        maxWidth: 800,
         resizable: true,
         cellStyle: (params) => {
           const data = params.data as ProductData | undefined;
