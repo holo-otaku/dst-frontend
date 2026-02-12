@@ -14,6 +14,7 @@
   /* Typography */
   --pt-font: "Fira Sans", sans-serif;
   --pt-mono: "Fira Code", monospace;
+  --pt-font-size: 14px;
 
   /* Layout */
   --pt-row-height: 48px;
@@ -48,7 +49,7 @@
 
   /* Typography */
   --ag-font-family: var(--pt-font);
-  --ag-font-size: 14px;
+  --ag-font-size: var(--pt-font-size);
 
   /* Layout */
   --ag-row-height: var(--pt-row-height);
@@ -99,6 +100,7 @@
   line-height: 1.5;
   transition: background-color var(--pt-transition);
   font-family: var(--pt-font) !important;
+  font-size: var(--pt-font-size);
 }
 
 .ag-theme-custom.product-table-container .ag-root-wrapper {
@@ -110,7 +112,7 @@
 /* Monospace Cells (ID column) */
 .ag-theme-custom.product-table-container .monospace-cell {
   font-family: var(--pt-mono) !important;
-  font-size: 13px;
+  font-size: calc(var(--pt-font-size) - 1px);
   color: #64748b;
 }
 
@@ -152,6 +154,41 @@
 .ag-theme-custom.product-table-container .ag-row-selected {
   background-color: var(--pt-selected) !important;
   border-left: 4px solid var(--pt-secondary);
+}
+
+.product-table-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.product-table-toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--pt-border);
+  border-radius: 10px;
+  box-shadow: var(--pt-shadow);
+}
+
+.product-table-toolbar input[type="range"] {
+  accent-color: var(--pt-secondary);
+  width: 160px;
+  cursor: pointer;
+}
+
+.font-size-label {
+  font-weight: 600;
+  color: var(--pt-primary);
+}
+
+.font-size-value {
+  min-width: 48px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #334155;
 }
 
 .ag-theme-custom.product-table-container .image-cell {

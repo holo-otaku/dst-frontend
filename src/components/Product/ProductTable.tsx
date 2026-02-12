@@ -30,6 +30,10 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const PREVIEW_WIDTH = 320;
 const PREVIEW_MAX_HEIGHT = 360;
 const PREVIEW_GUTTER = 12;
+const FONT_SIZE_STORAGE_KEY = "productTable.fontSize";
+const FONT_SIZE_DEFAULT = 14;
+const FONT_SIZE_MIN = 12;
+const FONT_SIZE_MAX = 18;
 type PreviewPosition = { top: number; left: number; maxHeight: number };
 
 const calculatePreviewPosition = (rect: DOMRect): PreviewPosition => {
@@ -67,6 +71,7 @@ const ProductTable = ({
 }: ProductTableProps) => {
   const navigate = useNavigate();
   const [maxHeight, setMaxHeight] = useState("400px");
+  const [fontSize, setFontSize] = useState<number>(FONT_SIZE_DEFAULT);
   const gridRef = useRef<AgGridReact>(null);
 
   useEffect(() => {
@@ -84,6 +89,23 @@ const ProductTable = ({
     window.addEventListener("resize", calculateMaxHeight);
     return () => window.removeEventListener("resize", calculateMaxHeight);
   }, []);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(FONT_SIZE_STORAGE_KEY);
+    if (stored) {
+      const parsed = parseInt(stored, 10);
+      if (!Number.isNaN(parsed)) {
+        setFontSize(Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, parsed)));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(FONT_SIZE_STORAGE_KEY, String(fontSize));
+    if (!gridRef.current?.api) return;
+    gridRef.current.api.resetRowHeights();
+    gridRef.current.api.refreshCells({ force: true });
+  }, [fontSize]);
 
   const renderCellValue = useCallback(
     (dataType: string, value: string | number | boolean | null | undefined) => {
@@ -346,39 +368,71 @@ const ProductTable = ({
     });
   }, [sortState]);
 
+  const rowHeight = Math.max(fontSize + 10, 40);
+  const headerHeight = 48;
+
+  const handleFontSizeChange = (value: number) => {
+    const clamped = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, value));
+    setFontSize(clamped);
+  };
+
   if (products.length === 0) {
     return <Alert variant="info">查不到任何符合條件的產品!</Alert>;
   }
 
   return (
-    <div
-      className="ag-theme-custom product-table-container"
-      style={{ height: maxHeight, width: "100%" }}
-    >
-      <AgGridReact
-        ref={gridRef}
-        rowData={products}
-        columnDefs={columnDefs}
-        rowSelection={rowSelection}
-        rowHeight={48}
-        headerHeight={48}
-        onSelectionChanged={onSelectionChanged}
-        onSortChanged={onSortChanged}
-        onRowDoubleClicked={onRowDoubleClicked}
-        onGridReady={onGridReady}
-        rowClassRules={{
-          "row-deleted": (params) => {
-            const data = params.data as ProductData | undefined;
-            return !!data?.isDeleted;
-          },
-          "row-archived": (params) => {
-            const data = params.data as ProductData | undefined;
-            return !!data?.hasArchive && !data?.isDeleted;
-          },
+    <div className="product-table-shell">
+      <div className="product-table-toolbar">
+        <label className="font-size-label" htmlFor="font-size-control">
+          字體大小
+        </label>
+        <input
+          id="font-size-control"
+          type="range"
+          min={FONT_SIZE_MIN}
+          max={FONT_SIZE_MAX}
+          step={1}
+          value={fontSize}
+          onChange={(e) => handleFontSizeChange(Number(e.target.value))}
+          aria-label="字體大小"
+        />
+        <div className="font-size-value">{fontSize}px</div>
+      </div>
+
+      <div
+        className="ag-theme-custom product-table-container"
+        style={{
+          height: maxHeight,
+          width: "100%",
+          ["--pt-font-size" as string]: `${fontSize}px`,
+          ["--pt-row-height" as string]: `${rowHeight}px`,
         }}
-        suppressRowClickSelection={true}
-        domLayout="normal"
-      />
+      >
+        <AgGridReact
+          ref={gridRef}
+          rowData={products}
+          columnDefs={columnDefs}
+          rowSelection={rowSelection}
+          rowHeight={rowHeight}
+          headerHeight={headerHeight}
+          onSelectionChanged={onSelectionChanged}
+          onSortChanged={onSortChanged}
+          onRowDoubleClicked={onRowDoubleClicked}
+          onGridReady={onGridReady}
+          rowClassRules={{
+            "row-deleted": (params) => {
+              const data = params.data as ProductData | undefined;
+              return !!data?.isDeleted;
+            },
+            "row-archived": (params) => {
+              const data = params.data as ProductData | undefined;
+              return !!data?.hasArchive && !data?.isDeleted;
+            },
+          }}
+          suppressRowClickSelection={true}
+          domLayout="normal"
+        />
+      </div>
     </div>
   );
 };
