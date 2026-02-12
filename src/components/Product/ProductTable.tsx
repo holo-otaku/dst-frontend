@@ -156,14 +156,18 @@ const ProductTable = ({
       cols.push({
         colId: "checkbox",
         headerName: "",
-        field: "itemId",
+        field: undefined,
+        valueGetter: () => "",
         width: 50,
+        minWidth: 50,
+        maxWidth: 50,
         pinned: "left",
         lockPinned: true,
         suppressMovable: true,
         checkboxSelection: true,
         headerCheckboxSelection: true,
-        resizable: true,
+        resizable: false,
+        suppressSizeToFit: true,
       });
     }
 
@@ -200,8 +204,6 @@ const ProductTable = ({
         },
         minWidth: 100,
         maxWidth: 800,
-        pinned: "left",
-        lockPinned: true,
         resizable: true,
         sortable: true,
         cellClass:
@@ -266,16 +268,6 @@ const ProductTable = ({
 
     return cols;
   }, [products, showCheckbox, renderCellValue]);
-
-  const rowSelection = useMemo(
-    () => ({
-      mode: "multiRow" as const,
-      checkboxes: showCheckbox,
-      headerCheckbox: showCheckbox,
-      enableClickSelection: false,
-    }),
-    [showCheckbox]
-  );
 
   useEffect(() => {
     if (!gridRef.current?.api) return;
@@ -400,7 +392,7 @@ const ProductTable = ({
       </div>
 
       <div
-        className="ag-theme-custom product-table-container"
+        className="ag-theme-quartz ag-theme-custom product-table-container"
         style={{
           height: maxHeight,
           width: "100%",
@@ -412,7 +404,7 @@ const ProductTable = ({
           ref={gridRef}
           rowData={products}
           columnDefs={columnDefs}
-          rowSelection={rowSelection}
+          rowSelection={showCheckbox ? "multiple" : undefined}
           rowHeight={rowHeight}
           headerHeight={headerHeight}
           onSelectionChanged={onSelectionChanged}
