@@ -18,10 +18,9 @@ import {
   SelectionChangedEvent,
   SortChangedEvent,
   ICellRendererParams,
+  themeQuartz,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-quartz.css";
 import "./ProductTable.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -46,6 +45,28 @@ const ProductTable = ({
   const navigate = useNavigate();
   const [maxHeight, setMaxHeight] = useState("400px");
   const gridRef = useRef<AgGridReact>(null);
+
+  // 自定義 theme：基於 themeQuartz 但覆蓋顏色
+  const customTheme = useMemo(
+    () =>
+      themeQuartz.withParams({
+        backgroundColor: "#f8fafc",
+        foregroundColor: "#1e3a8a",
+        borderColor: "#e2e8f0",
+        headerBackgroundColor: "#ffffff",
+        oddRowBackgroundColor: "#f8fafc",
+        rowHoverColor: "#f1f5f9",
+        selectedRowBackgroundColor: "#dbeafe",
+        fontFamily: '"Fira Sans", sans-serif',
+        fontSize: 14,
+        rowHeight: 48,
+        headerHeight: 48,
+        cellHorizontalPadding: 16,
+        checkboxCheckedShapeColor: "#3b82f6",
+        borderRadius: 8,
+      }),
+    []
+  );
 
   useEffect(() => {
     const calculateMaxHeight = () => {
@@ -108,21 +129,7 @@ const ProductTable = ({
     const attributes = products[0].attributes || [];
     const erpAttributes = products[0].erp || [];
 
-    if (showCheckbox) {
-      cols.push({
-        colId: "checkbox",
-        headerName: "",
-        field: "itemId",
-        width: 50,
-        pinned: "left",
-        lockPinned: true,
-        suppressMovable: true,
-        checkboxSelection: true,
-        headerCheckboxSelection: true,
-        resizable: true,
-      });
-    }
-
+    // Checkbox column is now handled by rowSelection config, not column definition
     cols.push({
       colId: "id",
       headerName: "#",
@@ -221,6 +228,7 @@ const ProductTable = ({
       checkboxes: showCheckbox,
       headerCheckbox: showCheckbox,
       enableClickSelection: false,
+      selectAll: "filtered" as const,
     }),
     [showCheckbox]
   );
@@ -236,6 +244,21 @@ const ProductTable = ({
       node.setSelected(isSelected);
     });
   }, [selectedIds]);
+
+  const selectionColumnDef = useMemo(
+    () => ({
+      width: 50,
+      minWidth: 50,
+      maxWidth: 50,
+      resizable: false,
+      suppressMovable: true,
+      lockPosition: "left" as const,
+      pinned: "left" as const,
+      headerName: "",
+      initialPinned: "left" as const,
+    }),
+    []
+  );
 
   const onSelectionChanged = useCallback(
     (event: SelectionChangedEvent<ProductData>) => {
@@ -322,14 +345,16 @@ const ProductTable = ({
 
   return (
     <div
-      className="ag-theme-custom product-table-container"
+      className="product-table-container"
       style={{ height: maxHeight, width: "100%" }}
     >
       <AgGridReact
         ref={gridRef}
+        theme={customTheme}
         rowData={products}
         columnDefs={columnDefs}
         rowSelection={rowSelection}
+        selectionColumnDef={selectionColumnDef}
         rowHeight={48}
         headerHeight={48}
         onSelectionChanged={onSelectionChanged}
@@ -346,7 +371,6 @@ const ProductTable = ({
             return !!data?.hasArchive && !data?.isDeleted;
           },
         }}
-        suppressRowClickSelection={true}
         domLayout="normal"
       />
     </div>
