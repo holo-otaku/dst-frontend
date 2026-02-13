@@ -281,7 +281,6 @@ const ProductTable = ({
       lockPosition: "left" as const,
       pinned: "left" as const,
       headerName: "",
-      initialPinned: "left" as const,
     }),
     []
   );
