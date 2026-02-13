@@ -99,9 +99,13 @@ const ProductTable = ({
           return value ? "True" : "False";
         case "picture":
           if (value && typeof value === "string") {
-            const productName = productData?.attributes?.find(
+            const productNameValue = productData?.attributes?.find(
               (a: ProductDataAttribute) => a.fieldName === "供應商料號"
-            )?.value as string | undefined;
+            )?.value;
+            const productName =
+              productNameValue && typeof productNameValue === "string"
+                ? productNameValue
+                : undefined;
             return (
               <AuthorizedImage
                 src={`${serverBaseUrl}${value}`}
@@ -113,9 +117,13 @@ const ProductTable = ({
           return "";
         case "image":
           if (typeof value === "string" && value.trim() !== "") {
-            const productName = productData?.attributes?.find(
+            const productNameValue = productData?.attributes?.find(
               (a: ProductDataAttribute) => a.fieldName === "供應商料號"
-            )?.value as string | undefined;
+            )?.value;
+            const productName =
+              productNameValue && typeof productNameValue === "string"
+                ? productNameValue
+                : undefined;
             return (
               <ProductImage
                 src={value}
@@ -373,8 +381,6 @@ const ProductTable = ({
         columnDefs={columnDefs}
         rowSelection={rowSelection}
         selectionColumnDef={selectionColumnDef}
-        rowHeight={48}
-        headerHeight={48}
         onSelectionChanged={onSelectionChanged}
         onSortChanged={onSortChanged}
         onRowDoubleClicked={onRowDoubleClicked}
