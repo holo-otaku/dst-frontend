@@ -116,6 +116,7 @@
 
 /* Row Styling */
 .ag-theme-quartz.product-table-container .ag-row {
+  cursor: pointer;
   transition:
     background-color var(--pt-transition),
     box-shadow var(--pt-transition);
@@ -218,5 +219,13 @@
   .ag-theme-quartz.product-table-container * {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* Mobile Responsive Support */
+@media (max-width: 768px) {
+  .product-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }

@@ -85,7 +85,11 @@ const ProductTable = ({
   }, []);
 
   const renderCellValue = useCallback(
-    (dataType: string, value: string | number | boolean | null | undefined) => {
+    (
+      dataType: string,
+      value: string | number | boolean | null | undefined,
+      productData?: ProductData
+    ) => {
       const serverBaseUrl = import.meta.env.VITE_API_HOST;
 
       if (value === null || value === undefined) return "";
@@ -95,10 +99,13 @@ const ProductTable = ({
           return value ? "True" : "False";
         case "picture":
           if (value && typeof value === "string") {
+            const productName = productData?.attributes?.find(
+              (a: ProductDataAttribute) => a.fieldName === "供應商料號"
+            )?.value as string | undefined;
             return (
               <AuthorizedImage
                 src={`${serverBaseUrl}${value}`}
-                alt="Product"
+                alt={productName ? `${productName} 產品圖片` : "產品圖片"}
                 style={{ maxWidth: "100px" }}
               />
             );
@@ -106,10 +113,13 @@ const ProductTable = ({
           return "";
         case "image":
           if (typeof value === "string" && value.trim() !== "") {
+            const productName = productData?.attributes?.find(
+              (a: ProductDataAttribute) => a.fieldName === "供應商料號"
+            )?.value as string | undefined;
             return (
               <ProductImage
                 src={value}
-                alt="Product"
+                alt={productName ? `${productName} 產品圖片` : "產品圖片"}
                 style={{ maxWidth: "80px", maxHeight: "60px" }}
               />
             );
@@ -159,7 +169,11 @@ const ProductTable = ({
             (a: ProductDataAttribute) => a.fieldId === attr.fieldId
           );
           if (!attribute) return "";
-          return renderCellValue(attribute.dataType, attribute.value);
+          return renderCellValue(
+            attribute.dataType,
+            attribute.value,
+            params.data
+          );
         },
         minWidth: 100,
         maxWidth: 400,
@@ -186,7 +200,11 @@ const ProductTable = ({
             (a: ProductDataAttribute) => a.fieldId === attr.fieldId
           );
           if (!attribute) return "";
-          return renderCellValue(attribute.dataType, attribute.value);
+          return renderCellValue(
+            attribute.dataType,
+            attribute.value,
+            params.data
+          );
         },
         minWidth: 100,
         maxWidth: 400,
