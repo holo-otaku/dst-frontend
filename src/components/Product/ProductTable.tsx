@@ -18,10 +18,10 @@ import {
   SelectionChangedEvent,
   SortChangedEvent,
   ICellRendererParams,
+  themeQuartz,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-quartz.css";
+import ImagePreviewRenderer from "./ImagePreviewRenderer";
 import "./ProductTable.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -47,6 +47,28 @@ const ProductTable = ({
   const [maxHeight, setMaxHeight] = useState("400px");
   const gridRef = useRef<AgGridReact>(null);
 
+  // 自定義 theme：基於 themeQuartz 但覆蓋顏色
+  const customTheme = useMemo(
+    () =>
+      themeQuartz.withParams({
+        backgroundColor: "#f8fafc",
+        foregroundColor: "#1e3a8a",
+        borderColor: "#e2e8f0",
+        headerBackgroundColor: "#ffffff",
+        oddRowBackgroundColor: "#f8fafc",
+        rowHoverColor: "#f1f5f9",
+        selectedRowBackgroundColor: "#dbeafe",
+        fontFamily: '"Fira Sans", sans-serif',
+        fontSize: 14,
+        rowHeight: 48,
+        headerHeight: 48,
+        cellHorizontalPadding: 16,
+        checkboxCheckedShapeColor: "#3b82f6",
+        borderRadius: 8,
+      }),
+    []
+  );
+
   useEffect(() => {
     const calculateMaxHeight = () => {
       const windowHeight = window.innerHeight;
@@ -64,8 +86,21 @@ const ProductTable = ({
   }, []);
 
   const renderCellValue = useCallback(
-    (dataType: string, value: string | number | boolean | null | undefined) => {
+    (
+      dataType: string,
+      value: string | number | boolean | null | undefined,
+      productData?: ProductData
+    ) => {
       const serverBaseUrl = import.meta.env.VITE_API_HOST;
+
+      const getProductName = () => {
+        const productNameValue = productData?.attributes?.find(
+          (a: ProductDataAttribute) => a.fieldName === "供應商料號"
+        )?.value;
+        return typeof productNameValue === "string"
+          ? productNameValue
+          : undefined;
+      };
 
       if (value === null || value === undefined) return "";
 
@@ -74,22 +109,60 @@ const ProductTable = ({
           return value ? "True" : "False";
         case "picture":
           if (value && typeof value === "string") {
-            return (
+            const productName = getProductName();
+            const altText = productName
+              ? `${productName} 產品圖片`
+              : "產品圖片";
+            const thumbnail = (
               <AuthorizedImage
                 src={`${serverBaseUrl}${value}`}
-                alt="Product"
-                style={{ maxWidth: "100px" }}
+                alt={altText}
+                style={{ maxWidth: "100px", maxHeight: "80px" }}
+              />
+            );
+            const preview = (
+              <AuthorizedImage
+                src={`${serverBaseUrl}${value}`}
+                alt={altText}
+                style={{ maxWidth: "420px", maxHeight: "320px" }}
+              />
+            );
+            return (
+              <ImagePreviewRenderer
+                thumbnail={thumbnail}
+                preview={preview}
+                previewWidth={420}
+                previewHeight={320}
               />
             );
           }
           return "";
         case "image":
           if (typeof value === "string" && value.trim() !== "") {
-            return (
+            const productName = getProductName();
+            const altText = productName
+              ? `${productName} 產品圖片`
+              : "產品圖片";
+            const thumbnail = (
               <ProductImage
                 src={value}
-                alt="Product"
+                alt={altText}
                 style={{ maxWidth: "80px", maxHeight: "60px" }}
+              />
+            );
+            const preview = (
+              <ProductImage
+                src={value}
+                alt={altText}
+                style={{ maxWidth: "420px", maxHeight: "320px" }}
+              />
+            );
+            return (
+              <ImagePreviewRenderer
+                thumbnail={thumbnail}
+                preview={preview}
+                previewWidth={420}
+                previewHeight={320}
               />
             );
           }
@@ -108,21 +181,7 @@ const ProductTable = ({
     const attributes = products[0].attributes || [];
     const erpAttributes = products[0].erp || [];
 
-    if (showCheckbox) {
-      cols.push({
-        colId: "checkbox",
-        headerName: "",
-        field: "itemId",
-        width: 50,
-        pinned: "left",
-        lockPinned: true,
-        suppressMovable: true,
-        checkboxSelection: true,
-        headerCheckboxSelection: true,
-        resizable: true,
-      });
-    }
-
+    // Checkbox column is now handled by rowSelection config, not column definition
     cols.push({
       colId: "id",
       headerName: "#",
@@ -152,7 +211,11 @@ const ProductTable = ({
             (a: ProductDataAttribute) => a.fieldId === attr.fieldId
           );
           if (!attribute) return "";
-          return renderCellValue(attribute.dataType, attribute.value);
+          return renderCellValue(
+            attribute.dataType,
+            attribute.value,
+            params.data
+          );
         },
         minWidth: 100,
         maxWidth: 400,
@@ -179,7 +242,11 @@ const ProductTable = ({
             (a: ProductDataAttribute) => a.fieldId === attr.fieldId
           );
           if (!attribute) return "";
-          return renderCellValue(attribute.dataType, attribute.value);
+          return renderCellValue(
+            attribute.dataType,
+            attribute.value,
+            params.data
+          );
         },
         minWidth: 100,
         maxWidth: 400,
@@ -221,6 +288,7 @@ const ProductTable = ({
       checkboxes: showCheckbox,
       headerCheckbox: showCheckbox,
       enableClickSelection: false,
+      selectAll: "filtered" as const,
     }),
     [showCheckbox]
   );
@@ -236,6 +304,20 @@ const ProductTable = ({
       node.setSelected(isSelected);
     });
   }, [selectedIds]);
+
+  const selectionColumnDef = useMemo(
+    () => ({
+      width: 50,
+      minWidth: 50,
+      maxWidth: 50,
+      resizable: false,
+      suppressMovable: true,
+      lockPosition: "left" as const,
+      pinned: "left" as const,
+      headerName: "",
+    }),
+    []
+  );
 
   const onSelectionChanged = useCallback(
     (event: SelectionChangedEvent<ProductData>) => {
@@ -322,16 +404,16 @@ const ProductTable = ({
 
   return (
     <div
-      className="ag-theme-custom product-table-container"
+      className="product-table-container"
       style={{ height: maxHeight, width: "100%" }}
     >
       <AgGridReact
         ref={gridRef}
+        theme={customTheme}
         rowData={products}
         columnDefs={columnDefs}
         rowSelection={rowSelection}
-        rowHeight={48}
-        headerHeight={48}
+        selectionColumnDef={selectionColumnDef}
         onSelectionChanged={onSelectionChanged}
         onSortChanged={onSortChanged}
         onRowDoubleClicked={onRowDoubleClicked}
@@ -346,7 +428,6 @@ const ProductTable = ({
             return !!data?.hasArchive && !data?.isDeleted;
           },
         }}
-        suppressRowClickSelection={true}
         domLayout="normal"
       />
     </div>
