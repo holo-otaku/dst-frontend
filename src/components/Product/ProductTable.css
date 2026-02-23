@@ -1,0 +1,250 @@
+/* ProductTable Design System - Data-Dense Dashboard Style */
+
+:root {
+  /* Color Tokens */
+  --pt-primary: #1e40af;
+  --pt-secondary: #3b82f6;
+  --pt-cta: #f59e0b;
+  --pt-bg: #f8fafc;
+  --pt-text: #1e3a8a;
+  --pt-border: #e2e8f0;
+  --pt-hover: #f1f5f9;
+  --pt-selected: #dbeafe;
+
+  /* Typography */
+  --pt-font: "Fira Sans", sans-serif;
+  --pt-mono: "Fira Code", monospace;
+
+  /* Layout */
+  --pt-row-height: 48px;
+  --pt-header-height: 48px;
+  --pt-radius: 8px;
+  --pt-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --pt-transition: 200ms ease;
+}
+
+/* Container Styling */
+.product-table-container {
+  position: relative;
+  z-index: 0;
+  border: 1px solid var(--pt-border);
+  border-radius: var(--pt-radius);
+  box-shadow: var(--pt-shadow);
+  overflow: hidden;
+  font-family: var(--pt-font);
+
+  /* AG Grid Variable Overrides */
+  /* Colors */
+  --ag-background-color: var(--pt-bg);
+  --ag-foreground-color: var(--pt-text);
+  --ag-border-color: var(--pt-border);
+  --ag-header-background-color: #ffffff;
+  --ag-odd-row-background-color: #f8fafc;
+  --ag-row-hover-color: var(--pt-hover);
+  --ag-selected-row-background-color: var(--pt-selected);
+
+  /* Typography */
+  --ag-font-family: var(--pt-font);
+  --ag-font-size: 14px;
+
+  /* Layout */
+  --ag-row-height: var(--pt-row-height);
+  --ag-header-height: var(--pt-header-height);
+  --ag-cell-horizontal-padding: 16px;
+
+  /* Checkbox Colors */
+  --ag-checkbox-checked-color: var(--pt-secondary);
+
+  /* Borders */
+  --ag-borders: solid 1px;
+  --ag-row-border-color: var(--pt-border);
+  --ag-border-radius: var(--pt-radius);
+}
+
+/* Header Styling */
+.product-table-container .ag-header {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 2px solid var(--pt-primary);
+  font-weight: 600;
+  color: var(--pt-primary);
+}
+
+.product-table-container .ag-header-cell {
+  transition: background-color var(--pt-transition);
+}
+
+.product-table-container .ag-header-cell-label {
+  font-family: var(--pt-font);
+}
+
+.product-table-container .ag-header-cell:hover {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+}
+
+/* Header Sort Indicators */
+.product-table-container .ag-header-cell-sorted-asc,
+.product-table-container .ag-header-cell-sorted-desc {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.product-table-container .ag-icon-asc,
+.product-table-container .ag-icon-desc {
+  color: var(--pt-secondary);
+}
+
+/* Cell Styling */
+.product-table-container .ag-cell {
+  display: flex;
+  align-items: center;
+  line-height: 1.5;
+  transition: background-color var(--pt-transition);
+  font-family: var(--pt-font) !important;
+}
+
+.product-table-container .ag-root-wrapper {
+  font-family: var(--pt-font) !important;
+  border-radius: var(--pt-radius);
+  overflow: hidden;
+}
+
+/* Monospace Cells (ID column) */
+.product-table-container .monospace-cell {
+  font-family: var(--pt-mono) !important;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Row Styling */
+.product-table-container .ag-row {
+  cursor: pointer;
+  transition:
+    background-color var(--pt-transition),
+    box-shadow var(--pt-transition);
+}
+
+.product-table-container
+  .ag-row:not(.row-deleted):not(.row-archived):not(.ag-row-selected):hover {
+  background-color: var(--pt-hover) !important;
+  box-shadow: inset 0 0 0 1px var(--pt-secondary);
+}
+
+/* Zebra Striping - 只對正常列生效 */
+.product-table-container .ag-row-even:not(.row-deleted):not(.row-archived) {
+  background-color: #ffffff !important;
+}
+
+.product-table-container .ag-row-odd:not(.row-deleted):not(.row-archived) {
+  background-color: #f8fafc !important;
+}
+
+/* Row State Classes - 優先於 zebra striping */
+.product-table-container .row-deleted {
+  background-color: #fee2e2 !important;
+  border-left: 4px solid #ef4444;
+  opacity: 0.7;
+}
+
+.product-table-container .row-archived {
+  background-color: #fef3c7 !important;
+  border-left: 4px solid var(--pt-cta);
+}
+
+.product-table-container .ag-row-selected {
+  background-color: var(--pt-selected) !important;
+  border-left: 4px solid var(--pt-secondary);
+}
+
+/* Focus States */
+.product-table-container .ag-cell-focus,
+.product-table-container .ag-cell-inline-editing {
+  outline: 2px solid var(--pt-secondary);
+  outline-offset: -2px;
+  border: none !important;
+}
+
+/* Scrollbar Styling */
+.product-table-container ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.product-table-container ::-webkit-scrollbar-track {
+  background: var(--pt-bg);
+  border-radius: 6px;
+}
+
+.product-table-container ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+  border: 2px solid var(--pt-bg);
+}
+
+.product-table-container ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Firefox scrollbar support */
+.product-table-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 var(--pt-bg);
+}
+
+.image-preview-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.image-preview-tooltip {
+  position: absolute;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid var(--pt-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+  opacity: 0.98;
+  transform: translateY(-2px);
+}
+
+.product-table-container
+  .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-track,
+.product-table-container .ag-body-viewport::-webkit-scrollbar-track {
+  background: var(--pt-bg);
+  border-radius: 6px;
+}
+
+.product-table-container
+  .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb,
+.product-table-container .ag-body-viewport::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+  border: 2px solid var(--pt-bg);
+}
+
+.product-table-container
+  .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb:hover,
+.product-table-container .ag-body-viewport::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .product-table-container * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Mobile Responsive Support */
+@media (max-width: 768px) {
+  .product-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

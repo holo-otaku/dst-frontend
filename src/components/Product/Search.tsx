@@ -11,7 +11,6 @@ import {
   ProductSearchPayloadField,
   ProductSearchPayloadOperation,
   ProductSearchResponse,
-  ProductData,
   ArchiveProductResponse,
   ArchiveProductPayloadField,
 } from "./Interface";
@@ -166,32 +165,6 @@ export const Search = () => {
 
   const refreshProducts = () => {
     setRefreshKey((prev) => prev + 1);
-  };
-
-  const toggleCheckbox = (id: number) => {
-    const newSet = new Set(selectedIds);
-    if (newSet.has(id)) {
-      newSet.delete(id);
-    } else {
-      newSet.add(id);
-    }
-    setSelectedIds(newSet);
-  };
-
-  const handleHeaderCheckbox = () => {
-    const currentPageIds = get(productSearchResponse, "data", []).map(
-      (p: ProductData) => p.itemId
-    );
-    const newSet = new Set(selectedIds);
-    const isAllSelected = currentPageIds.every((id: number) =>
-      selectedIds.has(id)
-    );
-    if (isAllSelected) {
-      currentPageIds.forEach((id: number) => newSet.delete(id));
-    } else {
-      currentPageIds.forEach((id: number) => newSet.add(id));
-    }
-    setSelectedIds(newSet);
   };
 
   const handleBatchSelect = () => {
@@ -404,8 +377,7 @@ export const Search = () => {
         setSortState={setSortState}
         showCheckbox={showCheckbox}
         selectedIds={selectedIds}
-        toggleCheckbox={toggleCheckbox}
-        handleHeaderCheckbox={handleHeaderCheckbox}
+        setSelectedIds={setSelectedIds}
       />
       <Stack direction="horizontal" className="justify-content-center">
         <Pagination
