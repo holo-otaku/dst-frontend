@@ -189,6 +189,29 @@
   scrollbar-color: #cbd5e1 var(--pt-bg);
 }
 
+.image-preview-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.image-preview-tooltip {
+  position: absolute;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid var(--pt-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+  opacity: 0.98;
+  transform: translateY(-2px);
+}
+
 .product-table-container
   .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-track,
 .product-table-container .ag-body-viewport::-webkit-scrollbar-track {

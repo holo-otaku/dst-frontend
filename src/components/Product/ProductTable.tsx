@@ -21,6 +21,7 @@ import {
   themeQuartz,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import ImagePreviewRenderer from "./ImagePreviewRenderer";
 import "./ProductTable.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -92,6 +93,15 @@ const ProductTable = ({
     ) => {
       const serverBaseUrl = import.meta.env.VITE_API_HOST;
 
+      const getProductName = () => {
+        const productNameValue = productData?.attributes?.find(
+          (a: ProductDataAttribute) => a.fieldName === "供應商料號"
+        )?.value;
+        return typeof productNameValue === "string"
+          ? productNameValue
+          : undefined;
+      };
+
       if (value === null || value === undefined) return "";
 
       switch (dataType) {
@@ -99,36 +109,60 @@ const ProductTable = ({
           return value ? "True" : "False";
         case "picture":
           if (value && typeof value === "string") {
-            const productNameValue = productData?.attributes?.find(
-              (a: ProductDataAttribute) => a.fieldName === "供應商料號"
-            )?.value;
-            const productName =
-              productNameValue && typeof productNameValue === "string"
-                ? productNameValue
-                : undefined;
-            return (
+            const productName = getProductName();
+            const altText = productName
+              ? `${productName} 產品圖片`
+              : "產品圖片";
+            const thumbnail = (
               <AuthorizedImage
                 src={`${serverBaseUrl}${value}`}
-                alt={productName ? `${productName} 產品圖片` : "產品圖片"}
-                style={{ maxWidth: "100px" }}
+                alt={altText}
+                style={{ maxWidth: "100px", maxHeight: "80px" }}
+              />
+            );
+            const preview = (
+              <AuthorizedImage
+                src={`${serverBaseUrl}${value}`}
+                alt={altText}
+                style={{ maxWidth: "420px", maxHeight: "320px" }}
+              />
+            );
+            return (
+              <ImagePreviewRenderer
+                thumbnail={thumbnail}
+                preview={preview}
+                previewWidth={420}
+                previewHeight={320}
               />
             );
           }
           return "";
         case "image":
           if (typeof value === "string" && value.trim() !== "") {
-            const productNameValue = productData?.attributes?.find(
-              (a: ProductDataAttribute) => a.fieldName === "供應商料號"
-            )?.value;
-            const productName =
-              productNameValue && typeof productNameValue === "string"
-                ? productNameValue
-                : undefined;
-            return (
+            const productName = getProductName();
+            const altText = productName
+              ? `${productName} 產品圖片`
+              : "產品圖片";
+            const thumbnail = (
               <ProductImage
                 src={value}
-                alt={productName ? `${productName} 產品圖片` : "產品圖片"}
+                alt={altText}
                 style={{ maxWidth: "80px", maxHeight: "60px" }}
+              />
+            );
+            const preview = (
+              <ProductImage
+                src={value}
+                alt={altText}
+                style={{ maxWidth: "420px", maxHeight: "320px" }}
+              />
+            );
+            return (
+              <ImagePreviewRenderer
+                thumbnail={thumbnail}
+                preview={preview}
+                previewWidth={420}
+                previewHeight={320}
               />
             );
           }
