@@ -23,6 +23,7 @@ import {
   themeQuartz,
   ColumnHeaderContextMenuEvent,
   Column,
+  type ColumnState,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import ImagePreviewRenderer from "./ImagePreviewRenderer";
@@ -33,10 +34,10 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const COLUMN_STATE_KEY_PREFIX = "dst_product_col_state_";
 
-const loadColumnState = (seriesId: string | number) => {
+const loadColumnState = (seriesId: string | number): ColumnState[] | null => {
   try {
     const raw = localStorage.getItem(`${COLUMN_STATE_KEY_PREFIX}${seriesId}`);
-    return raw ? JSON.parse(raw) : null;
+    return raw ? (JSON.parse(raw) as ColumnState[]) : null;
   } catch {
     return null;
   }
