@@ -24,6 +24,7 @@ import {
   ColumnHeaderContextMenuEvent,
   Column,
   type ColumnState,
+  NewColumnsLoadedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import ImagePreviewRenderer from "./ImagePreviewRenderer";
@@ -447,7 +448,6 @@ const ProductTable = ({
           defaultState: { sort: null },
         });
       }
-
       const saved = loadColumnState(seriesId);
       if (saved) {
         params.api.applyColumnState({ state: saved, applyOrder: true });
@@ -456,6 +456,20 @@ const ProductTable = ({
       }
     },
     [sortState, seriesId]
+  );
+
+  // Re-apply saved column state whenever ag-grid processes a new set of
+  // columnDefs (e.g. after a series switch loads new products via API).
+  // onGridReady only fires on initial mount; onNewColumnsLoaded fires each
+  // time columnDefs changes, which is when we need to restore pin/order.
+  const onNewColumnsLoaded = useCallback(
+    (params: NewColumnsLoadedEvent<ProductData>) => {
+      const saved = loadColumnState(seriesId);
+      if (saved) {
+        params.api.applyColumnState({ state: saved, applyOrder: true });
+      }
+    },
+    [seriesId]
   );
 
   useEffect(() => {
@@ -506,6 +520,7 @@ const ProductTable = ({
         onSortChanged={onSortChanged}
         onRowDoubleClicked={onRowDoubleClicked}
         onGridReady={onGridReady}
+        onNewColumnsLoaded={onNewColumnsLoaded}
         onColumnHeaderContextMenu={onColumnHeaderContextMenu}
         rowClassRules={{
           "row-deleted": (params) => {
