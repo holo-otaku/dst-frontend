@@ -227,7 +227,6 @@ const ProductTable = ({
           );
         },
         minWidth: 100,
-        maxWidth: 400,
         pinned: "left",
         lockPinned: true,
         resizable: true,
@@ -266,7 +265,6 @@ const ProductTable = ({
           );
         },
         minWidth: 100,
-        maxWidth: 400,
         resizable: true,
         sortable: true,
       });
@@ -284,7 +282,6 @@ const ProductTable = ({
           return erpData?.value || "";
         },
         minWidth: 100,
-        maxWidth: 400,
         resizable: true,
         cellStyle: (params) => {
           const data = params.data as ProductData | undefined;
