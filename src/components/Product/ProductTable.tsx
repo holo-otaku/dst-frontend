@@ -78,6 +78,8 @@ const ProductTable = ({
   const [maxHeight, setMaxHeight] = useState("400px");
   const gridRef = useRef<AgGridReact>(null);
   const lastContextMenuPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const copyToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showCopyToast, setShowCopyToast] = useState(false);
 
   const [headerMenu, setHeaderMenu] = useState<{
     x: number;
@@ -151,6 +153,25 @@ const ProductTable = ({
       document.removeEventListener("contextmenu", close);
     };
   }, [headerMenu]);
+
+  useEffect(() => {
+    return () => {
+      if (copyToastTimerRef.current) {
+        clearTimeout(copyToastTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleCopySuccess = useCallback(() => {
+    setShowCopyToast(true);
+    if (copyToastTimerRef.current) {
+      clearTimeout(copyToastTimerRef.current);
+    }
+    copyToastTimerRef.current = setTimeout(() => {
+      setShowCopyToast(false);
+      copyToastTimerRef.current = null;
+    }, 1600);
+  }, []);
 
   const renderCellValue = useCallback(
     (
@@ -296,7 +317,10 @@ const ProductTable = ({
           const textValue =
             attribute.value != null ? String(attribute.value) : "";
           return (
-            <CopyableCellRenderer value={textValue}>
+            <CopyableCellRenderer
+              value={textValue}
+              onCopySuccess={handleCopySuccess}
+            >
               {rendered}
             </CopyableCellRenderer>
           );
@@ -332,7 +356,7 @@ const ProductTable = ({
     });
 
     return cols;
-  }, [products, showCheckbox, renderCellValue]);
+  }, [products, showCheckbox, renderCellValue, handleCopySuccess]);
 
   const rowSelection = useMemo(
     () => ({
@@ -465,6 +489,11 @@ const ProductTable = ({
         }
       }}
     >
+      {showCopyToast && (
+        <div className="copy-toast" role="status" aria-live="polite">
+          已複製到剪貼簿
+        </div>
+      )}
       <AgGridReact
         ref={gridRef}
         theme={customTheme}

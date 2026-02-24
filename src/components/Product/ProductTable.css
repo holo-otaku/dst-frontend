@@ -344,6 +344,16 @@
   position: relative;
 }
 
+.copyable-cell--active {
+  cursor: pointer;
+}
+
+.copyable-cell--active:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .copyable-cell__text {
   flex: 1;
   overflow: hidden;
@@ -380,6 +390,11 @@
   pointer-events: auto;
 }
 
+.copyable-cell--active:focus-visible .copyable-cell__btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .copyable-cell__btn:hover {
   color: var(--pt-secondary);
   background-color: rgba(59, 130, 246, 0.1);
@@ -390,6 +405,37 @@
   pointer-events: auto;
   color: #22c55e !important;
   background-color: rgba(34, 197, 94, 0.1) !important;
+}
+
+.copy-toast {
+  position: fixed;
+  top: calc(var(--app-navbar-height, 54px) + env(safe-area-inset-top, 0px) + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11000;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 8px 24px rgba(15, 23, 42, 0.2),
+    0 2px 8px rgba(15, 23, 42, 0.16);
+  pointer-events: none;
+  animation: copy-toast-enter 180ms ease-out;
+}
+
+@keyframes copy-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .col-header-context-menu {
