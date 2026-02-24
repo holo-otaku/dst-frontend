@@ -31,7 +31,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const COLUMN_STATE_KEY_PREFIX = "dst_product_col_state_";
 
-export const loadColumnState = (seriesId: string | number) => {
+const loadColumnState = (seriesId: string | number) => {
   try {
     const raw = localStorage.getItem(`${COLUMN_STATE_KEY_PREFIX}${seriesId}`);
     return raw ? JSON.parse(raw) : null;
@@ -40,7 +40,7 @@ export const loadColumnState = (seriesId: string | number) => {
   }
 };
 
-export const saveColumnState = (seriesId: string | number, state: unknown) => {
+const saveColumnState = (seriesId: string | number, state: unknown) => {
   try {
     localStorage.setItem(
       `${COLUMN_STATE_KEY_PREFIX}${seriesId}`,
@@ -58,6 +58,7 @@ interface ProductTableProps {
   showCheckbox: boolean;
   selectedIds: Set<number>;
   setSelectedIds: React.Dispatch<React.SetStateAction<Set<number>>>;
+  seriesId: number;
 }
 
 const ProductTable = ({
@@ -67,6 +68,7 @@ const ProductTable = ({
   showCheckbox,
   selectedIds,
   setSelectedIds,
+  seriesId,
 }: ProductTableProps) => {
   const navigate = useNavigate();
   const [maxHeight, setMaxHeight] = useState("400px");
@@ -416,16 +418,25 @@ const ProductTable = ({
         });
       }
 
-      params.api.autoSizeAllColumns();
+      const saved = loadColumnState(seriesId);
+      if (saved) {
+        params.api.applyColumnState({ state: saved, applyOrder: true });
+      } else {
+        params.api.autoSizeAllColumns();
+      }
     },
-    [sortState]
+    [sortState, seriesId]
   );
 
   useEffect(() => {
     if (!gridRef.current?.api) return;
-
-    gridRef.current.api.autoSizeAllColumns();
-  }, [products, columnDefs]);
+    const saved = loadColumnState(seriesId);
+    if (saved) {
+      gridRef.current.api.applyColumnState({ state: saved, applyOrder: true });
+    } else {
+      gridRef.current.api.autoSizeAllColumns();
+    }
+  }, [products, columnDefs, seriesId]);
 
   useEffect(() => {
     if (!gridRef.current?.api || sortState.fieldId === -1) return;
@@ -495,6 +506,10 @@ const ProductTable = ({
               className="col-header-context-menu__item"
               onClick={() => {
                 gridRef.current!.api.setColumnsPinned([headerMenu.colId], null);
+                saveColumnState(
+                  seriesId,
+                  gridRef.current!.api.getColumnState()
+                );
                 setHeaderMenu(null);
               }}
             >
@@ -508,6 +523,10 @@ const ProductTable = ({
                 gridRef.current!.api.setColumnsPinned(
                   [headerMenu.colId],
                   "left"
+                );
+                saveColumnState(
+                  seriesId,
+                  gridRef.current!.api.getColumnState()
                 );
                 setHeaderMenu(null);
               }}
