@@ -81,6 +81,7 @@ const ProductTable = ({
   const lastContextMenuPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const copyToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showCopyToast, setShowCopyToast] = useState(false);
+  const [columnStateVersion, setColumnStateVersion] = useState(0);
 
   const [headerMenu, setHeaderMenu] = useState<{
     x: number;
@@ -400,7 +401,7 @@ const ProductTable = ({
     }
 
     return cols;
-  }, [products, seriesId, showCheckbox, renderCellValue, handleCopySuccess]);
+  }, [products, seriesId, showCheckbox, renderCellValue, handleCopySuccess, columnStateVersion]);
 
   const rowSelection = useMemo(
     () => ({
@@ -585,8 +586,14 @@ const ProductTable = ({
               className="col-header-context-menu__item"
               onClick={() => {
                 if (!gridRef.current?.api) return;
-                gridRef.current.api.setColumnsPinned([headerMenu.colId], null);
-                saveColumnState(seriesId, gridRef.current.api.getColumnState());
+                const base =
+                  loadColumnState(seriesId) ??
+                  gridRef.current.api.getColumnState();
+                const updated = base.map((s) =>
+                  s.colId === headerMenu.colId ? { ...s, pinned: null } : s
+                );
+                saveColumnState(seriesId, updated);
+                setColumnStateVersion((v) => v + 1);
                 setHeaderMenu(null);
               }}
             >
@@ -598,11 +605,16 @@ const ProductTable = ({
               className="col-header-context-menu__item"
               onClick={() => {
                 if (!gridRef.current?.api) return;
-                gridRef.current.api.setColumnsPinned(
-                  [headerMenu.colId],
-                  "left"
+                const base =
+                  loadColumnState(seriesId) ??
+                  gridRef.current.api.getColumnState();
+                const updated = base.map((s) =>
+                  s.colId === headerMenu.colId
+                    ? { ...s, pinned: "left" as const }
+                    : s
                 );
-                saveColumnState(seriesId, gridRef.current.api.getColumnState());
+                saveColumnState(seriesId, updated);
+                setColumnStateVersion((v) => v + 1);
                 setHeaderMenu(null);
               }}
             >
