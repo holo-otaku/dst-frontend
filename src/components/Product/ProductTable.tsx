@@ -428,7 +428,7 @@ const ProductTable = ({
             return !!data?.hasArchive && !data?.isDeleted;
           },
         }}
-        domLayout="normal"
+        domLayout="normal" enableCellTextSelection={true}
       />
     </div>
   );

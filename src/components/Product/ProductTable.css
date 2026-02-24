@@ -99,10 +99,12 @@
   line-height: 1.5;
   transition: background-color var(--pt-transition);
   font-family: var(--pt-font) !important;
+  overflow: hidden;
 }
 
 .product-table-container .ag-root-wrapper {
   font-family: var(--pt-font) !important;
+  overflow: hidden;
   border-radius: var(--pt-radius);
   overflow: hidden;
 }
