@@ -22,6 +22,7 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import ImagePreviewRenderer from "./ImagePreviewRenderer";
+import CopyableCellRenderer from "./CopyableCellRenderer";
 import "./ProductTable.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -211,10 +212,18 @@ const ProductTable = ({
             (a: ProductDataAttribute) => a.fieldId === attr.fieldId
           );
           if (!attribute) return "";
-          return renderCellValue(
+          const rendered = renderCellValue(
             attribute.dataType,
             attribute.value,
             params.data
+          );
+          if (attribute.dataType === "picture") return rendered;
+          const textValue =
+            attribute.value != null ? String(attribute.value) : "";
+          return (
+            <CopyableCellRenderer value={textValue}>
+              {rendered}
+            </CopyableCellRenderer>
           );
         },
         minWidth: 100,
@@ -242,10 +251,18 @@ const ProductTable = ({
             (a: ProductDataAttribute) => a.fieldId === attr.fieldId
           );
           if (!attribute) return "";
-          return renderCellValue(
+          const rendered = renderCellValue(
             attribute.dataType,
             attribute.value,
             params.data
+          );
+          if (attribute.dataType === "picture") return rendered;
+          const textValue =
+            attribute.value != null ? String(attribute.value) : "";
+          return (
+            <CopyableCellRenderer value={textValue}>
+              {rendered}
+            </CopyableCellRenderer>
           );
         },
         minWidth: 100,
@@ -428,7 +445,8 @@ const ProductTable = ({
             return !!data?.hasArchive && !data?.isDeleted;
           },
         }}
-        domLayout="normal" enableCellTextSelection={true}
+        domLayout="normal"
+        enableCellTextSelection={true}
       />
     </div>
   );
