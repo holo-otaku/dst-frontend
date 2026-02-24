@@ -60,7 +60,7 @@ const ProductTable = ({
         selectedRowBackgroundColor: "#dbeafe",
         fontFamily: '"Fira Sans", sans-serif',
         fontSize: 14,
-        rowHeight: 48,
+        rowHeight: 88,
         headerHeight: 48,
         cellHorizontalPadding: 16,
         checkboxCheckedShapeColor: "#3b82f6",
