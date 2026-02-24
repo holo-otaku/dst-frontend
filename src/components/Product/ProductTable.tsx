@@ -263,8 +263,7 @@ const ProductTable = ({
     });
 
     const isDstPartNumber = (fieldName: string) => {
-      const lower = fieldName.toLowerCase();
-      return lower.includes("dst") && lower.includes("料號");
+      return /\bdst\b/i.test(fieldName) && fieldName.includes("料號");
     };
 
     attributes.forEach((attr: ProductDataAttribute) => {
@@ -289,7 +288,11 @@ const ProductTable = ({
             attribute.value,
             params.data
           );
-          if (attribute.dataType === "picture") return rendered;
+          if (
+            attribute.dataType === "picture" ||
+            attribute.dataType === "image"
+          )
+            return rendered;
           const textValue =
             attribute.value != null ? String(attribute.value) : "";
           return (
@@ -432,16 +435,6 @@ const ProductTable = ({
   );
 
   useEffect(() => {
-    if (!gridRef.current?.api) return;
-    const saved = loadColumnState(seriesId);
-    if (saved) {
-      gridRef.current.api.applyColumnState({ state: saved, applyOrder: true });
-    } else {
-      gridRef.current.api.autoSizeAllColumns();
-    }
-  }, [products, columnDefs, seriesId]);
-
-  useEffect(() => {
     if (!gridRef.current?.api || sortState.fieldId === -1) return;
 
     const colId = `attr_${sortState.fieldId}`;
@@ -508,11 +501,9 @@ const ProductTable = ({
             <button
               className="col-header-context-menu__item"
               onClick={() => {
-                gridRef.current!.api.setColumnsPinned([headerMenu.colId], null);
-                saveColumnState(
-                  seriesId,
-                  gridRef.current!.api.getColumnState()
-                );
+                if (!gridRef.current?.api) return;
+                gridRef.current.api.setColumnsPinned([headerMenu.colId], null);
+                saveColumnState(seriesId, gridRef.current.api.getColumnState());
                 setHeaderMenu(null);
               }}
             >
@@ -523,14 +514,12 @@ const ProductTable = ({
             <button
               className="col-header-context-menu__item"
               onClick={() => {
-                gridRef.current!.api.setColumnsPinned(
+                if (!gridRef.current?.api) return;
+                gridRef.current.api.setColumnsPinned(
                   [headerMenu.colId],
                   "left"
                 );
-                saveColumnState(
-                  seriesId,
-                  gridRef.current!.api.getColumnState()
-                );
+                saveColumnState(seriesId, gridRef.current.api.getColumnState());
                 setHeaderMenu(null);
               }}
             >

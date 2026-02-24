@@ -117,7 +117,6 @@
   font-family: var(--pt-font) !important;
   overflow: hidden;
   border-radius: var(--pt-radius);
-  overflow: hidden;
 }
 
 /* Monospace Cells (ID column) */

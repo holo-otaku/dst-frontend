@@ -18,10 +18,15 @@ const CopyableCellRenderer = ({
       e.preventDefault();
       const text = value != null ? String(value) : "";
       if (!text) return;
-      navigator.clipboard.writeText(text).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      });
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        })
+        .catch((error: unknown) => {
+          console.error("Failed to copy text to clipboard:", error);
+        });
     },
     [value]
   );
