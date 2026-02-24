@@ -7,8 +7,10 @@ import React, {
   useMemo,
   useCallback,
   useRef,
+  useContext,
 } from "react";
 import useAxios from "axios-hooks";
+import { ColorModeContext } from "../../context";
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -71,6 +73,7 @@ const ProductTable = ({
   seriesId,
 }: ProductTableProps) => {
   const navigate = useNavigate();
+  const { colorMode } = useContext(ColorModeContext);
   const [maxHeight, setMaxHeight] = useState("400px");
   const gridRef = useRef<AgGridReact>(null);
   const lastContextMenuPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -100,27 +103,26 @@ const ProductTable = ({
     []
   );
 
-  // 自定義 theme：基於 themeQuartz 但覆蓋顏色
-  const customTheme = useMemo(
-    () =>
-      themeQuartz.withParams({
-        backgroundColor: "#f8fafc",
-        foregroundColor: "#1e3a8a",
-        borderColor: "#e2e8f0",
-        headerBackgroundColor: "#ffffff",
-        oddRowBackgroundColor: "#f8fafc",
-        rowHoverColor: "#f1f5f9",
-        selectedRowBackgroundColor: "#dbeafe",
-        fontFamily: '"Fira Sans", sans-serif',
-        fontSize: 14,
-        rowHeight: 88,
-        headerHeight: 48,
-        cellHorizontalPadding: 16,
-        checkboxCheckedShapeColor: "#3b82f6",
-        borderRadius: 8,
-      }),
-    []
-  );
+  // 自定義 theme：基於 themeQuartz，依 colorMode 切換亮/暗色
+  const customTheme = useMemo(() => {
+    const isDark = colorMode === "dark";
+    return themeQuartz.withParams({
+      backgroundColor: isDark ? "#1e293b" : "#f8fafc",
+      foregroundColor: isDark ? "#e2e8f0" : "#1e3a8a",
+      borderColor: isDark ? "#334155" : "#e2e8f0",
+      headerBackgroundColor: isDark ? "#0f172a" : "#ffffff",
+      oddRowBackgroundColor: isDark ? "#1e293b" : "#f8fafc",
+      rowHoverColor: isDark ? "#334155" : "#f1f5f9",
+      selectedRowBackgroundColor: isDark ? "#1d4ed8" : "#dbeafe",
+      fontFamily: '"Fira Sans", sans-serif',
+      fontSize: 14,
+      rowHeight: 88,
+      headerHeight: 48,
+      cellHorizontalPadding: 16,
+      checkboxCheckedShapeColor: "#3b82f6",
+      borderRadius: 8,
+    });
+  }, [colorMode]);
 
   useEffect(() => {
     const calculateMaxHeight = () => {
