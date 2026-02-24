@@ -196,45 +196,13 @@ const ProductTable = ({
       cellStyle: { color: "#2563eb", fontWeight: "500" },
     });
 
-    attributes.slice(0, 5).forEach((attr: ProductDataAttribute) => {
-      cols.push({
-        colId: `attr_${attr.fieldId}`,
-        headerName: attr.fieldName,
-        field: `attributes`,
-        valueGetter: (params) => {
-          const attribute = (params.data as ProductData)?.attributes?.find(
-            (a: ProductDataAttribute) => a.fieldId === attr.fieldId
-          );
-          return attribute?.value;
-        },
-        cellRenderer: (params: ICellRendererParams<ProductData>) => {
-          const attribute = params.data?.attributes?.find(
-            (a: ProductDataAttribute) => a.fieldId === attr.fieldId
-          );
-          if (!attribute) return "";
-          const rendered = renderCellValue(
-            attribute.dataType,
-            attribute.value,
-            params.data
-          );
-          if (attribute.dataType === "picture") return rendered;
-          const textValue =
-            attribute.value != null ? String(attribute.value) : "";
-          return (
-            <CopyableCellRenderer value={textValue}>
-              {rendered}
-            </CopyableCellRenderer>
-          );
-        },
-        minWidth: 100,
-        pinned: "left",
-        lockPinned: true,
-        resizable: true,
-        sortable: true,
-      });
-    });
+    const isDstPartNumber = (fieldName: string) => {
+      const lower = fieldName.toLowerCase();
+      return lower.includes("dst") && lower.includes("料號");
+    };
 
-    attributes.slice(5).forEach((attr: ProductDataAttribute) => {
+    attributes.forEach((attr: ProductDataAttribute) => {
+      const shouldPin = isDstPartNumber(attr.fieldName);
       cols.push({
         colId: `attr_${attr.fieldId}`,
         headerName: attr.fieldName,
@@ -265,6 +233,7 @@ const ProductTable = ({
           );
         },
         minWidth: 100,
+        ...(shouldPin && { pinned: "left" as const, lockPinned: true }),
         resizable: true,
         sortable: true,
       });
@@ -426,6 +395,7 @@ const ProductTable = ({
         theme={customTheme}
         rowData={products}
         columnDefs={columnDefs}
+        defaultColDef={{ suppressHeaderMenuButton: false }}
         rowSelection={rowSelection}
         selectionColumnDef={selectionColumnDef}
         onSelectionChanged={onSelectionChanged}
