@@ -29,6 +29,28 @@ import "./ProductTable.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+const COLUMN_STATE_KEY_PREFIX = "dst_product_col_state_";
+
+export const loadColumnState = (seriesId: string | number) => {
+  try {
+    const raw = localStorage.getItem(`${COLUMN_STATE_KEY_PREFIX}${seriesId}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveColumnState = (seriesId: string | number, state: unknown) => {
+  try {
+    localStorage.setItem(
+      `${COLUMN_STATE_KEY_PREFIX}${seriesId}`,
+      JSON.stringify(state)
+    );
+  } catch {
+    return;
+  }
+};
+
 interface ProductTableProps {
   products: ProductData[];
   sortState: { fieldId: number; order: "asc" | "desc" };
