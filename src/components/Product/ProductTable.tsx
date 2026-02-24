@@ -19,6 +19,8 @@ import {
   SortChangedEvent,
   ICellRendererParams,
   themeQuartz,
+  ColumnHeaderContextMenuEvent,
+  Column,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import ImagePreviewRenderer from "./ImagePreviewRenderer";
@@ -47,6 +49,32 @@ const ProductTable = ({
   const navigate = useNavigate();
   const [maxHeight, setMaxHeight] = useState("400px");
   const gridRef = useRef<AgGridReact>(null);
+  const lastContextMenuPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const [headerMenu, setHeaderMenu] = useState<{
+    x: number;
+    y: number;
+    colId: string;
+    isPinned: boolean;
+  } | null>(null);
+
+  const onColumnHeaderContextMenu = useCallback(
+    (e: ColumnHeaderContextMenuEvent) => {
+      const col = e.column as Column;
+      if (typeof col.getColId !== "function") return;
+      const colId = col.getColId();
+      // Don't allow pin/unpin on the # (id) column which is lockPinned
+      if (colId === "id") return;
+      const isPinned = col.isPinnedLeft() || col.isPinnedRight();
+      setHeaderMenu({
+        x: lastContextMenuPos.current.x,
+        y: lastContextMenuPos.current.y,
+        colId,
+        isPinned,
+      });
+    },
+    []
+  );
 
   // 自定義 theme：基於 themeQuartz 但覆蓋顏色
   const customTheme = useMemo(
@@ -85,6 +113,17 @@ const ProductTable = ({
     window.addEventListener("resize", calculateMaxHeight);
     return () => window.removeEventListener("resize", calculateMaxHeight);
   }, []);
+
+  useEffect(() => {
+    if (!headerMenu) return;
+    const close = () => setHeaderMenu(null);
+    document.addEventListener("click", close);
+    document.addEventListener("contextmenu", close);
+    return () => {
+      document.removeEventListener("click", close);
+      document.removeEventListener("contextmenu", close);
+    };
+  }, [headerMenu]);
 
   const renderCellValue = useCallback(
     (
@@ -389,6 +428,13 @@ const ProductTable = ({
     <div
       className="product-table-container"
       style={{ height: maxHeight, width: "100%" }}
+      onContextMenu={(ev) => {
+        lastContextMenuPos.current = { x: ev.clientX, y: ev.clientY };
+        const target = ev.target as HTMLElement;
+        if (target.closest(".ag-header-cell")) {
+          ev.preventDefault();
+        }
+      }}
     >
       <AgGridReact
         ref={gridRef}
@@ -402,6 +448,7 @@ const ProductTable = ({
         onSortChanged={onSortChanged}
         onRowDoubleClicked={onRowDoubleClicked}
         onGridReady={onGridReady}
+        onColumnHeaderContextMenu={onColumnHeaderContextMenu}
         rowClassRules={{
           "row-deleted": (params) => {
             const data = params.data as ProductData | undefined;
@@ -415,6 +462,40 @@ const ProductTable = ({
         domLayout="normal"
         enableCellTextSelection={true}
       />
+      {headerMenu && (
+        <div
+          className="col-header-context-menu"
+          style={{ top: headerMenu.y, left: headerMenu.x }}
+          onClick={(ev) => ev.stopPropagation()}
+        >
+          {headerMenu.isPinned ? (
+            <button
+              className="col-header-context-menu__item"
+              onClick={() => {
+                gridRef.current!.api.setColumnsPinned([headerMenu.colId], null);
+                setHeaderMenu(null);
+              }}
+            >
+              <span className="col-header-context-menu__icon">📌</span>
+              Unpin Column
+            </button>
+          ) : (
+            <button
+              className="col-header-context-menu__item"
+              onClick={() => {
+                gridRef.current!.api.setColumnsPinned(
+                  [headerMenu.colId],
+                  "left"
+                );
+                setHeaderMenu(null);
+              }}
+            >
+              <span className="col-header-context-menu__icon">📌</span>
+              Pin Left
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
