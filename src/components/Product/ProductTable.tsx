@@ -24,7 +24,7 @@ import {
   ColumnHeaderContextMenuEvent,
   Column,
   type ColumnState,
-  NewColumnsLoadedEvent,
+  ColumnMovedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import ImagePreviewRenderer from "./ImagePreviewRenderer";
@@ -266,6 +266,18 @@ const ProductTable = ({
   const columnDefs = useMemo((): ColDef[] => {
     if (products.length === 0) return [];
 
+    // Load saved column state for the current series and build a lookup map
+    // by colId so we can merge pinned/width/order into each ColDef directly.
+    // ag-grid re-applies stateful ColDef attributes on every columnDefs update,
+    // so encoding the saved state here is the only reliable way to restore it
+    // when switching back to a series whose column IDs haven't changed
+    // (which would otherwise skip onNewColumnsLoaded).
+    const saved = loadColumnState(seriesId);
+    const savedByColId = new Map<string, ColumnState>();
+    if (saved) {
+      saved.forEach((s) => savedByColId.set(s.colId, s));
+    }
+
     const cols: ColDef[] = [];
     const attributes = products[0].attributes || [];
     const erpAttributes = products[0].erp || [];
@@ -289,9 +301,19 @@ const ProductTable = ({
     };
 
     attributes.forEach((attr: ProductDataAttribute) => {
-      const shouldPin = isDstPartNumber(attr.fieldName);
+      const colId = `attr_${attr.fieldId}`;
+      const savedState = savedByColId.get(colId);
+      const defaultPin = isDstPartNumber(attr.fieldName);
+      // Prefer saved pinned state; fall back to default DST part-number pin.
+      // null means explicitly unpinned; undefined means use default.
+      const pinned =
+        savedState !== undefined
+          ? (savedState.pinned ?? null)
+          : defaultPin
+            ? ("left" as const)
+            : undefined;
       cols.push({
-        colId: `attr_${attr.fieldId}`,
+        colId,
         headerName: attr.fieldName,
         field: `attributes`,
         valueGetter: (params) => {
@@ -327,15 +349,19 @@ const ProductTable = ({
           );
         },
         minWidth: 100,
-        ...(shouldPin && { pinned: "left" as const, lockPinned: true }),
+        pinned,
+        ...(defaultPin && !savedState && { lockPinned: true }),
         resizable: true,
         sortable: true,
+        width: savedState?.width ?? undefined,
       });
     });
 
     erpAttributes.forEach((erp) => {
+      const colId = `erp_${erp.key}`;
+      const savedState = savedByColId.get(colId);
       cols.push({
-        colId: `erp_${erp.key}`,
+        colId,
         headerName: erp.key,
         field: "erp",
         valueGetter: (params) => {
@@ -346,6 +372,8 @@ const ProductTable = ({
         },
         minWidth: 100,
         resizable: true,
+        pinned: savedState !== undefined ? (savedState.pinned ?? null) : undefined,
+        width: savedState?.width ?? undefined,
         cellStyle: (params) => {
           const data = params.data as ProductData | undefined;
           if (data?.isDeleted || data?.hasArchive) {
@@ -356,8 +384,23 @@ const ProductTable = ({
       });
     });
 
+    // If we have a saved order, reorder cols to match it.
+    // The saved state array is ordered, so we sort cols by their index in the saved map.
+    if (saved && saved.length > 0) {
+      const orderMap = new Map<string, number>();
+      saved.forEach((s, i) => orderMap.set(s.colId, i));
+      cols.sort((a, b) => {
+        const ia = a.colId !== undefined ? (orderMap.get(a.colId) ?? 9999) : 9999;
+        const ib = b.colId !== undefined ? (orderMap.get(b.colId) ?? 9999) : 9999;
+        // Keep "id" column always first regardless of saved order
+        if (a.colId === "id") return -1;
+        if (b.colId === "id") return 1;
+        return ia - ib;
+      });
+    }
+
     return cols;
-  }, [products, showCheckbox, renderCellValue, handleCopySuccess]);
+  }, [products, seriesId, showCheckbox, renderCellValue, handleCopySuccess]);
 
   const rowSelection = useMemo(
     () => ({
@@ -434,6 +477,16 @@ const ProductTable = ({
     [navigate]
   );
 
+  // Save column state whenever the user finishes dragging a column.
+  // finished=true means the drag is complete (not mid-drag).
+  const onColumnMoved = useCallback(
+    (params: ColumnMovedEvent<ProductData>) => {
+      if (!params.finished) return;
+      saveColumnState(seriesId, params.api.getColumnState());
+    },
+    [seriesId]
+  );
+
   const onGridReady = useCallback(
     (params: GridReadyEvent<ProductData>) => {
       if (sortState.fieldId !== -1) {
@@ -448,28 +501,14 @@ const ProductTable = ({
           defaultState: { sort: null },
         });
       }
-      const saved = loadColumnState(seriesId);
-      if (saved) {
-        params.api.applyColumnState({ state: saved, applyOrder: true });
-      } else {
+      // Column pin/order state is now encoded directly into columnDefs via
+      // the useMemo (which reads localStorage). Auto-size only when no saved
+      // state exists so columns aren't too narrow on first visit.
+      if (!loadColumnState(seriesId)) {
         params.api.autoSizeAllColumns();
       }
     },
     [sortState, seriesId]
-  );
-
-  // Re-apply saved column state whenever ag-grid processes a new set of
-  // columnDefs (e.g. after a series switch loads new products via API).
-  // onGridReady only fires on initial mount; onNewColumnsLoaded fires each
-  // time columnDefs changes, which is when we need to restore pin/order.
-  const onNewColumnsLoaded = useCallback(
-    (params: NewColumnsLoadedEvent<ProductData>) => {
-      const saved = loadColumnState(seriesId);
-      if (saved) {
-        params.api.applyColumnState({ state: saved, applyOrder: true });
-      }
-    },
-    [seriesId]
   );
 
   useEffect(() => {
@@ -520,7 +559,7 @@ const ProductTable = ({
         onSortChanged={onSortChanged}
         onRowDoubleClicked={onRowDoubleClicked}
         onGridReady={onGridReady}
-        onNewColumnsLoaded={onNewColumnsLoaded}
+        onColumnMoved={onColumnMoved}
         onColumnHeaderContextMenu={onColumnHeaderContextMenu}
         rowClassRules={{
           "row-deleted": (params) => {
