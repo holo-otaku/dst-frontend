@@ -232,27 +232,13 @@ export const Edit = () => {
   )?.fields;
 
   const handleSubmit = () => {
-    const imageFieldIds = new Set(
-      (fields || [])
-        .filter((f) => f.dataType === SeriesFieldDataType.picture)
-        .map((f) => f.id as number)
-    );
+    const parsedAttributes = parseAttributes(displayAttributes);
 
-    const attributesToSubmit = displayAttributes.filter((attr) => {
-      if (!imageFieldIds.has(attr.fieldId)) return true;
-      // 圖片欄位：只送出已換成 base64 的（不是 /image/... 路徑）
-      return (
-        typeof attr.value === "string" &&
-        !attr.value.startsWith("/image") &&
-        attr.value !== ""
-      );
-    });
-
-    const parsedAttributes = parseAttributes(attributesToSubmit);
     const payload: ProductEditPayload = {
       itemId: parseInt(id!),
       attributes: parsedAttributes,
     };
+
     editProduct({
       data: [payload],
     })
