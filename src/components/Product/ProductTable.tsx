@@ -386,20 +386,34 @@ const ProductTable = ({
       });
     });
 
-    // If we have a saved order, reorder cols to match it.
-    // The saved state array is ordered, so we sort cols by their index in the saved map.
+    // Reorder cols: "id" always first, ERP cols always last,
+    // everything else follows saved order (or original push order if no saved state).
+    const isErp = (colId: string | undefined) =>
+      colId !== undefined && colId.startsWith("erp_");
     if (saved && saved.length > 0) {
       const orderMap = new Map<string, number>();
       saved.forEach((s, i) => orderMap.set(s.colId, i));
       cols.sort((a, b) => {
+        if (a.colId === "id") return -1;
+        if (b.colId === "id") return 1;
+        const aIsErp = isErp(a.colId);
+        const bIsErp = isErp(b.colId);
+        if (aIsErp !== bIsErp) return aIsErp ? 1 : -1;
         const ia =
           a.colId !== undefined ? (orderMap.get(a.colId) ?? 9999) : 9999;
         const ib =
           b.colId !== undefined ? (orderMap.get(b.colId) ?? 9999) : 9999;
-        // Keep "id" column always first regardless of saved order
+        return ia - ib;
+      });
+    } else {
+      // No saved state: still enforce id-first and erp-last
+      cols.sort((a, b) => {
         if (a.colId === "id") return -1;
         if (b.colId === "id") return 1;
-        return ia - ib;
+        const aIsErp = isErp(a.colId);
+        const bIsErp = isErp(b.colId);
+        if (aIsErp !== bIsErp) return aIsErp ? 1 : -1;
+        return 0;
       });
     }
 
