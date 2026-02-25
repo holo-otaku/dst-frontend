@@ -378,6 +378,7 @@ export const Search = () => {
         showCheckbox={showCheckbox}
         selectedIds={selectedIds}
         setSelectedIds={setSelectedIds}
+        seriesId={selectedSeries}
       />
       <Stack direction="horizontal" className="justify-content-center">
         <Pagination

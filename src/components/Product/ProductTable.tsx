@@ -7,8 +7,10 @@ import React, {
   useMemo,
   useCallback,
   useRef,
+  useContext,
 } from "react";
 import useAxios from "axios-hooks";
+import { ColorModeContext } from "../../context";
 import {
   ModuleRegistry,
   AllCommunityModule,
@@ -19,12 +21,39 @@ import {
   SortChangedEvent,
   ICellRendererParams,
   themeQuartz,
+  ColumnHeaderContextMenuEvent,
+  Column,
+  type ColumnState,
+  ColumnMovedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import ImagePreviewRenderer from "./ImagePreviewRenderer";
+import CopyableCellRenderer from "./CopyableCellRenderer";
 import "./ProductTable.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
+
+const COLUMN_STATE_KEY_PREFIX = "dst_product_col_state_";
+
+const loadColumnState = (seriesId: string | number): ColumnState[] | null => {
+  try {
+    const raw = localStorage.getItem(`${COLUMN_STATE_KEY_PREFIX}${seriesId}`);
+    return raw ? (JSON.parse(raw) as ColumnState[]) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveColumnState = (seriesId: string | number, state: unknown) => {
+  try {
+    localStorage.setItem(
+      `${COLUMN_STATE_KEY_PREFIX}${seriesId}`,
+      JSON.stringify(state)
+    );
+  } catch {
+    return;
+  }
+};
 
 interface ProductTableProps {
   products: ProductData[];
@@ -33,6 +62,7 @@ interface ProductTableProps {
   showCheckbox: boolean;
   selectedIds: Set<number>;
   setSelectedIds: React.Dispatch<React.SetStateAction<Set<number>>>;
+  seriesId: number;
 }
 
 const ProductTable = ({
@@ -42,32 +72,62 @@ const ProductTable = ({
   showCheckbox,
   selectedIds,
   setSelectedIds,
+  seriesId,
 }: ProductTableProps) => {
   const navigate = useNavigate();
+  const { colorMode } = useContext(ColorModeContext);
   const [maxHeight, setMaxHeight] = useState("400px");
   const gridRef = useRef<AgGridReact>(null);
+  const lastContextMenuPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const copyToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showCopyToast, setShowCopyToast] = useState(false);
+  const [columnStateVersion, setColumnStateVersion] = useState(0);
 
-  // 自定義 theme：基於 themeQuartz 但覆蓋顏色
-  const customTheme = useMemo(
-    () =>
-      themeQuartz.withParams({
-        backgroundColor: "#f8fafc",
-        foregroundColor: "#1e3a8a",
-        borderColor: "#e2e8f0",
-        headerBackgroundColor: "#ffffff",
-        oddRowBackgroundColor: "#f8fafc",
-        rowHoverColor: "#f1f5f9",
-        selectedRowBackgroundColor: "#dbeafe",
-        fontFamily: '"Fira Sans", sans-serif',
-        fontSize: 14,
-        rowHeight: 48,
-        headerHeight: 48,
-        cellHorizontalPadding: 16,
-        checkboxCheckedShapeColor: "#3b82f6",
-        borderRadius: 8,
-      }),
+  const [headerMenu, setHeaderMenu] = useState<{
+    x: number;
+    y: number;
+    colId: string;
+    isPinned: boolean;
+  } | null>(null);
+
+  const onColumnHeaderContextMenu = useCallback(
+    (e: ColumnHeaderContextMenuEvent) => {
+      const col = e.column as Column;
+      if (typeof col.getColId !== "function") return;
+      const colId = col.getColId();
+      // Don't allow pin/unpin on the # (id) column which is lockPinned
+      if (colId === "id") return;
+      const isPinned = col.isPinnedLeft() || col.isPinnedRight();
+      setHeaderMenu({
+        x: lastContextMenuPos.current.x,
+        y: lastContextMenuPos.current.y,
+        colId,
+        isPinned,
+      });
+    },
     []
   );
+
+  // 自定義 theme：基於 themeQuartz，依 colorMode 切換亮/暗色
+  const customTheme = useMemo(() => {
+    const isDark = colorMode === "dark";
+    return themeQuartz.withParams({
+      backgroundColor: isDark ? "#1e293b" : "#f8fafc",
+      foregroundColor: isDark ? "#e2e8f0" : "#1e3a8a",
+      borderColor: isDark ? "#334155" : "#e2e8f0",
+      headerBackgroundColor: isDark ? "#0f172a" : "#ffffff",
+      oddRowBackgroundColor: isDark ? "#1e293b" : "#f8fafc",
+      rowHoverColor: isDark ? "#334155" : "#f1f5f9",
+      selectedRowBackgroundColor: isDark ? "#1d4ed8" : "#dbeafe",
+      fontFamily: '"Fira Sans", sans-serif',
+      fontSize: 14,
+      rowHeight: 88,
+      headerHeight: 48,
+      cellHorizontalPadding: 16,
+      checkboxCheckedShapeColor: "#3b82f6",
+      borderRadius: 8,
+    });
+  }, [colorMode]);
 
   useEffect(() => {
     const calculateMaxHeight = () => {
@@ -83,6 +143,36 @@ const ProductTable = ({
     calculateMaxHeight();
     window.addEventListener("resize", calculateMaxHeight);
     return () => window.removeEventListener("resize", calculateMaxHeight);
+  }, []);
+
+  useEffect(() => {
+    if (!headerMenu) return;
+    const close = () => setHeaderMenu(null);
+    document.addEventListener("click", close);
+    document.addEventListener("contextmenu", close);
+    return () => {
+      document.removeEventListener("click", close);
+      document.removeEventListener("contextmenu", close);
+    };
+  }, [headerMenu]);
+
+  useEffect(() => {
+    return () => {
+      if (copyToastTimerRef.current) {
+        clearTimeout(copyToastTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleCopySuccess = useCallback(() => {
+    setShowCopyToast(true);
+    if (copyToastTimerRef.current) {
+      clearTimeout(copyToastTimerRef.current);
+    }
+    copyToastTimerRef.current = setTimeout(() => {
+      setShowCopyToast(false);
+      copyToastTimerRef.current = null;
+    }, 1600);
   }, []);
 
   const renderCellValue = useCallback(
@@ -177,6 +267,18 @@ const ProductTable = ({
   const columnDefs = useMemo((): ColDef[] => {
     if (products.length === 0) return [];
 
+    // Load saved column state for the current series and build a lookup map
+    // by colId so we can merge pinned/width/order into each ColDef directly.
+    // ag-grid re-applies stateful ColDef attributes on every columnDefs update,
+    // so encoding the saved state here is the only reliable way to restore it
+    // when switching back to a series whose column IDs haven't changed
+    // (which would otherwise skip onNewColumnsLoaded).
+    const saved = loadColumnState(seriesId);
+    const savedByColId = new Map<string, ColumnState>();
+    if (saved) {
+      saved.forEach((s) => savedByColId.set(s.colId, s));
+    }
+
     const cols: ColDef[] = [];
     const attributes = products[0].attributes || [];
     const erpAttributes = products[0].erp || [];
@@ -195,40 +297,24 @@ const ProductTable = ({
       cellStyle: { color: "#2563eb", fontWeight: "500" },
     });
 
-    attributes.slice(0, 5).forEach((attr: ProductDataAttribute) => {
-      cols.push({
-        colId: `attr_${attr.fieldId}`,
-        headerName: attr.fieldName,
-        field: `attributes`,
-        valueGetter: (params) => {
-          const attribute = (params.data as ProductData)?.attributes?.find(
-            (a: ProductDataAttribute) => a.fieldId === attr.fieldId
-          );
-          return attribute?.value;
-        },
-        cellRenderer: (params: ICellRendererParams<ProductData>) => {
-          const attribute = params.data?.attributes?.find(
-            (a: ProductDataAttribute) => a.fieldId === attr.fieldId
-          );
-          if (!attribute) return "";
-          return renderCellValue(
-            attribute.dataType,
-            attribute.value,
-            params.data
-          );
-        },
-        minWidth: 100,
-        maxWidth: 400,
-        pinned: "left",
-        lockPinned: true,
-        resizable: true,
-        sortable: true,
-      });
-    });
+    const isDstPartNumber = (fieldName: string) => {
+      return /\bdst\b/i.test(fieldName) && fieldName.includes("料號");
+    };
 
-    attributes.slice(5).forEach((attr: ProductDataAttribute) => {
+    attributes.forEach((attr: ProductDataAttribute) => {
+      const colId = `attr_${attr.fieldId}`;
+      const savedState = savedByColId.get(colId);
+      const defaultPin = isDstPartNumber(attr.fieldName);
+      // Prefer saved pinned state; fall back to default DST part-number pin.
+      // null means explicitly unpinned; undefined means use default.
+      const pinned =
+        savedState !== undefined
+          ? (savedState.pinned ?? null)
+          : defaultPin
+            ? ("left" as const)
+            : undefined;
       cols.push({
-        colId: `attr_${attr.fieldId}`,
+        colId,
         headerName: attr.fieldName,
         field: `attributes`,
         valueGetter: (params) => {
@@ -242,22 +328,41 @@ const ProductTable = ({
             (a: ProductDataAttribute) => a.fieldId === attr.fieldId
           );
           if (!attribute) return "";
-          return renderCellValue(
+          const rendered = renderCellValue(
             attribute.dataType,
             attribute.value,
             params.data
           );
+          if (
+            attribute.dataType === "picture" ||
+            attribute.dataType === "image"
+          )
+            return rendered;
+          const textValue =
+            attribute.value != null ? String(attribute.value) : "";
+          return (
+            <CopyableCellRenderer
+              value={textValue}
+              onCopySuccess={handleCopySuccess}
+            >
+              {rendered}
+            </CopyableCellRenderer>
+          );
         },
         minWidth: 100,
-        maxWidth: 400,
+        pinned,
+        ...(defaultPin && !savedState && { lockPinned: true }),
         resizable: true,
         sortable: true,
+        width: savedState?.width ?? undefined,
       });
     });
 
     erpAttributes.forEach((erp) => {
+      const colId = `erp_${erp.key}`;
+      const savedState = savedByColId.get(colId);
       cols.push({
-        colId: `erp_${erp.key}`,
+        colId,
         headerName: erp.key,
         field: "erp",
         valueGetter: (params) => {
@@ -267,8 +372,10 @@ const ProductTable = ({
           return erpData?.value || "";
         },
         minWidth: 100,
-        maxWidth: 400,
         resizable: true,
+        pinned:
+          savedState !== undefined ? (savedState.pinned ?? null) : undefined,
+        width: savedState?.width ?? undefined,
         cellStyle: (params) => {
           const data = params.data as ProductData | undefined;
           if (data?.isDeleted || data?.hasArchive) {
@@ -279,8 +386,32 @@ const ProductTable = ({
       });
     });
 
+    // If we have a saved order, reorder cols to match it.
+    // The saved state array is ordered, so we sort cols by their index in the saved map.
+    if (saved && saved.length > 0) {
+      const orderMap = new Map<string, number>();
+      saved.forEach((s, i) => orderMap.set(s.colId, i));
+      cols.sort((a, b) => {
+        const ia =
+          a.colId !== undefined ? (orderMap.get(a.colId) ?? 9999) : 9999;
+        const ib =
+          b.colId !== undefined ? (orderMap.get(b.colId) ?? 9999) : 9999;
+        // Keep "id" column always first regardless of saved order
+        if (a.colId === "id") return -1;
+        if (b.colId === "id") return 1;
+        return ia - ib;
+      });
+    }
+
     return cols;
-  }, [products, showCheckbox, renderCellValue]);
+  }, [
+    products,
+    seriesId,
+    showCheckbox,
+    renderCellValue,
+    handleCopySuccess,
+    columnStateVersion,
+  ]);
 
   const rowSelection = useMemo(
     () => ({
@@ -357,6 +488,16 @@ const ProductTable = ({
     [navigate]
   );
 
+  // Save column state whenever the user finishes dragging a column.
+  // finished=true means the drag is complete (not mid-drag).
+  const onColumnMoved = useCallback(
+    (params: ColumnMovedEvent<ProductData>) => {
+      if (!params.finished) return;
+      saveColumnState(seriesId, params.api.getColumnState());
+    },
+    [seriesId]
+  );
+
   const onGridReady = useCallback(
     (params: GridReadyEvent<ProductData>) => {
       if (sortState.fieldId !== -1) {
@@ -371,17 +512,15 @@ const ProductTable = ({
           defaultState: { sort: null },
         });
       }
-
-      params.api.autoSizeAllColumns();
+      // Column pin/order state is now encoded directly into columnDefs via
+      // the useMemo (which reads localStorage). Auto-size only when no saved
+      // state exists so columns aren't too narrow on first visit.
+      if (!loadColumnState(seriesId)) {
+        params.api.autoSizeAllColumns();
+      }
     },
-    [sortState]
+    [sortState, seriesId]
   );
-
-  useEffect(() => {
-    if (!gridRef.current?.api) return;
-
-    gridRef.current.api.autoSizeAllColumns();
-  }, [products, columnDefs]);
 
   useEffect(() => {
     if (!gridRef.current?.api || sortState.fieldId === -1) return;
@@ -406,18 +545,33 @@ const ProductTable = ({
     <div
       className="product-table-container"
       style={{ height: maxHeight, width: "100%" }}
+      onContextMenu={(ev) => {
+        lastContextMenuPos.current = { x: ev.clientX, y: ev.clientY };
+        const target = ev.target as HTMLElement;
+        if (target.closest(".ag-header-cell")) {
+          ev.preventDefault();
+        }
+      }}
     >
+      {showCopyToast && (
+        <div className="copy-toast" role="status" aria-live="polite">
+          已複製到剪貼簿
+        </div>
+      )}
       <AgGridReact
         ref={gridRef}
         theme={customTheme}
         rowData={products}
         columnDefs={columnDefs}
+        defaultColDef={{ suppressHeaderMenuButton: false }}
         rowSelection={rowSelection}
         selectionColumnDef={selectionColumnDef}
         onSelectionChanged={onSelectionChanged}
         onSortChanged={onSortChanged}
         onRowDoubleClicked={onRowDoubleClicked}
         onGridReady={onGridReady}
+        onColumnMoved={onColumnMoved}
+        onColumnHeaderContextMenu={onColumnHeaderContextMenu}
         rowClassRules={{
           "row-deleted": (params) => {
             const data = params.data as ProductData | undefined;
@@ -429,7 +583,57 @@ const ProductTable = ({
           },
         }}
         domLayout="normal"
+        enableCellTextSelection={true}
       />
+      {headerMenu && (
+        <div
+          className="col-header-context-menu"
+          style={{ top: headerMenu.y, left: headerMenu.x }}
+          onClick={(ev) => ev.stopPropagation()}
+        >
+          {headerMenu.isPinned ? (
+            <button
+              className="col-header-context-menu__item"
+              onClick={() => {
+                if (!gridRef.current?.api) return;
+                const base =
+                  loadColumnState(seriesId) ??
+                  gridRef.current.api.getColumnState();
+                const updated = base.map((s) =>
+                  s.colId === headerMenu.colId ? { ...s, pinned: null } : s
+                );
+                saveColumnState(seriesId, updated);
+                setColumnStateVersion((v) => v + 1);
+                setHeaderMenu(null);
+              }}
+            >
+              <span className="col-header-context-menu__icon">📌</span>
+              Unpin Column
+            </button>
+          ) : (
+            <button
+              className="col-header-context-menu__item"
+              onClick={() => {
+                if (!gridRef.current?.api) return;
+                const base =
+                  loadColumnState(seriesId) ??
+                  gridRef.current.api.getColumnState();
+                const updated = base.map((s) =>
+                  s.colId === headerMenu.colId
+                    ? { ...s, pinned: "left" as const }
+                    : s
+                );
+                saveColumnState(seriesId, updated);
+                setColumnStateVersion((v) => v + 1);
+                setHeaderMenu(null);
+              }}
+            >
+              <span className="col-header-context-menu__icon">📌</span>
+              Pin Left
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

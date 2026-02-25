@@ -1,8 +1,12 @@
+:root {
+  --app-navbar-height: 54px;
+}
+
 th,
 td {
   white-space: nowrap;
 }
 
 body {
-  padding-top: 54px;
+  padding-top: var(--app-navbar-height);
 }
