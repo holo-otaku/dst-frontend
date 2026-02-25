@@ -610,6 +610,7 @@ const ProductTable = ({
         }}
         domLayout="normal"
         enableCellTextSelection={true}
+        ensureDomOrder={true}
       />
       {headerMenu && (
         <div
