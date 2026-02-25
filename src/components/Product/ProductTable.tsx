@@ -352,8 +352,6 @@ const ProductTable = ({
         },
         minWidth: 100,
         pinned,
-        wrapText: !pinned,
-        autoHeight: !pinned,
         ...(defaultPin && !savedState && { lockPinned: true }),
         resizable: true,
         sortable: true,
@@ -588,7 +586,7 @@ const ProductTable = ({
         theme={customTheme}
         rowData={products}
         columnDefs={columnDefs}
-        defaultColDef={{ suppressHeaderMenuButton: false }}
+        defaultColDef={{ suppressHeaderMenuButton: false, autoHeight: true }}
         rowSelection={rowSelection}
         selectionColumnDef={selectionColumnDef}
         onSelectionChanged={onSelectionChanged}
@@ -610,6 +608,7 @@ const ProductTable = ({
         }}
         domLayout="normal"
         enableCellTextSelection={true}
+        ensureDomOrder={true}
       />
       {headerMenu && (
         <div
