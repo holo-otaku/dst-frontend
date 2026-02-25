@@ -351,6 +351,7 @@ const ProductTable = ({
         },
         minWidth: 100,
         pinned,
+        wrapText: !pinned,
         ...(defaultPin && !savedState && { lockPinned: true }),
         resizable: true,
         sortable: true,
