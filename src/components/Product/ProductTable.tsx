@@ -373,7 +373,8 @@ const ProductTable = ({
         },
         minWidth: 100,
         resizable: true,
-        pinned: savedState !== undefined ? (savedState.pinned ?? null) : undefined,
+        pinned:
+          savedState !== undefined ? (savedState.pinned ?? null) : undefined,
         width: savedState?.width ?? undefined,
         cellStyle: (params) => {
           const data = params.data as ProductData | undefined;
@@ -391,8 +392,10 @@ const ProductTable = ({
       const orderMap = new Map<string, number>();
       saved.forEach((s, i) => orderMap.set(s.colId, i));
       cols.sort((a, b) => {
-        const ia = a.colId !== undefined ? (orderMap.get(a.colId) ?? 9999) : 9999;
-        const ib = b.colId !== undefined ? (orderMap.get(b.colId) ?? 9999) : 9999;
+        const ia =
+          a.colId !== undefined ? (orderMap.get(a.colId) ?? 9999) : 9999;
+        const ib =
+          b.colId !== undefined ? (orderMap.get(b.colId) ?? 9999) : 9999;
         // Keep "id" column always first regardless of saved order
         if (a.colId === "id") return -1;
         if (b.colId === "id") return 1;
@@ -401,7 +404,14 @@ const ProductTable = ({
     }
 
     return cols;
-  }, [products, seriesId, showCheckbox, renderCellValue, handleCopySuccess, columnStateVersion]);
+  }, [
+    products,
+    seriesId,
+    showCheckbox,
+    renderCellValue,
+    handleCopySuccess,
+    columnStateVersion,
+  ]);
 
   const rowSelection = useMemo(
     () => ({
