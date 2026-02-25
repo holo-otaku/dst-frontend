@@ -364,7 +364,7 @@
 
 /* When AG Grid wrapText:true is active, override nowrap for copyable cells */
 .ag-cell-wrap-text .copyable-cell__text {
-  white-space: normal;
+  white-space: pre-wrap;
   word-break: break-word;
   overflow: visible;
   text-overflow: unset;
