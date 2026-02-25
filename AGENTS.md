@@ -151,3 +151,9 @@ Defined in `.prettierrc.json`:
 - Never commit `.env` or `.env.local` files.
 - Sensitive tokens should be managed via `AuthContext`.
 - Always check `permissions` from `getPayload()` before rendering sensitive UI elements.
+
+## 5. Pre-commit Checklist
+
+- Run `yarn typecheck` to ensure no TypeScript errors.
+- Run `yarn lint` to ensure no ESLint warnings.
+- Always run `yarn prettier --write .` as the **final step** before committing.
