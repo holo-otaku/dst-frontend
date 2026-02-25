@@ -362,6 +362,20 @@
   min-width: 0;
 }
 
+/* When AG Grid wrapText:true is active, override nowrap for copyable cells */
+.ag-cell-wrap-text .copyable-cell__text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+/* Align wrapped cells to the top so multi-line text reads naturally */
+.ag-cell-wrap-text.ag-cell {
+  align-items: flex-start;
+  padding-top: 8px;
+}
+
 .copyable-cell__btn {
   flex-shrink: 0;
   display: flex;

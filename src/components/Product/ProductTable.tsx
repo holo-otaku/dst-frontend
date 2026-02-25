@@ -25,6 +25,7 @@ import {
   Column,
   type ColumnState,
   ColumnMovedEvent,
+  ColumnResizedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import ImagePreviewRenderer from "./ImagePreviewRenderer";
@@ -351,6 +352,8 @@ const ProductTable = ({
         },
         minWidth: 100,
         pinned,
+        wrapText: !pinned,
+        autoHeight: !pinned,
         ...(defaultPin && !savedState && { lockPinned: true }),
         resizable: true,
         sortable: true,
@@ -512,6 +515,14 @@ const ProductTable = ({
     [seriesId]
   );
 
+  const onColumnResized = useCallback(
+    (params: ColumnResizedEvent<ProductData>) => {
+      if (!params.finished) return;
+      saveColumnState(seriesId, params.api.getColumnState());
+    },
+    [seriesId]
+  );
+
   const onGridReady = useCallback(
     (params: GridReadyEvent<ProductData>) => {
       if (sortState.fieldId !== -1) {
@@ -585,6 +596,7 @@ const ProductTable = ({
         onRowDoubleClicked={onRowDoubleClicked}
         onGridReady={onGridReady}
         onColumnMoved={onColumnMoved}
+        onColumnResized={onColumnResized}
         onColumnHeaderContextMenu={onColumnHeaderContextMenu}
         rowClassRules={{
           "row-deleted": (params) => {
