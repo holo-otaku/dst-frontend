@@ -129,6 +129,7 @@
 /* Row Styling */
 .product-table-container .ag-row {
   cursor: pointer;
+  min-height: 88px;
   transition:
     background-color var(--pt-transition),
     box-shadow var(--pt-transition);
@@ -362,16 +363,16 @@
   min-width: 0;
 }
 
-/* When AG Grid wrapText:true is active, override nowrap for copyable cells */
-.ag-cell-wrap-text .copyable-cell__text {
+/* Non-pinned (center) columns: wrap text and align to top */
+.product-table-container .ag-center-cols-container .copyable-cell__text {
   white-space: pre-wrap;
   word-break: break-word;
   overflow: visible;
   text-overflow: unset;
 }
 
-/* Align wrapped cells to the top so multi-line text reads naturally */
-.ag-cell-wrap-text.ag-cell {
+/* Non-pinned cells align to top so multi-line text reads naturally */
+.product-table-container .ag-center-cols-container .ag-cell {
   align-items: flex-start;
   padding-top: 8px;
 }
