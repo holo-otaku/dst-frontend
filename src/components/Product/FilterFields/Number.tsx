@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { get } from "lodash";
 import { InputGroup, Form } from "react-bootstrap";
 import { IFilterProps } from "./types";
@@ -37,14 +37,19 @@ export const NumberFilter = ({
     loadOnFocus: true,
   });
 
+  const handleChangeRef = useRef(handleChange);
+  useEffect(() => {
+    handleChangeRef.current = handleChange;
+  });
+
   useEffect(() => {
     if (range.min && range.max && range.min !== range.max) {
-      handleChange(
+      handleChangeRef.current(
         `${range.min},${range.max}`,
         ProductSearchPayloadOperation.RANGE
       );
     }
-  }, [range, handleChange]);
+  }, [range]);
 
   const handleOperatorChange = (
     event: React.ChangeEvent<HTMLSelectElement>
