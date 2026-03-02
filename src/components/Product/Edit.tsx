@@ -232,7 +232,7 @@ export const Edit = () => {
   )?.fields;
 
   const handleSubmit = () => {
-    const parsedAttributes = parseAttributes(displayAttributes);
+    const parsedAttributes = parseAttributes(editAttributes);
 
     const payload: ProductEditPayload = {
       itemId: parseInt(id!),
