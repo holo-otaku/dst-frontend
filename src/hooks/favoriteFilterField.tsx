@@ -1,7 +1,7 @@
 import { SeriesField } from "../components/Series/Interfaces";
 import { get } from "lodash";
 import moment from "moment";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 const FAVORITE_FILTER_FIELD = "FAVORITE_FILTER_FIELD";
 
@@ -20,7 +20,6 @@ export const useFavoriteFilterField = (
 ) => {
   const { localStorage } = window;
 
-  // 從localStorage中獲取數據並設為內部狀態
   const [favoriteFields, setFavoriteFields] = useState<FavoriteFilterField>(
     () => {
       const storageFields = localStorage.getItem(FAVORITE_FILTER_FIELD) || "{}";
@@ -28,14 +27,15 @@ export const useFavoriteFilterField = (
     }
   );
 
-  const initializedSeriesRef = useRef<Set<number>>(new Set());
+  const [initializedSeriesId, setInitializedSeriesId] = useState<number | null>(
+    null
+  );
+
   useEffect(() => {
     localStorage.setItem(FAVORITE_FILTER_FIELD, JSON.stringify(favoriteFields));
   }, [favoriteFields, localStorage]);
 
-  const isCurrentSeriesInitialized = initializedSeriesRef.current.has(seriesId);
-
-  if (!isCurrentSeriesInitialized && currentFields.length > 0) {
+  if (initializedSeriesId !== seriesId && currentFields.length > 0) {
     const currentIds = currentFields.map((field) => field.id);
     const seriesFavoriteRecord = get(
       favoriteFields,
@@ -53,7 +53,7 @@ export const useFavoriteFilterField = (
         [seriesId]: updatedFavorites,
       });
     }
-    initializedSeriesRef.current.add(seriesId);
+    setInitializedSeriesId(seriesId);
   }
 
   const seriesFavoriteRecord = get(
@@ -66,9 +66,6 @@ export const useFavoriteFilterField = (
     const now = moment.now();
     const updatedFavorites = [...seriesFavoriteRecord] as FavoriteRecord[];
 
-    // 將currentIds中的id與favoriteFields中的id進行比較
-    // 如果favoriteFields中的id在currentIds中，則將其lastUsed更新為now
-    // 如果favoriteFields中的id不在currentIds中，則將其刪除
     currentIds.forEach((id) => {
       const existIndex = updatedFavorites.findIndex((item) => item.id === id);
 

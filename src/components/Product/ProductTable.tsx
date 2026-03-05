@@ -505,9 +505,12 @@ const ProductTable = ({
 
   // Save column state whenever the user finishes dragging a column.
   // finished=true means the drag is complete (not mid-drag).
+  // source check ensures we only persist user-initiated moves, not ag-grid
+  // internal reordering that fires during columnDefs updates (e.g. series switch).
   const onColumnMoved = useCallback(
     (params: ColumnMovedEvent<ProductData>) => {
       if (!params.finished) return;
+      if (params.source !== "uiColumnMoved") return;
       saveColumnState(seriesId, params.api.getColumnState());
     },
     [seriesId]
@@ -516,6 +519,7 @@ const ProductTable = ({
   const onColumnResized = useCallback(
     (params: ColumnResizedEvent<ProductData>) => {
       if (!params.finished) return;
+      if (params.source !== "uiColumnResized") return;
       saveColumnState(seriesId, params.api.getColumnState());
     },
     [seriesId]
