@@ -1,7 +1,7 @@
 import { SeriesField } from "../components/Series/Interfaces";
 import { get } from "lodash";
 import moment from "moment";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const FAVORITE_FILTER_FIELD = "FAVORITE_FILTER_FIELD";
 
@@ -27,15 +27,15 @@ export const useFavoriteFilterField = (
       return JSON.parse(storageFields) as FavoriteFilterField;
     }
   );
-  const [isFilterInitialized, setIsFilterInitialized] = useState(false);
 
-  // 將favoriteFields保存到localStorage
+  const initializedSeriesRef = useRef<Set<number>>(new Set());
   useEffect(() => {
     localStorage.setItem(FAVORITE_FILTER_FIELD, JSON.stringify(favoriteFields));
   }, [favoriteFields, localStorage]);
 
-  if (!isFilterInitialized && currentFields.length > 0) {
-    // 初次載入時，檢查該欄位是否已被刪除
+  const isCurrentSeriesInitialized = initializedSeriesRef.current.has(seriesId);
+
+  if (!isCurrentSeriesInitialized && currentFields.length > 0) {
     const currentIds = currentFields.map((field) => field.id);
     const seriesFavoriteRecord = get(
       favoriteFields,
@@ -53,7 +53,7 @@ export const useFavoriteFilterField = (
         [seriesId]: updatedFavorites,
       });
     }
-    setIsFilterInitialized(true);
+    initializedSeriesRef.current.add(seriesId);
   }
 
   const seriesFavoriteRecord = get(
