@@ -445,10 +445,10 @@ const Bar = ({
   refreshKey,
   refreshProducts,
 }: BarProps) => {
-  const { seriesFavoriteRecord, updateFavoritesWithIds } =
-    useFavoriteFilterField(selectedSeries, get(series, "[0].fields", []));
   const targetSeries = series.find((series) => series.id === selectedSeries);
   const fields = get(targetSeries, "fields", []);
+  const { seriesFavoriteRecord, updateFavoritesWithIds } =
+    useFavoriteFilterField(selectedSeries, fields);
   const { snapshot, restore } = useHistorySearch();
   const location = useLocation();
 
@@ -657,7 +657,7 @@ const ControlBar = ({ handleSearch, handleClear }: ControlBarProps) => {
 };
 
 const useHistorySearch = () => {
-  const { sessionStorage } = window;
+  const { localStorage } = window;
   const SESSION_STORAGE_KEY = "ONE_TIME_SEARCH_FIELDS";
 
   interface Snapshot {
@@ -675,7 +675,7 @@ const useHistorySearch = () => {
     limit,
     status,
   }: Snapshot) => {
-    sessionStorage.setItem(
+    localStorage.setItem(
       SESSION_STORAGE_KEY,
       JSON.stringify({
         selectedSeries,
@@ -689,9 +689,9 @@ const useHistorySearch = () => {
 
   const restore = (): Snapshot => {
     const snapshot = JSON.parse(
-      sessionStorage.getItem(SESSION_STORAGE_KEY) || "{}"
+      localStorage.getItem(SESSION_STORAGE_KEY) || "{}"
     ) as Snapshot;
-    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    localStorage.removeItem(SESSION_STORAGE_KEY);
     return snapshot;
   };
 
