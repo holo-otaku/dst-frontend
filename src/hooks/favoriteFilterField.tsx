@@ -20,22 +20,22 @@ export const useFavoriteFilterField = (
 ) => {
   const { localStorage } = window;
 
-  // 從localStorage中獲取數據並設為內部狀態
   const [favoriteFields, setFavoriteFields] = useState<FavoriteFilterField>(
     () => {
       const storageFields = localStorage.getItem(FAVORITE_FILTER_FIELD) || "{}";
       return JSON.parse(storageFields) as FavoriteFilterField;
     }
   );
-  const [isFilterInitialized, setIsFilterInitialized] = useState(false);
 
-  // 將favoriteFields保存到localStorage
+  const [initializedSeriesId, setInitializedSeriesId] = useState<number | null>(
+    null
+  );
+
   useEffect(() => {
     localStorage.setItem(FAVORITE_FILTER_FIELD, JSON.stringify(favoriteFields));
   }, [favoriteFields, localStorage]);
 
-  if (!isFilterInitialized && currentFields.length > 0) {
-    // 初次載入時，檢查該欄位是否已被刪除
+  if (initializedSeriesId !== seriesId && currentFields.length > 0) {
     const currentIds = currentFields.map((field) => field.id);
     const seriesFavoriteRecord = get(
       favoriteFields,
@@ -53,7 +53,7 @@ export const useFavoriteFilterField = (
         [seriesId]: updatedFavorites,
       });
     }
-    setIsFilterInitialized(true);
+    setInitializedSeriesId(seriesId);
   }
 
   const seriesFavoriteRecord = get(
@@ -66,9 +66,6 @@ export const useFavoriteFilterField = (
     const now = moment.now();
     const updatedFavorites = [...seriesFavoriteRecord] as FavoriteRecord[];
 
-    // 將currentIds中的id與favoriteFields中的id進行比較
-    // 如果favoriteFields中的id在currentIds中，則將其lastUsed更新為now
-    // 如果favoriteFields中的id不在currentIds中，則將其刪除
     currentIds.forEach((id) => {
       const existIndex = updatedFavorites.findIndex((item) => item.id === id);
 
