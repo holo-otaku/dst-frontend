@@ -103,10 +103,10 @@
   color: var(--pt-secondary);
 }
 
-/* Cell Styling */
 .product-table-container .ag-cell {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 8px;
   line-height: 1.5;
   transition: background-color var(--pt-transition);
   font-family: var(--pt-font) !important;
@@ -357,24 +357,11 @@
 
 .copyable-cell__text {
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-/* Non-pinned (center) columns: wrap text and align to top */
-.product-table-container .ag-center-cols-container .copyable-cell__text {
   white-space: pre-wrap;
   word-break: break-word;
   overflow: visible;
   text-overflow: unset;
-}
-
-/* Non-pinned cells align to top so multi-line text reads naturally */
-.product-table-container .ag-center-cols-container .ag-cell {
-  align-items: flex-start;
-  padding-top: 8px;
+  min-width: 0;
 }
 
 .copyable-cell__btn {

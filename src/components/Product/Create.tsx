@@ -15,6 +15,10 @@ import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
 import { parseAttributes } from "../../utils/attributeParser";
 
+interface ProductCreateResponse extends APIResponse {
+  data: { id: number; seriesId: number }[];
+}
+
 export const Create = () => {
   const navigate = useNavigate();
   const [{ data: seriesResponse, loading: seriesLoading }, refetch] =
@@ -27,13 +31,14 @@ export const Create = () => {
       },
     });
 
-  const [{ loading: createProductLoading }, createProduct] = useAxios(
-    {
-      url: "/product",
-      method: "POST",
-    },
-    { manual: true }
-  );
+  const [{ loading: createProductLoading }, createProduct] =
+    useAxios<ProductCreateResponse>(
+      {
+        url: "/product",
+        method: "POST",
+      },
+      { manual: true }
+    );
 
   useEffect(() => {
     void refetch();
@@ -42,6 +47,7 @@ export const Create = () => {
 
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [
     { data: seriesDetailResponse, loading: seriesDetailLoading },
     fetchSeriesDetail,
@@ -108,7 +114,17 @@ export const Create = () => {
     createProduct({
       data: [payload],
     })
-      .then(() => navigate("/products"))
+      .then((response) => {
+        const newId = response.data.data?.[0]?.id;
+        setSaveSuccess(true);
+        setTimeout(() => {
+          if (newId) {
+            navigate(`/products/${newId}/edit`);
+          } else {
+            navigate("/products");
+          }
+        }, 1000);
+      })
       .catch((e) =>
         alert(
           (e as AxiosError<APIError>).response?.data.msg || (e as Error).message
@@ -124,6 +140,11 @@ export const Create = () => {
       <Backdrop show={pageLoading}>
         <RingLoader color="#36d7b7" />
       </Backdrop>
+      {saveSuccess && (
+        <Alert variant="success" className="mb-2">
+          儲存成功！正在跳轉到編輯頁面...
+        </Alert>
+      )}
       <Row className="mb-2">
         <Col>
           <Form.Select onChange={(e) => handleSelect(e)}>
@@ -155,7 +176,7 @@ export const Create = () => {
           <Button
             variant="primary"
             onClick={handleSubmit}
-            disabled={pageLoading}
+            disabled={pageLoading || saveSuccess}
           >
             新增
           </Button>
