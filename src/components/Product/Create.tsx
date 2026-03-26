@@ -1,4 +1,4 @@
-import { Alert, Button, Col, Form, Row, Stack } from "react-bootstrap";
+import { Alert, Button, Col, Form, Modal, Row, Stack } from "react-bootstrap";
 import FormTable from "./FormTable";
 import {
   SeriesDetailResponse,
@@ -48,6 +48,7 @@ export const Create = () => {
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [newProductId, setNewProductId] = useState<number | null>(null);
   const [
     { data: seriesDetailResponse, loading: seriesDetailLoading },
     fetchSeriesDetail,
@@ -116,14 +117,8 @@ export const Create = () => {
     })
       .then((response) => {
         const newId = response.data.data?.[0]?.id;
+        setNewProductId(newId ?? null);
         setSaveSuccess(true);
-        setTimeout(() => {
-          if (newId) {
-            navigate(`/products/${newId}/edit`);
-          } else {
-            navigate("/products");
-          }
-        }, 1000);
       })
       .catch((e) =>
         alert(
@@ -140,11 +135,35 @@ export const Create = () => {
       <Backdrop show={pageLoading}>
         <RingLoader color="#36d7b7" />
       </Backdrop>
-      {saveSuccess && (
-        <Alert variant="success" className="mb-2">
-          儲存成功！正在跳轉到編輯頁面...
-        </Alert>
-      )}
+      <Modal show={saveSuccess} centered>
+        <Modal.Header>
+          <Modal.Title>新增成功</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>產品已成功新增，是否前往編輯頁面？</Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="primary"
+            onClick={() => {
+              if (newProductId) {
+                navigate(`/products/${newProductId}/edit`);
+              } else {
+                navigate("/products");
+              }
+            }}
+          >
+            前往編輯
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setSaveSuccess(false);
+              navigate("/products");
+            }}
+          >
+            返回列表
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <Row className="mb-2">
         <Col>
           <Form.Select onChange={(e) => handleSelect(e)}>
