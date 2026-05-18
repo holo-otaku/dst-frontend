@@ -3,7 +3,7 @@ import { SeriesTable } from "./Table";
 import { Controls } from "./Controls";
 import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
-import RingLoader from "react-spinners/RingLoader";
+import { RingLoader } from "react-spinners";
 import { SeriesResponse } from "./Interfaces";
 import { Stack } from "react-bootstrap";
 import { Pagination } from "../Pagination";

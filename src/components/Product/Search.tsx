@@ -3,7 +3,7 @@ import { Stack, Form, Row, Col, Button } from "react-bootstrap";
 import useAxios, { RefetchFunction } from "axios-hooks";
 import { SeriesResponse, SeriesFieldDataType } from "../Series/Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
-import RingLoader from "react-spinners/RingLoader";
+import { RingLoader } from "react-spinners";
 import { Pagination } from "../Pagination";
 import { get } from "lodash";
 import {

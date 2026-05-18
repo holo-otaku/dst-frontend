@@ -7,7 +7,7 @@ import {
 } from "../Series/Interfaces";
 import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
-import RingLoader from "react-spinners/RingLoader";
+import { RingLoader } from "react-spinners";
 import { get } from "lodash";
 import { useState, useEffect } from "react";
 import { ProductAttributePayload, ProductPayload } from "./Interface";

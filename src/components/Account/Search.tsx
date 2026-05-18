@@ -3,7 +3,7 @@ import { Stack } from "react-bootstrap";
 import useAxios from "axios-hooks";
 import { AccountResponse } from "./Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
-import RingLoader from "react-spinners/RingLoader";
+import { RingLoader } from "react-spinners";
 import AccountTable from "./Table";
 import { usePaginate } from "../../hooks";
 import { Pagination } from "../Pagination";

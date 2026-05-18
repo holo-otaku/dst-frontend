@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Button, Modal } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import Backdrop from "../Backdrop/Backdrop";
-import RingLoader from "react-spinners/RingLoader";
+import { RingLoader } from "react-spinners";
 import useDeleteProduct from "../../hooks/useDeleteProduct";
 
 export const Delete = () => {
