@@ -536,6 +536,12 @@ const Bar = ({
   }, [series, selectedSeries, page, refreshKey, limit, sortState, status]);
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const seriesIdFromUrl = params.get("seriesId");
+    if (seriesIdFromUrl) {
+      setSelectedSeries(parseInt(seriesIdFromUrl));
+      return;
+    }
     const { selectedSeries, limit, page, searchFields, status } = restore();
     if (selectedSeries) setSelectedSeries(selectedSeries);
     if (limit && pageSizes.includes(limit)) setLimit(limit);
