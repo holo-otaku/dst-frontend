@@ -157,7 +157,7 @@ export const Create = () => {
             variant="secondary"
             onClick={() => {
               setSaveSuccess(false);
-              navigate("/products");
+              navigate(`/products?seriesId=${selectedSeries}`);
             }}
           >
             返回列表
