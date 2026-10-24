@@ -23,38 +23,24 @@ import {
   themeQuartz,
   ColumnHeaderContextMenuEvent,
   Column,
-  type ColumnState,
   ColumnMovedEvent,
   ColumnResizedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import ImagePreviewRenderer from "./ImagePreviewRenderer";
 import CopyableCellRenderer from "./CopyableCellRenderer";
+import {
+  ID_COL_ID,
+  applyColumnLayout,
+  attrColId,
+  erpColId,
+  loadColumnState,
+  pinColumn,
+  saveColumnState,
+} from "./columnLayout";
 import "./ProductTable.css";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
-
-const COLUMN_STATE_KEY_PREFIX = "dst_product_col_state_";
-
-const loadColumnState = (seriesId: string | number): ColumnState[] | null => {
-  try {
-    const raw = localStorage.getItem(`${COLUMN_STATE_KEY_PREFIX}${seriesId}`);
-    return raw ? (JSON.parse(raw) as ColumnState[]) : null;
-  } catch {
-    return null;
-  }
-};
-
-const saveColumnState = (seriesId: string | number, state: unknown) => {
-  try {
-    localStorage.setItem(
-      `${COLUMN_STATE_KEY_PREFIX}${seriesId}`,
-      JSON.stringify(state)
-    );
-  } catch {
-    return;
-  }
-};
 
 interface ProductTableProps {
   products: ProductData[];
@@ -97,7 +83,7 @@ const ProductTable = ({
       if (typeof col.getColId !== "function") return;
       const colId = col.getColId();
       // Don't allow pin/unpin on the # (id) column which is lockPinned
-      if (colId === "id") return;
+      if (colId === ID_COL_ID) return;
       const isPinned = col.isPinnedLeft() || col.isPinnedRight();
       setHeaderMenu({
         x: lastContextMenuPos.current.x,
@@ -228,36 +214,6 @@ const ProductTable = ({
             );
           }
           return "";
-        case "image":
-          if (typeof value === "string" && value.trim() !== "") {
-            const productName = getProductName();
-            const altText = productName
-              ? `${productName} 產品圖片`
-              : "產品圖片";
-            const thumbnail = (
-              <ProductImage
-                src={value}
-                alt={altText}
-                style={{ maxWidth: "80px", maxHeight: "60px" }}
-              />
-            );
-            const preview = (
-              <ProductImage
-                src={value}
-                alt={altText}
-                style={{ maxWidth: "420px", maxHeight: "320px" }}
-              />
-            );
-            return (
-              <ImagePreviewRenderer
-                thumbnail={thumbnail}
-                preview={preview}
-                previewWidth={420}
-                previewHeight={320}
-              />
-            );
-          }
-          return "No Image";
         default:
           return String(value);
       }
@@ -268,25 +224,13 @@ const ProductTable = ({
   const columnDefs = useMemo((): ColDef[] => {
     if (products.length === 0) return [];
 
-    // Load saved column state for the current series and build a lookup map
-    // by colId so we can merge pinned/width/order into each ColDef directly.
-    // ag-grid re-applies stateful ColDef attributes on every columnDefs update,
-    // so encoding the saved state here is the only reliable way to restore it
-    // when switching back to a series whose column IDs haven't changed
-    // (which would otherwise skip onNewColumnsLoaded).
-    const saved = loadColumnState(seriesId);
-    const savedByColId = new Map<string, ColumnState>();
-    if (saved) {
-      saved.forEach((s) => savedByColId.set(s.colId, s));
-    }
-
     const cols: ColDef[] = [];
     const attributes = products[0].attributes || [];
     const erpAttributes = products[0].erp || [];
 
     // Checkbox column is now handled by rowSelection config, not column definition
     cols.push({
-      colId: "id",
+      colId: ID_COL_ID,
       headerName: "#",
       field: "itemId",
       width: 80,
@@ -298,24 +242,9 @@ const ProductTable = ({
       cellStyle: { color: "#2563eb", fontWeight: "500" },
     });
 
-    const isDstPartNumber = (fieldName: string) => {
-      return /\bdst\b/i.test(fieldName) && fieldName.includes("料號");
-    };
-
     attributes.forEach((attr: ProductDataAttribute) => {
-      const colId = `attr_${attr.fieldId}`;
-      const savedState = savedByColId.get(colId);
-      const defaultPin = isDstPartNumber(attr.fieldName);
-      // Prefer saved pinned state; fall back to default DST part-number pin.
-      // null means explicitly unpinned; undefined means use default.
-      const pinned =
-        savedState !== undefined
-          ? (savedState.pinned ?? null)
-          : defaultPin
-            ? ("left" as const)
-            : undefined;
       cols.push({
-        colId,
+        colId: attrColId(attr.fieldId),
         headerName: attr.fieldName,
         field: `attributes`,
         valueGetter: (params) => {
@@ -334,11 +263,7 @@ const ProductTable = ({
             attribute.value,
             params.data
           );
-          if (
-            attribute.dataType === "picture" ||
-            attribute.dataType === "image"
-          )
-            return rendered;
+          if (attribute.dataType === "picture") return rendered;
           const textValue =
             attribute.value != null ? String(attribute.value) : "";
           return (
@@ -351,19 +276,14 @@ const ProductTable = ({
           );
         },
         minWidth: 100,
-        pinned,
-        ...(defaultPin && !savedState && { lockPinned: true }),
         resizable: true,
         sortable: true,
-        width: savedState?.width ?? undefined,
       });
     });
 
     erpAttributes.forEach((erp) => {
-      const colId = `erp_${erp.key}`;
-      const savedState = savedByColId.get(colId);
       cols.push({
-        colId,
+        colId: erpColId(erp.key),
         headerName: erp.key,
         field: "erp",
         valueGetter: (params) => {
@@ -374,9 +294,6 @@ const ProductTable = ({
         },
         minWidth: 100,
         resizable: true,
-        pinned:
-          savedState !== undefined ? (savedState.pinned ?? null) : undefined,
-        width: savedState?.width ?? undefined,
         cellStyle: (params) => {
           const data = params.data as ProductData | undefined;
           if (data?.isDeleted || data?.hasArchive) {
@@ -387,38 +304,7 @@ const ProductTable = ({
       });
     });
 
-    // Reorder cols: "id" always first, ERP cols always last,
-    // everything else follows saved order (or original push order if no saved state).
-    const isErp = (colId: string | undefined) =>
-      colId !== undefined && colId.startsWith("erp_");
-    if (saved && saved.length > 0) {
-      const orderMap = new Map<string, number>();
-      saved.forEach((s, i) => orderMap.set(s.colId, i));
-      cols.sort((a, b) => {
-        if (a.colId === "id") return -1;
-        if (b.colId === "id") return 1;
-        const aIsErp = isErp(a.colId);
-        const bIsErp = isErp(b.colId);
-        if (aIsErp !== bIsErp) return aIsErp ? 1 : -1;
-        const ia =
-          a.colId !== undefined ? (orderMap.get(a.colId) ?? 9999) : 9999;
-        const ib =
-          b.colId !== undefined ? (orderMap.get(b.colId) ?? 9999) : 9999;
-        return ia - ib;
-      });
-    } else {
-      // No saved state: still enforce id-first and erp-last
-      cols.sort((a, b) => {
-        if (a.colId === "id") return -1;
-        if (b.colId === "id") return 1;
-        const aIsErp = isErp(a.colId);
-        const bIsErp = isErp(b.colId);
-        if (aIsErp !== bIsErp) return aIsErp ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return cols;
+    return applyColumnLayout(cols, loadColumnState(seriesId));
   }, [
     products,
     seriesId,
@@ -528,7 +414,7 @@ const ProductTable = ({
   const onGridReady = useCallback(
     (params: GridReadyEvent<ProductData>) => {
       if (sortState.fieldId !== -1) {
-        const colId = `attr_${sortState.fieldId}`;
+        const colId = attrColId(sortState.fieldId);
         params.api.applyColumnState({
           state: [
             {
@@ -552,7 +438,7 @@ const ProductTable = ({
   useEffect(() => {
     if (!gridRef.current?.api || sortState.fieldId === -1) return;
 
-    const colId = `attr_${sortState.fieldId}`;
+    const colId = attrColId(sortState.fieldId);
     gridRef.current.api.applyColumnState({
       state: [
         {
@@ -620,95 +506,31 @@ const ProductTable = ({
           style={{ top: headerMenu.y, left: headerMenu.x }}
           onClick={(ev) => ev.stopPropagation()}
         >
-          {headerMenu.isPinned ? (
-            <button
-              className="col-header-context-menu__item"
-              onClick={() => {
-                if (!gridRef.current?.api) return;
-                const base =
-                  loadColumnState(seriesId) ??
-                  gridRef.current.api.getColumnState();
-                const updated = base.map((s) =>
-                  s.colId === headerMenu.colId ? { ...s, pinned: null } : s
-                );
-                saveColumnState(seriesId, updated);
-                setColumnStateVersion((v) => v + 1);
-                setHeaderMenu(null);
-              }}
-            >
-              <span className="col-header-context-menu__icon">📌</span>
-              Unpin Column
-            </button>
-          ) : (
-            <button
-              className="col-header-context-menu__item"
-              onClick={() => {
-                if (!gridRef.current?.api) return;
-                const base =
-                  loadColumnState(seriesId) ??
-                  gridRef.current.api.getColumnState();
-                const updated = base.map((s) =>
-                  s.colId === headerMenu.colId
-                    ? { ...s, pinned: "left" as const }
-                    : s
-                );
-                saveColumnState(seriesId, updated);
-                setColumnStateVersion((v) => v + 1);
-                setHeaderMenu(null);
-              }}
-            >
-              <span className="col-header-context-menu__icon">📌</span>
-              Pin Left
-            </button>
-          )}
+          <button
+            className="col-header-context-menu__item"
+            onClick={() => {
+              if (!gridRef.current?.api) return;
+              const base =
+                loadColumnState(seriesId) ??
+                gridRef.current.api.getColumnState();
+              saveColumnState(
+                seriesId,
+                pinColumn(
+                  base,
+                  headerMenu.colId,
+                  headerMenu.isPinned ? null : "left"
+                )
+              );
+              setColumnStateVersion((v) => v + 1);
+              setHeaderMenu(null);
+            }}
+          >
+            <span className="col-header-context-menu__icon">📌</span>
+            {headerMenu.isPinned ? "Unpin Column" : "Pin Left"}
+          </button>
         </div>
       )}
     </div>
-  );
-};
-
-const ProductImage = ({
-  src,
-  alt,
-  style,
-}: {
-  src: string;
-  alt: string;
-  style?: React.CSSProperties;
-}) => {
-  const [imageSrc, setImageSrc] = useState(src);
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      setImageSrc(src);
-      setHasError(false);
-    });
-  }, [src]);
-
-  const handleImageError = () => {
-    setHasError(true);
-  };
-
-  if (hasError || !src) {
-    return (
-      <div
-        className="bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 text-xs"
-        style={style}
-      >
-        No Image
-      </div>
-    );
-  }
-
-  return (
-    <Image
-      src={imageSrc}
-      alt={alt}
-      style={style}
-      onError={handleImageError}
-      className="object-cover rounded"
-    />
   );
 };
 
