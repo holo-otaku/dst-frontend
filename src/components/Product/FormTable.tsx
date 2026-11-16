@@ -82,7 +82,8 @@ const renderFormControl = (
               e.target.checked ? "true" : "false"
             )
           }
-          defaultChecked={fieldValue === "true"}
+          // API 回傳布林，編輯中的值可能是 "true"/"false"
+          checked={fieldValue === true || fieldValue === "true"}
           isInvalid={field.isRequired && fieldValue === ""}
         />
       );

@@ -76,7 +76,8 @@ export const Create = () => {
     let parsedValue: string | number | boolean = value;
     switch (fieldDetail?.dataType) {
       case SeriesFieldDataType.boolean:
-        parsedValue = !!value;
+        // 開關送來的是 "true"/"false" 字串，!!"false" 會是 true
+        parsedValue = value === true || value === "true";
         break;
       default:
         break;

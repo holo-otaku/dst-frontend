@@ -278,6 +278,8 @@ const ProductTable = ({
         minWidth: 100,
         resizable: true,
         sortable: true,
+        // 排序由後端做（跨分頁、數字依大小），表格只顯示排序箭頭，不在本頁再排一次
+        comparator: () => 0,
       });
     });
 
