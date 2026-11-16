@@ -286,12 +286,12 @@ export const Edit = () => {
                 }
 
                 if (canArchive) {
-                  archiveProduct({ data: { itemIds: [id] } }).then(() =>
+                  archiveProduct({ data: { itemIds: [currentId] } }).then(() =>
                     navigate("/products")
                   );
                 } else {
-                  deleteArchiveProduct({ data: { itemIds: [id] } }).then(() =>
-                    navigate("/products")
+                  deleteArchiveProduct({ data: { itemIds: [currentId] } }).then(
+                    () => navigate("/products")
                   );
                 }
               }}

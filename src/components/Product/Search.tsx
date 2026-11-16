@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import { Stack, Form, Row, Col, Button } from "react-bootstrap";
 import useAxios, { RefetchFunction } from "axios-hooks";
-import { SeriesResponse, SeriesFieldDataType } from "../Series/Interfaces";
+import { SeriesResponse } from "../Series/Interfaces";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { Pagination } from "../Pagination";
@@ -9,12 +9,12 @@ import { get } from "lodash";
 import {
   ProductSearchFilters,
   ProductSearchPayloadField,
-  ProductSearchPayloadOperation,
   ProductSearchResponse,
   ArchiveProductResponse,
   ArchiveProductPayloadField,
 } from "./Interface";
 import ProductTable from "./ProductTable";
+import { activeFilters, toSearchRequest } from "./searchRequest";
 import { SearchBar } from "./SearchBar";
 import { useFavoriteFilterField, usePaginate } from "../../hooks";
 import { useLocation } from "react-router-dom";
@@ -103,65 +103,6 @@ export const Search = () => {
       setSelectedIds(new Set());
     });
   }, [selectedSeries]);
-
-  const buildSearchPayload = (fields: SeriesResponse["data"][0]["fields"]) => {
-    const filters = searchFields.filter((field) => field.value);
-    const normalFilters = filters.filter(
-      (filter) => filter.operation !== ProductSearchPayloadOperation.RANGE
-    );
-    const rangeFilters = filters.filter(
-      (filter) => filter.operation === ProductSearchPayloadOperation.RANGE
-    );
-
-    const rangeSearchFilter: ProductSearchFilters[] = [];
-    rangeFilters.forEach((filter) => {
-      const [min, max] = filter.value.toString().split(",");
-      rangeSearchFilter.push({
-        fieldId: filter.fieldId,
-        value: parseFloat(min),
-        operation: ProductSearchPayloadOperation.GREATER,
-      });
-      rangeSearchFilter.push({
-        fieldId: filter.fieldId,
-        value: parseFloat(max),
-        operation: ProductSearchPayloadOperation.LESS,
-      });
-    });
-
-    const finalFilters = [...normalFilters, ...rangeSearchFilter].map(
-      (data) => {
-        // 找到對應的欄位資訊
-        const field = fields?.find((f) => f.id === data.fieldId);
-        const isDateField = field?.dataType === SeriesFieldDataType.date;
-
-        if (
-          isDateField &&
-          typeof data.value === "string" &&
-          data.value.includes("-")
-        ) {
-          // 日期欄位：將 YYYY-MM-DD 格式轉換為 MM/DD/YY 格式
-          const [year, month, day] = data.value.split("-");
-          const shortYear = year.slice(-2);
-          const formattedDate = `${month}/${day}/${shortYear}`;
-          return { ...data, value: formattedDate };
-        } else if (data.operation && !isDateField) {
-          // 只有非日期欄位才使用 parseFloat
-          return { ...data, value: parseFloat(data.value as string) };
-        }
-        return data;
-      }
-    );
-
-    const params = {
-      page: currentPage,
-      limit,
-      ...(sortState.fieldId !== -1 && {
-        sort: `${sortState.fieldId},${sortState.order}`,
-      }),
-    };
-
-    return { filters, finalFilters, params };
-  };
 
   const refreshProducts = () => {
     setRefreshKey((prev) => prev + 1);
@@ -261,7 +202,6 @@ export const Search = () => {
           setSelectedSeries,
           searchFields,
           setSearchFields,
-          buildSearchPayload,
           status,
           setStatus,
           refreshKey,
@@ -410,15 +350,6 @@ interface BarProps {
   setSelectedSeries: (seriesId: number) => void;
   searchFields: ProductSearchFilters[];
   setSearchFields: (fields: ProductSearchFilters[]) => void;
-  buildSearchPayload: (fields: SeriesResponse["data"][0]["fields"]) => {
-    filters: ProductSearchFilters[];
-    finalFilters: ProductSearchFilters[];
-    params: {
-      page: number;
-      limit: number;
-      sort?: string;
-    };
-  };
   status?: "deleted" | "archived" | "both";
   setStatus: (status?: "deleted" | "archived" | "both") => void;
   refreshKey: number;
@@ -439,7 +370,6 @@ const Bar = ({
   setSelectedSeries,
   searchFields,
   setSearchFields,
-  buildSearchPayload,
   status,
   setStatus,
   refreshKey,
@@ -464,16 +394,9 @@ const Bar = ({
   );
 
   const handleExport = async () => {
-    const { finalFilters } = buildSearchPayload(fields);
     try {
       const response = await exportProduct({
-        data: {
-          seriesId: selectedSeries,
-          filters: finalFilters,
-          ...(status === "deleted" && { isDeleted: true }),
-          ...(status === "archived" && { isArchived: true }),
-          ...(status === "both" && { isDeleted: 2, isArchived: 2 }),
-        },
+        data: toSearchRequest(selectedSeries, searchFields, fields, status),
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -502,7 +425,7 @@ const Bar = ({
   };
 
   const handleSearch = () => {
-    const { filters, finalFilters, params } = buildSearchPayload(fields);
+    const filters = activeFilters(searchFields);
 
     updateFavoritesWithIds(filters.map((filter) => filter.fieldId));
     snapshot({
@@ -514,14 +437,14 @@ const Bar = ({
     });
 
     searchProduct({
-      data: {
-        seriesId: selectedSeries,
-        filters: finalFilters,
-        ...(status === "deleted" && { isDeleted: true }),
-        ...(status === "archived" && { isArchived: true }),
-        ...(status === "both" && { isDeleted: 2, isArchived: 2 }),
+      data: toSearchRequest(selectedSeries, searchFields, fields, status),
+      params: {
+        page,
+        limit,
+        ...(sortState.fieldId !== -1 && {
+          sort: `${sortState.fieldId},${sortState.order}`,
+        }),
       },
-      params,
     });
   };
 
