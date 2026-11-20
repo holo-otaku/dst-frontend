@@ -10,8 +10,8 @@ COPY . ./
 RUN yarn build
 
 # production environment
-# nginx >= 1.31.7 required (CVE-2026-93479 / 15176 / 97205 / 95101 / 97629)
-FROM nginx:1.31.8-alpine@sha256:e2d97c2b8c016f12c2f1a27d095685063b2f281c4edf2babfde6001cf4fb77a8
+# nginx >= 1.31.9 required (NGINX2Root: CVE-2026-123007 / 123633 / 123634 / 121810 / 113425)
+FROM nginx:1.31.9-alpine@sha256:90b6bd2aec278b16b98221d64deb1d6d35d164567f507ab0716e6053878315aa
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY ./docker/nginx/dst.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
