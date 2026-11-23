@@ -1,19 +1,16 @@
 import { Alert, Button, Col, Form, Modal, Row, Stack } from "react-bootstrap";
 import FormTable from "./FormTable";
-import {
-  SeriesDetailResponse,
-  SeriesFieldDataType,
-  SeriesResponse,
-} from "../Series/Interfaces";
+import { SeriesDetailResponse, SeriesResponse } from "../Series/Interfaces";
 import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { get } from "lodash";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { ProductAttributePayload, ProductPayload } from "./Interface";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context";
 import { AxiosError } from "axios";
-import { parseAttributes } from "../../utils/attributeParser";
+import { fromInput, withAttribute } from "./attributeValue";
 
 interface ProductCreateResponse extends APIResponse {
   data: { id: number; seriesId: number }[];
@@ -45,6 +42,8 @@ export const Create = () => {
     return () => {};
   }, [refetch]);
 
+  const { getPayload } = useContext(AuthContext);
+  const { permissions = [] } = getPayload();
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -69,47 +68,29 @@ export const Create = () => {
   }, [selectedSeries]);
 
   const handleInputChange = (fieldId: number, value: string | boolean) => {
-    const index = attributes.findIndex(
-      (attribute) => attribute.fieldId === fieldId
+    const dataType = fields?.find((field) => field.id === fieldId)?.dataType;
+    setAttributes(
+      withAttribute(attributes, fieldId, fromInput(dataType, value))
     );
-    const fieldDetail = fields?.find((field) => field.id === fieldId);
-    let parsedValue: string | number | boolean = value;
-    switch (fieldDetail?.dataType) {
-      case SeriesFieldDataType.boolean:
-        parsedValue = !!value;
-        break;
-      default:
-        break;
-    }
-
-    if (index === -1) {
-      setAttributes([
-        ...attributes,
-        {
-          fieldId,
-          value: parsedValue,
-        },
-      ]);
-    } else {
-      const newAttributes = [...attributes];
-      newAttributes[index].value = parsedValue;
-      setAttributes(newAttributes);
-    }
   };
 
   const series = get(seriesResponse, "data", []) as SeriesResponse["data"];
-  const fields = series.find((series) => series.id === selectedSeries)?.fields;
+  // 沒有 limit-field.read 時後端不接受限制欄位，表單不顯示
+  const canReadLimit = permissions.includes("limit-field.read");
+  const fields = series
+    .find((series) => series.id === selectedSeries)
+    ?.fields?.filter((field) => canReadLimit || !field.isLimitField);
 
   const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSeries(parseInt(event.currentTarget.value));
+    // 換 series 時清掉上一個 series 填的值
+    setAttributes([]);
   };
 
   const handleSubmit = () => {
-    const parsedAttributes = parseAttributes(attributes);
-
     const payload: ProductPayload = {
       seriesId: selectedSeries,
-      attributes: parsedAttributes,
+      attributes,
     };
 
     createProduct({

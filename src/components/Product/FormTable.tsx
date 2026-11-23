@@ -82,7 +82,8 @@ const renderFormControl = (
               e.target.checked ? "true" : "false"
             )
           }
-          defaultChecked={fieldValue === "true"}
+          // API 回傳布林，編輯中的值可能是 "true"/"false"
+          checked={fieldValue === true || fieldValue === "true"}
           isInvalid={field.isRequired && fieldValue === ""}
         />
       );
@@ -119,7 +120,7 @@ const renderFormControl = (
           onChange={(e) =>
             handleInputChange(field.id as number, e.target.value)
           }
-          value={fieldValue as string}
+          value={(fieldValue as string | null | undefined) ?? ""}
           rows={4}
           style={{ width: "100%" }} // 設定寬度為100%
         />
@@ -130,7 +131,7 @@ const renderFormControl = (
     <>
       <Form.Control
         onChange={(e) => handleInputChange(field.id as number, e.target.value)}
-        value={fieldValue as string}
+        value={(fieldValue as string | null | undefined) ?? ""}
         type={dataType}
         {...(dataType === "number" && { step: "any" })}
         isInvalid={field.isRequired && fieldValue === ""}

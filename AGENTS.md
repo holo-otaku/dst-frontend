@@ -18,7 +18,7 @@ The project uses **Yarn** as the package manager and **Vite** for the build pipe
 
 ### Testing
 
-Currently, no test framework (Jest/Vitest) is configured in the root `package.json`. If you need to add tests, refer to the `vitest` documentation and integrate it into the `scripts` section.
+Unit tests: `yarn test` (Vitest, `src/**/*.test.ts`, pure modules only). E2E: `yarn test:e2e` (Playwright, `e2e/`, starts `yarn dev` on :5173).
 
 ## 2. Code Style & Conventions
 
@@ -57,10 +57,10 @@ Currently, no test framework (Jest/Vitest) is configured in the root `package.js
 - **Example Component Structure:**
 
   ```tsx
-  import { Table, Button } from "react-bootstrap";
-  import { FeatureData } from "./Interfaces";
   import { useContext } from "react";
+  import { Table, Button } from "react-bootstrap";
   import { AuthContext } from "../../context";
+  import { FeatureData } from "./Interfaces";
 
   interface FeatureTableProps {
     data: FeatureData[];
