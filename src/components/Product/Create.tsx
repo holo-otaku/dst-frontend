@@ -1,10 +1,6 @@
 import { Alert, Button, Col, Form, Modal, Row, Stack } from "react-bootstrap";
 import FormTable from "./FormTable";
-import {
-  SeriesDetailResponse,
-  SeriesFieldDataType,
-  SeriesResponse,
-} from "../Series/Interfaces";
+import { SeriesDetailResponse, SeriesResponse } from "../Series/Interfaces";
 import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
@@ -13,7 +9,7 @@ import { useState, useEffect } from "react";
 import { ProductAttributePayload, ProductPayload } from "./Interface";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
-import { parseAttributes } from "../../utils/attributeParser";
+import { fromInput, withAttribute } from "./attributeValue";
 
 interface ProductCreateResponse extends APIResponse {
   data: { id: number; seriesId: number }[];
@@ -69,33 +65,10 @@ export const Create = () => {
   }, [selectedSeries]);
 
   const handleInputChange = (fieldId: number, value: string | boolean) => {
-    const index = attributes.findIndex(
-      (attribute) => attribute.fieldId === fieldId
+    const dataType = fields?.find((field) => field.id === fieldId)?.dataType;
+    setAttributes(
+      withAttribute(attributes, fieldId, fromInput(dataType, value))
     );
-    const fieldDetail = fields?.find((field) => field.id === fieldId);
-    let parsedValue: string | number | boolean = value;
-    switch (fieldDetail?.dataType) {
-      case SeriesFieldDataType.boolean:
-        // 開關送來的是 "true"/"false" 字串，!!"false" 會是 true
-        parsedValue = value === true || value === "true";
-        break;
-      default:
-        break;
-    }
-
-    if (index === -1) {
-      setAttributes([
-        ...attributes,
-        {
-          fieldId,
-          value: parsedValue,
-        },
-      ]);
-    } else {
-      const newAttributes = [...attributes];
-      newAttributes[index].value = parsedValue;
-      setAttributes(newAttributes);
-    }
   };
 
   const series = get(seriesResponse, "data", []) as SeriesResponse["data"];
@@ -106,11 +79,9 @@ export const Create = () => {
   };
 
   const handleSubmit = () => {
-    const parsedAttributes = parseAttributes(attributes);
-
     const payload: ProductPayload = {
       seriesId: selectedSeries,
-      attributes: parsedAttributes,
+      attributes,
     };
 
     createProduct({
