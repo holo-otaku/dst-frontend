@@ -5,9 +5,10 @@ import useAxios from "axios-hooks";
 import Backdrop from "../Backdrop/Backdrop";
 import RingLoader from "react-spinners/RingLoader";
 import { get } from "lodash";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { ProductAttributePayload, ProductPayload } from "./Interface";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context";
 import { AxiosError } from "axios";
 import { fromInput, withAttribute } from "./attributeValue";
 
@@ -41,6 +42,8 @@ export const Create = () => {
     return () => {};
   }, [refetch]);
 
+  const { getPayload } = useContext(AuthContext);
+  const { permissions = [] } = getPayload();
   const [selectedSeries, setSelectedSeries] = useState<number>(0);
   const [attributes, setAttributes] = useState<ProductAttributePayload[]>([]);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -72,10 +75,16 @@ export const Create = () => {
   };
 
   const series = get(seriesResponse, "data", []) as SeriesResponse["data"];
-  const fields = series.find((series) => series.id === selectedSeries)?.fields;
+  // 沒有 limit-field.read 時後端不接受限制欄位，表單不顯示
+  const canReadLimit = permissions.includes("limit-field.read");
+  const fields = series
+    .find((series) => series.id === selectedSeries)
+    ?.fields?.filter((field) => canReadLimit || !field.isLimitField);
 
   const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSeries(parseInt(event.currentTarget.value));
+    // 換 series 時清掉上一個 series 填的值
+    setAttributes([]);
   };
 
   const handleSubmit = () => {
