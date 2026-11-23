@@ -75,6 +75,8 @@ const LogTable = ({ data }: ILogTableProps) => (
         <th>方法</th>
         <th>資料</th>
         <th>使用者</th>
+        <th>狀態</th>
+        <th>IP</th>
         <th>時間</th>
       </tr>
     </thead>
@@ -85,6 +87,11 @@ const LogTable = ({ data }: ILogTableProps) => (
           <td>{log.method}</td>
           <td>{JSON.stringify(get(log, "payload", {}))}</td>
           <td>{log.userName}</td>
+          {/* 401/403 = 登入失敗或被權限擋下 */}
+          <td className={(log.status ?? 0) >= 400 ? "text-danger fw-bold" : ""}>
+            {log.status}
+          </td>
+          <td title={log.userAgent ?? undefined}>{log.ip}</td>
           <td>{log.createdAt}</td>
         </tr>
       ))}
