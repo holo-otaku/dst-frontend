@@ -18,8 +18,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context";
 import { AxiosError } from "axios";
-import moment from "moment";
-import { parseAttributes } from "../../utils/attributeParser";
+import { fromInput, toInput, withAttribute } from "./attributeValue";
 import useCopyProduct from "../../hooks/useCopyProduct";
 
 export const Edit = () => {
@@ -84,15 +83,13 @@ export const Edit = () => {
 
   const baseAttributes = useMemo(() => {
     if (!product) return [] as ProductAttributePayload[];
-    return product.attributes.map((attribute) => {
-      if (/^\d{4}\/\d{2}\/\d{2}$/.test(attribute.value as string)) {
-        return {
-          ...attribute,
-          value: moment(attribute.value as string).format("YYYY-MM-DD"),
-        };
-      }
-      return attribute;
-    });
+    return product.attributes.map((attribute) => ({
+      ...attribute,
+      value: toInput(
+        attribute.dataType as SeriesFieldDataType,
+        attribute.value
+      ),
+    }));
   }, [product]);
 
   const editAttributes = useMemo(() => {
@@ -187,56 +184,25 @@ export const Edit = () => {
 
   const handleInputChange = (fieldId: number, value: string) => {
     if (!currentId) return;
-
-    // 這邊整理出要送出的資料格式
-    const index = editAttributes.findIndex(
-      (attribute) => attribute.fieldId === fieldId
-    );
-    const fieldDetail = fields?.find((field) => field.id === fieldId);
-    let parsedValue: string | number | boolean = value;
-    switch (fieldDetail?.dataType) {
-      case SeriesFieldDataType.boolean:
-        parsedValue = value === "true";
-        break;
-      default:
-        break;
-    }
-
-    setEditAttributesMap((prev) => {
-      const existing = prev[currentId] || [];
-      if (index === -1) {
-        return {
-          ...prev,
-          [currentId]: [
-            ...existing,
-            {
-              fieldId,
-              value: parsedValue,
-            },
-          ],
-        };
-      }
-      const updated = existing.map((attribute, idx) =>
-        idx === index ? { ...attribute, value: parsedValue } : attribute
-      );
-      return {
-        ...prev,
-        [currentId]: updated,
-      };
-    });
+    const dataType = fields?.find((field) => field.id === fieldId)?.dataType;
+    const parsedValue = fromInput(dataType, value);
+    setEditAttributesMap((prev) => ({
+      ...prev,
+      [currentId]: withAttribute(prev[currentId] || [], fieldId, parsedValue),
+    }));
   };
 
   const series = get(seriesResponse, "data", []) as SeriesResponse["data"];
-  const fields = series.find(
-    (series) => series.id === selectedSeriesId
-  )?.fields;
+  // 沒有 limit-field.read 時後端不回傳、也不接受限制欄位，表單不顯示
+  const canReadLimit = permissions.includes("limit-field.read");
+  const fields = series
+    .find((series) => series.id === selectedSeriesId)
+    ?.fields?.filter((field) => canReadLimit || !field.isLimitField);
 
   const handleSubmit = () => {
-    const parsedAttributes = parseAttributes(editAttributes);
-
     const payload: ProductEditPayload = {
       itemId: parseInt(id!),
-      attributes: parsedAttributes,
+      attributes: editAttributes,
     };
 
     editProduct({
@@ -286,12 +252,12 @@ export const Edit = () => {
                 }
 
                 if (canArchive) {
-                  archiveProduct({ data: { itemIds: [id] } }).then(() =>
+                  archiveProduct({ data: { itemIds: [currentId] } }).then(() =>
                     navigate("/products")
                   );
                 } else {
-                  deleteArchiveProduct({ data: { itemIds: [id] } }).then(() =>
-                    navigate("/products")
+                  deleteArchiveProduct({ data: { itemIds: [currentId] } }).then(
+                    () => navigate("/products")
                   );
                 }
               }}
