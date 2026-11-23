@@ -193,9 +193,11 @@ export const Edit = () => {
   };
 
   const series = get(seriesResponse, "data", []) as SeriesResponse["data"];
-  const fields = series.find(
-    (series) => series.id === selectedSeriesId
-  )?.fields;
+  // 沒有 limit-field.read 時後端不回傳、也不接受限制欄位，表單不顯示
+  const canReadLimit = permissions.includes("limit-field.read");
+  const fields = series
+    .find((series) => series.id === selectedSeriesId)
+    ?.fields?.filter((field) => canReadLimit || !field.isLimitField);
 
   const handleSubmit = () => {
     const payload: ProductEditPayload = {
