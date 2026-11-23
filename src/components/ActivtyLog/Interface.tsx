@@ -10,5 +10,8 @@ interface IActivityLogData {
   method: string;
   userId: number;
   userName: string;
+  status: number | null;
+  ip: string | null;
+  userAgent: string | null;
   createdAt: string;
 }
